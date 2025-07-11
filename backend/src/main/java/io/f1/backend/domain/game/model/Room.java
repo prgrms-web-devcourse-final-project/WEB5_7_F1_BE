@@ -1,12 +1,14 @@
 package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
+
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Getter;
 
 @Getter
 public class Room {
@@ -27,14 +29,10 @@ public class Room {
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
-
-    public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting,
-        Player host) {
+    public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
         this.roomSetting = roomSetting;
         this.gameSetting = gameSetting;
         this.host = host;
     }
-
-
 }
