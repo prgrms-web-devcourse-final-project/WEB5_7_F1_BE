@@ -2,8 +2,11 @@ package io.f1.backend.domain.game.store;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.f1.backend.domain.game.model.GameSetting;
+import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
+import io.f1.backend.domain.game.model.RoomSetting;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +32,15 @@ class RoomRepositoryTests {
         loginUser.put("id", 1L);
         loginUser.put("nickname", "빵야빵야");
 
-        Long savedId = roomRepository.saveRoom(request, loginUser);
+
+        GameSetting gameSetting = new GameSetting(1L, 10, 60);
+
+        Player host = new Player((Long) loginUser.get("id"), loginUser.get("nickname").toString());
+
+        RoomSetting roomSetting = new RoomSetting(request.roomName(), request.maxUserCount(),
+            request.locked(), request.password());
+
+        Long savedId = roomRepository.saveRoom(gameSetting,host,roomSetting);
 
         Room savedRoom = roomRepository.getRoomForTest(savedId);
 

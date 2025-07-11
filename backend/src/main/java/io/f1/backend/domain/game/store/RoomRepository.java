@@ -4,7 +4,6 @@ import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
-import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,20 +15,10 @@ public class RoomRepository {
     private final Map<Long, Room> rooms = new ConcurrentHashMap<>();
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
 
-    public Long saveRoom(RoomCreateRequest request, Map<String, Object> loginUser) {
+    public Long saveRoom(GameSetting gameSetting, Player host, RoomSetting roomSetting) {
         Long newId = roomIdGenerator.incrementAndGet();
 
-        RoomSetting roomSetting = new RoomSetting(request.roomName(), request.maxUserCount(),
-            request.locked(), request.password());
-
-        //todo 제일 작은 index quizId 가져와서 gameSetting
-        GameSetting gameSetting = new GameSetting(1L, 10, 60);
-
-        Player host = new Player((Long) loginUser.get("id"), loginUser.get("nickname").toString());
-
-        Room newRoom = new Room(newId, roomSetting, gameSetting, host);
-
-        rooms.put(newId, newRoom);
+        rooms.put(newId, new Room(newId,roomSetting,gameSetting,host));
 
         return newId;
     }
