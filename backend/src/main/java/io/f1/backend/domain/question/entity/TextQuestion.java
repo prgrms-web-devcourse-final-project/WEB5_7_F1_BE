@@ -1,7 +1,5 @@
 package io.f1.backend.domain.question.entity;
 
-import io.f1.backend.domain.quiz.entity.Quiz;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,15 +11,14 @@ import jakarta.persistence.OneToOne;
 @Entity
 public class TextQuestion {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@OneToOne
-	@JoinColumn(name = "question_id", nullable = false)
-	private Question question;
+    @OneToOne
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
-	@Column(nullable = false)
-	private String content;
-
+    @Column(nullable = false)
+    private String content;
 }
