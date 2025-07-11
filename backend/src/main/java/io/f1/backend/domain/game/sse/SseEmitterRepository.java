@@ -1,9 +1,10 @@
 package io.f1.backend.domain.game.sse;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Repository
 public class SseEmitterRepository {
@@ -13,9 +14,10 @@ public class SseEmitterRepository {
     public void save(SseEmitter emitter) {
         emitters.add(emitter);
         // 연결종료 객체정리
-        emitter.onCompletion(() -> {
-            emitters.remove(emitter);
-        });
+        emitter.onCompletion(
+                () -> {
+                    emitters.remove(emitter);
+                });
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(error -> emitters.remove(emitter));
     }

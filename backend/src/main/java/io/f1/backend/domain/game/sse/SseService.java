@@ -1,9 +1,11 @@
 package io.f1.backend.domain.game.sse;
 
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -17,9 +19,7 @@ public class SseService {
 
         try {
             // emitter 정상 전송확인 메시지
-            emitter.send(SseEmitter.event()
-                .name("connect")
-                .data("connected"));
+            emitter.send(SseEmitter.event().name("connect").data("connected"));
         } catch (IOException e) {
             // emitter send() 호출 시 예외 처리
             emitterRepository.remove(emitter);
