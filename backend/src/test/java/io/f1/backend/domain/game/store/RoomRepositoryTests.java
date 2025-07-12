@@ -8,12 +8,12 @@ import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class RoomRepositoryTests {
@@ -76,8 +76,18 @@ class RoomRepositoryTests {
 
         GameSetting gameSetting = new GameSetting(1L, 10, 60);
 
-        RoomSetting roomSetting1 = new RoomSetting(request1.roomName(), request1.maxUserCount(), request1.locked(), request1.password());
-        RoomSetting roomSetting2 = new RoomSetting(request2.roomName(), request2.maxUserCount(), request2.locked(), request2.password());
+        RoomSetting roomSetting1 =
+                new RoomSetting(
+                        request1.roomName(),
+                        request1.maxUserCount(),
+                        request1.locked(),
+                        request1.password());
+        RoomSetting roomSetting2 =
+                new RoomSetting(
+                        request2.roomName(),
+                        request2.maxUserCount(),
+                        request2.locked(),
+                        request2.password());
 
         Room room1 = new Room(1L, roomSetting1, gameSetting, host1);
         Room room2 = new Room(2L, roomSetting2, gameSetting, host2);
@@ -91,7 +101,8 @@ class RoomRepositoryTests {
         // then: 저장한 방 2개가 모두 조회되어야하고
         assertThat(allRooms).hasSize(2);
         assertThat(allRooms).extracting("id").containsExactlyInAnyOrder(1L, 2L);
-        assertThat(allRooms).extracting(room -> room.getRoomSetting().roomName()).containsExactlyInAnyOrder("방이름_1", "방이름_2");
-
+        assertThat(allRooms)
+                .extracting(room -> room.getRoomSetting().roomName())
+                .containsExactlyInAnyOrder("방이름_1", "방이름_2");
     }
 }
