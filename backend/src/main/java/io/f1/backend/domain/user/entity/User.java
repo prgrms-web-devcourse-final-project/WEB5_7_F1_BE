@@ -12,8 +12,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
 @Table(name = "`user`")
 public class User extends BaseEntity {

@@ -16,9 +16,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
 public class Quiz extends BaseEntity {
 
