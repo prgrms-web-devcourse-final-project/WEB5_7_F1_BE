@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.api;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
-import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;

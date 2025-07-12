@@ -15,7 +15,6 @@ public class Player {
 
     private int correctCount = 0;
 
-
     public Player(Long id, String nickname) {
         this.id = id;
         this.nickname = nickname;
