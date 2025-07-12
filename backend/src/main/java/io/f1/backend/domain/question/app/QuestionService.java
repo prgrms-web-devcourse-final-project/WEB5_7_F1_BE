@@ -8,7 +8,9 @@ import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.question.mapper.QuestionMapper;
 import io.f1.backend.domain.question.mapper.TextQuestionMapper;
 import io.f1.backend.domain.quiz.entity.Quiz;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +28,9 @@ public class QuestionService {
         quiz.addQuestion(question);
         questionRepository.save(question);
 
-        TextQuestion textQuestion = TextQuestionMapper.questionRequestToTextQuestion(question, request.getContent());
+        TextQuestion textQuestion =
+                TextQuestionMapper.questionRequestToTextQuestion(question, request.getContent());
         textQuestionRepository.save(textQuestion);
         question.addTextQuestion(textQuestion);
-
     }
-
-
 }

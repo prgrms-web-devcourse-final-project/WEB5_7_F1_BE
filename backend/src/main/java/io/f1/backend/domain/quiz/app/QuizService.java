@@ -9,17 +9,19 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.quiz.mapper.QuizMapper;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +39,11 @@ public class QuizService {
     private final QuizRepository quizRepository;
 
     @Transactional
-    public QuizCreateResponse saveQuiz(MultipartFile file, QuizCreateRequest request) throws IOException {
+    public QuizCreateResponse saveQuiz(MultipartFile file, QuizCreateRequest request)
+            throws IOException {
         String imgUrl = defaultThumbnailPath;
 
-        if(file!=null && !file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             validateImageFile(file);
             imgUrl = saveThumbnail(file);
         }
@@ -52,7 +55,7 @@ public class QuizService {
 
         Quiz savedQuiz = quizRepository.save(quiz);
 
-        for(QuestionRequest qRequest : request.getQuestions()) {
+        for (QuestionRequest qRequest : request.getQuestions()) {
             questionService.saveQuestion(savedQuiz, qRequest);
         }
 
@@ -61,13 +64,13 @@ public class QuizService {
 
     private void validateImageFile(MultipartFile file) {
 
-        if(!file.getContentType().startsWith("image")) {
+        if (!file.getContentType().startsWith("image")) {
             // TODO : 이후 커스텀 예외로 변경
             throw new IllegalArgumentException("이미지 파일을 업로드해주세요.");
         }
 
         List<String> allowedExt = List.of("jpg", "jpeg", "png", "webp");
-        if(!allowedExt.contains(getExtension(file.getOriginalFilename()))) {
+        if (!allowedExt.contains(getExtension(file.getOriginalFilename()))) {
             throw new IllegalArgumentException("지원하지 않는 확장자입니다.");
         }
     }
@@ -86,5 +89,4 @@ public class QuizService {
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
-
 }

@@ -9,5 +9,4 @@ public class QuestionMapper {
     public static Question questionRequestToQuestion(Quiz quiz, QuestionRequest questionRequest) {
         return new Question(quiz, questionRequest.getAnswer());
     }
-
 }

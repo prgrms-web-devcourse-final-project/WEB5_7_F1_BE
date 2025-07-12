@@ -13,11 +13,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @Entity
-@NoArgsConstructor(access= AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Question extends BaseEntity {
 
     @Id
@@ -33,13 +34,13 @@ public class Question extends BaseEntity {
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.REMOVE)
     private TextQuestion textQuestion;
-	public Question(Quiz quiz, String answer) {
-		this.quiz = quiz;
-		this.answer = answer;
-	}
 
-	public void addTextQuestion(TextQuestion textQuestion) {
-		this.textQuestion = textQuestion;
-	}
+    public Question(Quiz quiz, String answer) {
+        this.quiz = quiz;
+        this.answer = answer;
+    }
 
+    public void addTextQuestion(TextQuestion textQuestion) {
+        this.textQuestion = textQuestion;
+    }
 }

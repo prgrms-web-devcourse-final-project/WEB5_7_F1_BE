@@ -8,5 +8,4 @@ public class TextQuestionMapper {
     public static TextQuestion questionRequestToTextQuestion(Question question, String content) {
         return new TextQuestion(question, content);
     }
-
 }
