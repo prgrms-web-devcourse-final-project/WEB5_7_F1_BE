@@ -41,3 +41,6 @@ out/
 
 ### .idea ###
 .idea
+
+### images/thumbnail ###
+images/thumbnail/**

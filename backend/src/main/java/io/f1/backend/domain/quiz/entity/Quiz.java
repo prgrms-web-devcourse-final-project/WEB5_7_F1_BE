@@ -18,8 +18,14 @@ import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@NoArgsConstructor(access= AccessLevel.PROTECTED)
 public class Quiz extends BaseEntity {
 
     @Id
@@ -45,4 +51,19 @@ public class Quiz extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+
+	@Builder
+	public Quiz(String title, String description, QuizType quizType, String thumbnailUrl,
+		User creator) {
+		this.title = title;
+		this.description = description;
+		this.quizType = quizType;
+		this.thumbnailUrl = thumbnailUrl;
+		this.creator = creator;
+	}
+
+	public void addQuestion(Question question) {
+		this.questions.add(question);
+	}
+
 }

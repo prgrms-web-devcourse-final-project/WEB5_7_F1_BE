@@ -13,8 +13,10 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "`user`")
 public class User extends BaseEntity {
 
