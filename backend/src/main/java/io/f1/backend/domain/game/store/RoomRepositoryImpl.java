@@ -1,9 +1,11 @@
 package io.f1.backend.domain.game.store;
 
 import io.f1.backend.domain.game.model.Room;
+
+import org.springframework.stereotype.Repository;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class RoomRepositoryImpl implements RoomRepository {
@@ -15,9 +17,8 @@ public class RoomRepositoryImpl implements RoomRepository {
         roomMap.put(room.getId(), room);
     }
 
-    //테스트 전용 메소드
+    // 테스트 전용 메소드
     public Room getRoomForTest(Long roomId) {
         return roomMap.get(roomId);
     }
-
 }
