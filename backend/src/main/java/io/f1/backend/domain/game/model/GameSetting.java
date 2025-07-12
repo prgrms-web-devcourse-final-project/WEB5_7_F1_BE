@@ -1,5 +1,10 @@
-package io.f1.backend.domain.game;
+package io.f1.backend.domain.game.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class GameSetting {
 
     private Long quizId;
