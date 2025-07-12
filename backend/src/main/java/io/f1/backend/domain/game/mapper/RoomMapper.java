@@ -15,17 +15,16 @@ public class RoomMapper {
 
     public static RoomResponse toRoomResponse(Room room, Quiz quiz) {
         return new RoomResponse(
-            room.getId(),
-            room.getRoomSetting().roomName(),
-            room.getRoomSetting().maxUserCount(),
-            room.getPlayerSessionMap().size(),
-            room.getRoomSetting().locked(),
-            room.getState().name(),
-            quiz.getTitle(),
-            quiz.getDescription(),
-            quiz.getCreator().getNickname(),
-            quiz.getQuestions().size(),
-            quiz.getThumbnailUrl()
-        );
+                room.getId(),
+                room.getRoomSetting().roomName(),
+                room.getRoomSetting().maxUserCount(),
+                room.getPlayerSessionMap().size(),
+                room.getRoomSetting().locked(),
+                room.getState().name(),
+                quiz.getTitle(),
+                quiz.getDescription(),
+                quiz.getCreator().getNickname(),
+                quiz.getQuestions().size(),
+                quiz.getThumbnailUrl());
     }
 }

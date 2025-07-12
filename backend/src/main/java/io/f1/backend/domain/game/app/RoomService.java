@@ -2,9 +2,9 @@ package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 
-import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
+import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.mapper.RoomMapper;
 import io.f1.backend.domain.game.model.GameSetting;
@@ -12,14 +12,14 @@ import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.store.RoomRepository;
-
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -48,20 +48,23 @@ public class RoomService {
     // todo quizService에서 퀴즈 조회 메서드로 변경
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
-        List<RoomResponse> roomResponses = rooms.stream().map(room -> {
+        List<RoomResponse> roomResponses =
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    User user = new User(); // 임시 유저 객체
+                                    user.setNickname("임시 유저 닉네임");
 
-            User user = new User(); // 임시 유저 객체
-            user.setNickname("임시 유저 닉네임");
+                                    Quiz quiz = new Quiz(); // 임시 퀴즈 객체
+                                    quiz.setTitle("임시 퀴즈 제목");
+                                    quiz.setDescription("임시 퀴즈 설명");
+                                    quiz.setThumbnailUrl("임시 이미지");
+                                    quiz.setQuestions(List.of());
+                                    quiz.setCreator(user);
 
-            Quiz quiz = new Quiz(); // 임시 퀴즈 객체
-            quiz.setTitle("임시 퀴즈 제목");
-            quiz.setDescription("임시 퀴즈 설명");
-            quiz.setThumbnailUrl("임시 이미지");
-            quiz.setQuestions(List.of());
-            quiz.setCreator(user);
-
-            return RoomMapper.toRoomResponse(room, quiz);
-        }).toList();
+                                    return RoomMapper.toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 }

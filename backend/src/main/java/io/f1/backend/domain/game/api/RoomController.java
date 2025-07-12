@@ -3,12 +3,10 @@ package io.f1.backend.domain.game.api;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
-
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
-import io.f1.backend.domain.game.model.Room;
+
 import jakarta.validation.Valid;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
