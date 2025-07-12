@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.api;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
+import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class RoomController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Long saveRoom(@RequestBody @Valid RoomCreateRequest request) {
+    public RoomCreateResponse saveRoom(@RequestBody @Valid RoomCreateRequest request) {
 
         Map<String, Object> loginUser = new HashMap<>();
         loginUser.put("id", 1L);

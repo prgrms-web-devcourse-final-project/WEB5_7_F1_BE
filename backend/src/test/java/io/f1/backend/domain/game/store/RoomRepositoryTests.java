@@ -15,11 +15,11 @@ import org.junit.jupiter.api.Test;
 
 class RoomRepositoryTests {
 
-    RoomRepository roomRepository;
+    RoomRepositoryImpl roomRepository;
 
     @BeforeEach
     void setUp() {
-        roomRepository = new RoomRepository();
+        roomRepository = new RoomRepositoryImpl();
     }
 
     @Test
@@ -40,9 +40,13 @@ class RoomRepositoryTests {
         RoomSetting roomSetting = new RoomSetting(request.roomName(), request.maxUserCount(),
             request.locked(), request.password());
 
-        Long savedId = roomRepository.saveRoom(gameSetting,host,roomSetting);
+        Long newId = 1L;
 
-        Room savedRoom = roomRepository.getRoomForTest(savedId);
+        Room newRoom = new Room(newId, roomSetting, gameSetting, host);
+
+        roomRepository.saveRoom(newRoom);
+
+        Room savedRoom = roomRepository.getRoomForTest(newId);
 
         assertThat(savedRoom.getHost().getId()).isEqualTo(loginUser.get("id"));
         assertThat(savedRoom.getHost().getNickname()).isEqualTo(loginUser.get("nickname"));
