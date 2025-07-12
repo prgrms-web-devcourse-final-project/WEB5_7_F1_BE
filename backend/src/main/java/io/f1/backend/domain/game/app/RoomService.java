@@ -1,12 +1,11 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
+import static io.f1.backend.domain.game.mapper.RoomMapper.*;
 
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
-import io.f1.backend.domain.game.mapper.RoomMapper;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -62,7 +61,7 @@ public class RoomService {
                                     quiz.setQuestions(List.of());
                                     quiz.setCreator(user);
 
-                                    return RoomMapper.toRoomResponse(room, quiz);
+                                    return toRoomResponse(room, quiz);
                                 })
                         .toList();
         return new RoomListResponse(roomResponses);
