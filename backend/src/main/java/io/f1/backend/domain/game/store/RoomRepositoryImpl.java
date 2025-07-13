@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.store;
 
 import io.f1.backend.domain.game.model.Room;
 
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -15,6 +16,11 @@ public class RoomRepositoryImpl implements RoomRepository {
     @Override
     public void saveRoom(Room room) {
         roomMap.put(room.getId(), room);
+    }
+
+    @Override
+    public Optional<Room> findRoom(Long roomId) {
+        return Optional.ofNullable(roomMap.get(roomId));
     }
 
     // 테스트 전용 메소드

@@ -2,8 +2,10 @@ package io.f1.backend.domain.game.api;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
+import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 
+import io.f1.backend.domain.game.dto.response.RoomValidationResponse;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -34,5 +36,10 @@ public class RoomController {
         loginUser.put("nickname", "빵야빵야");
 
         return roomService.saveRoom(request, loginUser);
+    }
+
+    @PostMapping("/validation")
+    public RoomValidationResponse validateRoom(@RequestBody RoomValidationRequest request) {
+        return roomService.validateRoom(request);
     }
 }
