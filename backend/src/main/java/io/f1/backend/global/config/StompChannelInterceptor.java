@@ -35,6 +35,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
                 }
             }
 
+            case SEND -> log.info("SEND : 요청 destination = {}", destination);
+
             case DISCONNECT -> log.info("DISCONNECT : 연결 해제 sessionId = {}", sessionId);
 
             default -> throw new IllegalStateException("Unexpected command: " + command);
