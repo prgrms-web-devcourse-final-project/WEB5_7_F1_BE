@@ -4,6 +4,7 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
+import io.f1.backend.domain.game.dto.response.RoomListResponse;
 
 import io.f1.backend.domain.game.dto.response.RoomValidationResponse;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,5 +43,10 @@ public class RoomController {
     @PostMapping("/validation")
     public RoomValidationResponse validateRoom(@RequestBody RoomValidationRequest request) {
         return roomService.validateRoom(request);
+    }
+
+    @GetMapping
+    public RoomListResponse getAllRooms() {
+        return roomService.getAllRooms();
     }
 }

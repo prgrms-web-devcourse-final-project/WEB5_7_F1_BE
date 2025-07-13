@@ -5,6 +5,8 @@ import io.f1.backend.domain.game.model.Room;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +23,11 @@ public class RoomRepositoryImpl implements RoomRepository {
     @Override
     public Optional<Room> findRoom(Long roomId) {
         return Optional.ofNullable(roomMap.get(roomId));
+    }
+
+    @Override
+    public List<Room> findAll() {
+        return new ArrayList<>(roomMap.values());
     }
 
     // 테스트 전용 메소드
