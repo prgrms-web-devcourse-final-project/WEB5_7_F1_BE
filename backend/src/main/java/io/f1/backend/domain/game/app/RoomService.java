@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.*;
 
+import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
