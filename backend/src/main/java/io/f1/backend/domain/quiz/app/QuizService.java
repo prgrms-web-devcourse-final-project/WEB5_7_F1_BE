@@ -18,7 +18,6 @@ import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
-import io.micrometer.common.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -120,7 +120,7 @@ public class QuizService {
             throw new RuntimeException("권한이 없습니다.");
         }
 
-        deleteOldThumbnailFileIfNeeded(quiz.getThumbnailUrl());
+        deleteThumbnailFile(quiz.getThumbnailUrl());
         quizRepository.deleteById(quizId);
     }
 
@@ -145,12 +145,12 @@ public class QuizService {
             validateImageFile(thumbnailFile);
             String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
 
-            deleteOldThumbnailFileIfNeeded(quiz.getThumbnailUrl());
+            deleteThumbnailFile(quiz.getThumbnailUrl());
             quiz.changeThumbnailUrl(newThumbnailPath);
         }
     }
 
-    private void deleteOldThumbnailFileIfNeeded(String oldFilename) {
+    private void deleteThumbnailFile(String oldFilename) {
         if (oldFilename.contains(DEFAULT)) {
             return;
         }
