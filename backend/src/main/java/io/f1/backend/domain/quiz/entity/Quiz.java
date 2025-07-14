@@ -69,4 +69,16 @@ public class Quiz extends BaseEntity {
     public void addQuestion(Question question) {
         this.questions.add(question);
     }
+
+    public void changeTitle(String title) {
+        this.title = title;
+    }
+
+    public void changeDescription(String description) {
+        this.description = description;
+    }
+
+    public void changeThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }

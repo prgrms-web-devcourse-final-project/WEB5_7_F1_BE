@@ -1,20 +1,29 @@
 package io.f1.backend.domain.quiz.app;
 
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.pageQuizToPageQuizListResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.toQuizListPageResponse;
+import static java.nio.file.Files.deleteIfExists;
 
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
+import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
+import io.f1.backend.domain.quiz.dto.QuizListResponse;
+import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
 
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,5 +99,85 @@ public class QuizService {
 
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
+    }
+
+    @Transactional
+    public void deleteQuiz(Long quizId) {
+
+        Quiz quiz = quizRepository.findById(quizId)
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        if(1L != quiz.getCreator().getId()) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        deleteOldThumbnailFileIfNeeded(quiz.getThumbnailUrl());
+        quizRepository.deleteById(quizId);
+    }
+
+    @Transactional
+    public void updateQuiz(Long quizId, MultipartFile thumbnailFile, QuizUpdateRequest request)
+        throws IOException {
+
+        Quiz quiz = quizRepository.findById(quizId)
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        if(request.title() != null) {
+            quiz.changeTitle(request.title());
+        }
+
+        if(request.description() != null) {
+            quiz.changeDescription(request.description());
+        }
+
+        if(thumbnailFile !=null && !thumbnailFile.isEmpty()) {
+            validateImageFile(thumbnailFile);
+            String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
+
+            deleteOldThumbnailFileIfNeeded(quiz.getThumbnailUrl());
+            quiz.changeThumbnailUrl(newThumbnailPath);
+        }
+    }
+
+    private void deleteOldThumbnailFileIfNeeded(String oldFilename) {
+        if(oldFilename.contains("default")) {
+            return;
+        }
+
+        // oldFilename : /images/thumbnail/123asd.jpg
+        // filename : 123asd.jpg
+        String filename = oldFilename.substring(oldFilename.lastIndexOf("/") + 1);
+        Path filePath = Paths.get(uploadPath, filename).toAbsolutePath();
+
+        try {
+            boolean deleted = deleteIfExists(filePath);
+            if( deleted ) {
+                System.out.println("기존 썸네일 삭제 완료 : " + filePath);
+            } else {
+                System.out.println("기존 썸네일 존재 X : " + filePath);
+            }
+        } catch (IOException e) {
+            System.err.println("기존 썸네일 삭제 중 오류 : " + filePath);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Transactional(readOnly=true)
+    public QuizListPageResponse getQuizzes(String title, String creator, Pageable pageable) {
+
+        Page<Quiz> quizzes;
+
+        // 검색어가 있을 때
+        if(title != null && !title.isBlank()) {
+            quizzes = quizRepository.findQuizzesByTitleContaining(title, pageable);
+        } else if(creator !=null && !creator.isBlank()) {
+            quizzes = quizRepository.findQuizzesByCreator_NicknameContaining(creator, pageable);
+        } else { // 검색어가 없을 때 혹은 빈 문자열일 때
+            quizzes = quizRepository.findAll(pageable);
+        }
+
+        Page<QuizListResponse> quizListResponses = pageQuizToPageQuizListResponse(quizzes);
+
+        return toQuizListPageResponse(quizListResponses);
     }
 }

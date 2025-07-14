@@ -2,8 +2,12 @@ package io.f1.backend.domain.quiz.mapper;
 
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
+import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
+import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
+import java.util.List;
+import org.springframework.data.domain.Page;
 
 public class QuizMapper {
 
@@ -29,5 +33,29 @@ public class QuizMapper {
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
                 quiz.getCreator().getId());
+    }
+
+    public static QuizListResponse quizToQuizListResponse(Quiz quiz) {
+        return new QuizListResponse(
+            quiz.getId(),
+            quiz.getTitle(),
+            quiz.getDescription(),
+            quiz.getCreator().getNickname(),
+            quiz.getQuestions().size(),
+            quiz.getThumbnailUrl()
+        );
+    }
+
+    public static QuizListPageResponse toQuizListPageResponse(Page<QuizListResponse> quizzes) {
+        return new QuizListPageResponse(
+            quizzes.getTotalPages(),
+            quizzes.getNumber() + 1,
+            quizzes.getTotalElements(),
+            quizzes.getContent()
+        );
+    }
+
+    public static Page<QuizListResponse> pageQuizToPageQuizListResponse(Page<Quiz> quizzes) {
+        return quizzes.map(QuizMapper::quizToQuizListResponse);
     }
 }
