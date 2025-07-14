@@ -11,13 +11,13 @@ public class QuizMapper {
     public static Quiz quizCreateRequestToQuiz(
             QuizCreateRequest quizCreateRequest, String imgUrl, User user) {
 
-        return Quiz.builder()
-                .title(quizCreateRequest.getTitle())
-                .description(quizCreateRequest.getDescription())
-                .quizType(quizCreateRequest.getQuizType())
-                .thumbnailUrl(imgUrl)
-                .creator(user) // TODO : 이후 creator에 들어갈 User은 현재 로그인 중인 유저를 가져오도록 변경
-                .build();
+        return new Quiz(
+            quizCreateRequest.getTitle(),
+            quizCreateRequest.getDescription(),
+            quizCreateRequest.getQuizType(),
+            imgUrl,
+            user // TODO : 이후 creator에 들어갈 User은 현재 로그인 중인 유저를 가져오도록 변경
+        );
     }
 
     public static QuizCreateResponse quizToQuizCreateResponse(Quiz quiz) {

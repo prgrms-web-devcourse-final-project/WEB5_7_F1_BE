@@ -1,12 +1,14 @@
 package io.f1.backend.domain.quiz.app;
 
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
+
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
-import io.f1.backend.domain.quiz.mapper.QuizMapper;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
 
@@ -41,17 +43,17 @@ public class QuizService {
     @Transactional
     public QuizCreateResponse saveQuiz(MultipartFile file, QuizCreateRequest request)
             throws IOException {
-        String imgUrl = defaultThumbnailPath;
+        String thumbnailPath = defaultThumbnailPath;
 
         if (file != null && !file.isEmpty()) {
             validateImageFile(file);
-            imgUrl = saveThumbnail(file);
+            thumbnailPath = convertToThumbnailPath(file);
         }
 
         // TODO : 시큐리티 구현 이후 삭제 (data.sql로 초기 저장해둔 유저 get), 나중엔 현재 로그인한 유저의 아이디를 받아오도록 수정
         User user = userRepository.findById(1L).orElseThrow(RuntimeException::new);
 
-        Quiz quiz = QuizMapper.quizCreateRequestToQuiz(request, imgUrl, user);
+        Quiz quiz = quizCreateRequestToQuiz(request, thumbnailPath, user);
 
         Quiz savedQuiz = quizRepository.save(quiz);
 
@@ -59,7 +61,7 @@ public class QuizService {
             questionService.saveQuestion(savedQuiz, qRequest);
         }
 
-        return QuizMapper.quizToQuizCreateResponse(savedQuiz);
+        return quizToQuizCreateResponse(savedQuiz);
     }
 
     private void validateImageFile(MultipartFile file) {
@@ -75,7 +77,7 @@ public class QuizService {
         }
     }
 
-    private String saveThumbnail(MultipartFile file) throws IOException {
+    private String convertToThumbnailPath(MultipartFile file) throws IOException {
         String originalFilename = file.getOriginalFilename();
         String ext = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID().toString() + "." + ext;

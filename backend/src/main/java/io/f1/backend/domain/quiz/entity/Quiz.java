@@ -53,7 +53,6 @@ public class Quiz extends BaseEntity {
     @JoinColumn(name = "creator_id")
     private User creator;
 
-    @Builder
     public Quiz(
             String title,
             String description,
