@@ -16,9 +16,15 @@ import java.util.List;
 
 public class RoomMapper {
 
+    private static final int DEFAULT_TIME_LIMIT = 60;
+
     public static RoomSetting toRoomSetting(RoomCreateRequest request) {
         return new RoomSetting(
                 request.roomName(), request.maxUserCount(), request.locked(), request.password());
+    }
+
+    public static GameSetting toGameSetting(Quiz quiz) {
+        return new GameSetting(quiz.getId(), quiz.getQuestions().size(), DEFAULT_TIME_LIMIT);
     }
 
     public static RoomSettingResponse toRoomSettingResponse(Room room) {
@@ -29,8 +35,8 @@ public class RoomMapper {
     }
 
     public static GameSettingResponse toGameSettingResponse(
-            GameSetting gameSetting, QuizResponse quiz) {
-        return new GameSettingResponse(gameSetting.getRound(), gameSetting.getTimeLimit(), quiz);
+            GameSetting gameSetting, Quiz quiz) {
+        return new GameSettingResponse(gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz));
     }
 
     public static PlayerListResponse toPlayerListResponse(Room room) {
@@ -55,5 +61,9 @@ public class RoomMapper {
                 quiz.getCreator().getNickname(),
                 quiz.getQuestions().size(),
                 quiz.getThumbnailUrl());
+    }
+
+    public static QuizResponse toQuizResponse(Quiz quiz) {
+        return new QuizResponse(quiz.getId(), quiz.getTitle(), quiz.getDescription(), quiz.getThumbnailUrl(), quiz.getQuestions().size());
     }
 }

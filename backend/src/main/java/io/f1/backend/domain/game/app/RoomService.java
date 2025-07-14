@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
@@ -49,10 +50,13 @@ public class RoomService {
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
-        // todo 제일 작은 index quizId 가져와서 gameSetting(round 설정)
-        GameSetting gameSetting = new GameSetting(1L, 10, 60);
+        Long minQuizId = quizService.getQuizMinId();
+        Quiz quiz = quizService.getQuizById(minQuizId);
+
+        GameSetting gameSetting = toGameSetting(quiz);
 
         Player host = createPlayer();
+
         RoomSetting roomSetting = toRoomSetting(request);
 
         Long newId = roomIdGenerator.incrementAndGet();
@@ -60,9 +64,6 @@ public class RoomService {
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
         roomRepository.saveRoom(room);
-
-        Long quizId = room.getGameSetting().getQuizId();
-        Quiz quiz = quizService.getQuizById(quizId);
 
         eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
@@ -108,9 +109,9 @@ public class RoomService {
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
-        // todo quiz 생성 api 완성 후 수정
-        QuizResponse quiz =
-            new QuizResponse(room.getGameSetting().getQuizId(), "title", "설명", "url", 10);
+        Long quizId = room.getGameSetting().getQuizId();
+        Quiz quiz = quizService.getQuizById(quizId);
+
         GameSettingResponse gameSettingResponse =
             toGameSettingResponse(room.getGameSetting(), quiz);
 
