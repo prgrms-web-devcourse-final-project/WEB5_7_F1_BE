@@ -1,5 +1,7 @@
 package io.f1.backend.domain.user.app;
 
+import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
+import static io.f1.backend.domain.user.constants.SessionKeys.USER;
 import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
 
 import io.f1.backend.domain.user.dao.UserRepository;
@@ -36,7 +38,7 @@ public class UserService {
 
     private AuthenticationUser extractSessionUser(HttpSession session) {
         AuthenticationUser authenticationUser = (AuthenticationUser) session.getAttribute(
-            "OAuthUser");
+            OAUTH_USER);
         if (authenticationUser == null) {
             throw new RuntimeException("E401001: 로그인이 필요합니다.");
         }
@@ -73,7 +75,7 @@ public class UserService {
     }
 
     private void updateSessionAfterSignup(HttpSession session, User user) {
-        session.removeAttribute("OAuthUser");
-        session.setAttribute("user", AuthenticationUser.from(user));
+        session.removeAttribute(OAUTH_USER);
+        session.setAttribute(USER, AuthenticationUser.from(user));
     }
 }

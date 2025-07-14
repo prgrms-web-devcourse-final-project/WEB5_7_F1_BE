@@ -1,5 +1,7 @@
 package io.f1.backend.domain.user.app;
 
+import static io.f1.backend.domain.user.constants.SessionKeys.*;
+
 import io.f1.backend.domain.stat.entity.Stat;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
@@ -37,7 +39,7 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
                 .map(this::updateLastLogin)
                 .orElseGet(() -> createNewUser(provider, providerId));
 
-        httpSession.setAttribute("OAuthUser", AuthenticationUser.from(user));
+        httpSession.setAttribute(OAUTH_USER, AuthenticationUser.from(user));
         return new UserPrincipal(user, oAuth2User.getAttributes());
     }
 
