@@ -5,8 +5,8 @@ import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
-
 import io.f1.backend.domain.game.dto.response.RoomValidationResponse;
+
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
