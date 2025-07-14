@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
-@Getter
 @Table(name = "`user`")
 public class User extends BaseEntity {
 

@@ -27,8 +27,7 @@ import java.util.List;
 @Getter
 @Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Quiz extends BaseEntity {
 
     @Id
