@@ -91,4 +91,10 @@ public class QuizService {
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
+
+    public Quiz getQuizById(Long quizId) {
+        return quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+    }
 }
