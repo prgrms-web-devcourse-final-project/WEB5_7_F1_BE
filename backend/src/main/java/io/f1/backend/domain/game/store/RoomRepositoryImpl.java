@@ -30,6 +30,11 @@ public class RoomRepositoryImpl implements RoomRepository {
         return new ArrayList<>(roomMap.values());
     }
 
+    @Override
+    public void removeRoom(Long roomId) {
+        roomMap.remove(roomId);
+    }
+
     // 테스트 전용 메소드
     public Room getRoomForTest(Long roomId) {
         return roomMap.get(roomId);

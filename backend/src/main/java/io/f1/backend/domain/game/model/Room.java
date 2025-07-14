@@ -35,4 +35,8 @@ public class Room {
         this.gameSetting = gameSetting;
         this.host = host;
     }
+
+    public void updateHost(Player nextHost){
+        this.host = nextHost;
+    }
 }

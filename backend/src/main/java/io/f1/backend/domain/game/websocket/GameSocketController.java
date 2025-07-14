@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,7 @@ public class GameSocketController {
     @MessageMapping("/room/enter/{roomId}")
     public void roomEnter(@DestinationVariable Long roomId, Message<?> message) {
 
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        String websocketSessionId = accessor.getSessionId();
+        String websocketSessionId = getSessionId(message);
 
         RoomInitialData roomInitialData = roomService.enterRoom(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
@@ -34,5 +34,29 @@ public class GameSocketController {
                 destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
         messageSender.send(
                 destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
+    }
+
+    @MessageMapping("/room/exit/{roomId}")
+    public void exitRoom(@DestinationVariable Long roomId, Message<?> message) {
+
+        String websocketSessionId = getSessionId(message);
+
+        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId);
+
+        String destination = roomExitData.destination();
+
+        if (!roomExitData.removedRoom()) {
+            messageSender.send(
+                destination, MessageType.PLAYER_LIST, roomExitData.playerListResponses()
+            );
+            messageSender.send(
+                destination , MessageType.SYSTEM_NOTICE, roomExitData.systemNoticeResponse()
+            );
+        }
+    }
+
+    private static String getSessionId(Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        return accessor.getSessionId();
     }
 }
