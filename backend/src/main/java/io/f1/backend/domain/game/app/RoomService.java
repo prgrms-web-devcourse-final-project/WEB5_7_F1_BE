@@ -1,10 +1,6 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.*;
 
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
@@ -18,15 +14,23 @@ import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
+import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
 import java.time.LocalDateTime;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,8 +42,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RoomService {
 
+    private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
+    private final ApplicationEventPublisher eventPublisher;
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request, Map<String, Object> loginUser) {
 
@@ -51,7 +57,14 @@ public class RoomService {
 
         Long newId = roomIdGenerator.incrementAndGet();
 
-        roomRepository.saveRoom(new Room(newId, roomSetting, gameSetting, host));
+        Room room = new Room(newId, roomSetting, gameSetting, host);
+
+        roomRepository.saveRoom(room);
+
+        Long quizId = room.getGameSetting().getQuizId();
+        Quiz quiz = quizService.getQuizById(quizId);
+
+        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
@@ -74,7 +87,7 @@ public class RoomService {
         }
 
         if (room.getRoomSetting().locked()
-            && !room.getRoomSetting().password().equals(request.password())) {
+                && !room.getRoomSetting().password().equals(request.password())) {
             throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
         }
     }
@@ -82,9 +95,9 @@ public class RoomService {
     public RoomInitialData enterRoom(Long roomId, String sessionId) {
 
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
         // todo security
         Player player = new Player(1L, "빵야빵야");
@@ -142,26 +155,18 @@ public class RoomService {
         return new RoomExitData(destination,playerListResponse, systemNoticeResponse, false);
     }
 
-    // todo quizService에서 퀴즈 조회 메서드로 변경
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-            rooms.stream()
-                .map(
-                    room -> {
-                        User user = new User(); // 임시 유저 객체
-                        user.setNickname("임시 유저 닉네임");
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizById(quizId);
 
-                        Quiz quiz = new Quiz(); // 임시 퀴즈 객체
-                        quiz.setTitle("임시 퀴즈 제목");
-                        quiz.setDescription("임시 퀴즈 설명");
-                        quiz.setThumbnailUrl("임시 이미지");
-                        quiz.setQuestions(List.of());
-                        quiz.setCreator(user);
-
-                        return toRoomResponse(room, quiz);
-                    })
-                .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 

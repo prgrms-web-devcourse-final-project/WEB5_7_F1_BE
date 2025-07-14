@@ -1,7 +1,11 @@
 package io.f1.backend.domain.user.app;
 
+import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
+import static io.f1.backend.domain.user.constants.SessionKeys.USER;
+import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
+
 import io.f1.backend.domain.user.dao.UserRepository;
-import io.f1.backend.domain.user.dto.SessionUser;
+import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequestDto;
 import io.f1.backend.domain.user.dto.SignupResponseDto;
 import io.f1.backend.domain.user.entity.User;
@@ -22,28 +26,29 @@ public class UserService {
 
     @Transactional
     public SignupResponseDto signup(HttpSession session, SignupRequestDto signupRequest) {
-        SessionUser sessionUser = extractSessionUser(session);
+        AuthenticationUser authenticationUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();
-        validateNickname(nickname);
-        validateDuplicateNickname(nickname);
+        validateNicknameFormat(nickname);
+        validateNicknameDuplicate(nickname);
 
-        User user = updateUserNickname(sessionUser.getUserId(), nickname);
+        User user = updateUserNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
         SecurityUtils.setAuthentication(user);
 
-        return SignupResponseDto.toDto(user);
+        return toSignupResponse(user);
     }
 
-    private SessionUser extractSessionUser(HttpSession session) {
-        SessionUser sessionUser = (SessionUser) session.getAttribute("OAuthUser");
-        if (sessionUser == null) {
-            throw new RuntimeException("세션에 OAuth 정보 없음");
+    private AuthenticationUser extractSessionUser(HttpSession session) {
+        AuthenticationUser authenticationUser =
+                (AuthenticationUser) session.getAttribute(OAUTH_USER);
+        if (authenticationUser == null) {
+            throw new RuntimeException("E401001: 로그인이 필요합니다.");
         }
-        return sessionUser;
+        return authenticationUser;
     }
 
-    private void validateNickname(String nickname) {
+    private void validateNicknameFormat(String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
             throw new RuntimeException("E400002: 닉네임은 필수 입력입니다.");
         }
@@ -55,22 +60,26 @@ public class UserService {
         }
     }
 
-    private void validateDuplicateNickname(String nickname) {
+    @Transactional(readOnly = true)
+    public void validateNicknameDuplicate(String nickname) {
         if (userRepository.existsUserByNickname(nickname)) {
-            throw new RuntimeException("닉네임 중복");
+            throw new RuntimeException("E409001: 중복된 닉네임입니다.");
         }
     }
 
-    private User updateUserNickname(Long userId, String nickname) {
+    @Transactional
+    public User updateUserNickname(Long userId, String nickname) {
         User user =
-                userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자 없음"));
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
         user.updateNickname(nickname);
 
         return userRepository.save(user);
     }
 
     private void updateSessionAfterSignup(HttpSession session, User user) {
-        session.removeAttribute("OAuthUser");
-        session.setAttribute("user", new SessionUser(user));
+        session.removeAttribute(OAUTH_USER);
+        session.setAttribute(USER, AuthenticationUser.from(user));
     }
 }

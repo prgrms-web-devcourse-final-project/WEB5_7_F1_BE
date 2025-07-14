@@ -16,11 +16,11 @@ import java.util.Map;
 public class UserPrincipal implements UserDetails, OAuth2User {
 
     public static final String ROLE_USER = "ROLE_USER";
-    private final User user;
+    private final AuthenticationUser authenticationUser;
     private final Map<String, Object> attributes;
 
     public UserPrincipal(User user, Map<String, Object> attributes) {
-        this.user = user;
+        this.authenticationUser = AuthenticationUser.from(user);
         this.attributes = attributes;
     }
 
@@ -30,16 +30,16 @@ public class UserPrincipal implements UserDetails, OAuth2User {
     }
 
     public Long getUserId() {
-        return user.getId();
+        return authenticationUser.userId();
     }
 
     public String getUserNickname() {
-        return user.getNickname();
+        return authenticationUser.nickname();
     }
 
     @Override
     public String getName() {
-        return user.getProviderId();
+        return authenticationUser.providerId();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public String getUsername() {
-        return user.getProviderId();
+        return authenticationUser.providerId();
     }
 
     @Override
