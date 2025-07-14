@@ -12,12 +12,12 @@ public class QuizMapper {
             QuizCreateRequest quizCreateRequest, String imgUrl, User user) {
 
         return new Quiz(
-            quizCreateRequest.getTitle(),
-            quizCreateRequest.getDescription(),
-            quizCreateRequest.getQuizType(),
-            imgUrl,
-            user // TODO : 이후 creator에 들어갈 User은 현재 로그인 중인 유저를 가져오도록 변경
-        );
+                quizCreateRequest.getTitle(),
+                quizCreateRequest.getDescription(),
+                quizCreateRequest.getQuizType(),
+                imgUrl,
+                user // TODO : 이후 creator에 들어갈 User은 현재 로그인 중인 유저를 가져오도록 변경
+                );
     }
 
     public static QuizCreateResponse quizToQuizCreateResponse(Quiz quiz) {

@@ -29,8 +29,7 @@ public class QuestionService {
         quiz.addQuestion(question);
         questionRepository.save(question);
 
-        TextQuestion textQuestion =
-                questionRequestToTextQuestion(question, request.getContent());
+        TextQuestion textQuestion = questionRequestToTextQuestion(question, request.getContent());
         textQuestionRepository.save(textQuestion);
         question.addTextQuestion(textQuestion);
     }
