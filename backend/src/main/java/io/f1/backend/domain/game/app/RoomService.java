@@ -116,14 +116,16 @@ public class RoomService {
 
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
-        List<RoomResponse> roomResponses = rooms.stream()
-            .map(room -> {
-                Long quizId = room.getGameSetting().getQuizId();
-                Quiz quiz = quizService.getQuizById(quizId);
+        List<RoomResponse> roomResponses =
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizById(quizId);
 
-                return toRoomResponse(room, quiz);
-                })
-            .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 }
