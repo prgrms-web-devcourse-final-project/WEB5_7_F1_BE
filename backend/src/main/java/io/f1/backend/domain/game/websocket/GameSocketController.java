@@ -3,7 +3,9 @@ package io.f1.backend.domain.game.websocket;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -26,13 +28,11 @@ public class GameSocketController {
         RoomInitialData roomInitialData = roomService.enterRoom(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
 
-        messageSender.send(destination, MessageType.ROOM_SETTING,
-            roomInitialData.roomSettingResponse());
-        messageSender.send(destination, MessageType.GAME_SETTING,
-            roomInitialData.gameSettingResponse());
-        messageSender.send(destination, MessageType.PLAYER_LIST,
-            roomInitialData.playerListResponse());
+        messageSender.send(
+                destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
+        messageSender.send(
+                destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
+        messageSender.send(
+                destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
     }
-
-
 }
