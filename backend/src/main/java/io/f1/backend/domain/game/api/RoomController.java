@@ -41,7 +41,7 @@ public class RoomController {
 
     @PostMapping("/validation")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void validateRoom(@RequestBody RoomValidationRequest request) {
+    public void validateRoom(@RequestBody @Valid RoomValidationRequest request) {
         roomService.validateRoom(request);
     }
 
