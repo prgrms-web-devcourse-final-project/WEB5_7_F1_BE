@@ -3,3 +3,11 @@ spring:
     url: jdbc:h2:mem:testdb;MODE=MYSQL
     username: sa
     password:
+
+  sql:
+    init:
+      mode: never
+
+file:
+  thumbnail-path : images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
+  default-thumbnail-url: /images/thumbnail/default.png
