@@ -3,7 +3,7 @@ package io.f1.backend.domain.user.app;
 import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
 
 import io.f1.backend.domain.user.dao.UserRepository;
-import io.f1.backend.domain.user.dto.SessionUser;
+import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequestDto;
 import io.f1.backend.domain.user.dto.SignupResponseDto;
 import io.f1.backend.domain.user.entity.User;
@@ -21,25 +21,26 @@ public class UserService {
 
     @Transactional
     public SignupResponseDto signup(HttpSession session, SignupRequestDto signupRequest) {
-        SessionUser sessionUser = extractSessionUser(session);
+        AuthenticationUser authenticationUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();
         validateNicknameFormat(nickname);
         validateNicknameDuplicate(nickname);
 
-        User user = updateUserNickname(sessionUser.getUserId(), nickname);
+        User user = updateUserNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
         SecurityUtils.setAuthentication(user);
 
         return toSignupResponse(user);
     }
 
-    private SessionUser extractSessionUser(HttpSession session) {
-        SessionUser sessionUser = (SessionUser) session.getAttribute("OAuthUser");
-        if (sessionUser == null) {
+    private AuthenticationUser extractSessionUser(HttpSession session) {
+        AuthenticationUser authenticationUser = (AuthenticationUser) session.getAttribute(
+            "OAuthUser");
+        if (authenticationUser == null) {
             throw new RuntimeException("E401001: 로그인이 필요합니다.");
         }
-        return sessionUser;
+        return authenticationUser;
     }
 
     private void validateNicknameFormat(String nickname) {
@@ -73,6 +74,6 @@ public class UserService {
 
     private void updateSessionAfterSignup(HttpSession session, User user) {
         session.removeAttribute("OAuthUser");
-        session.setAttribute("user", new SessionUser(user));
+        session.setAttribute("user", AuthenticationUser.from(user));
     }
 }
