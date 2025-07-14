@@ -72,7 +72,8 @@ public class QuizController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String creator) {
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable =
+                PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         QuizListPageResponse quizzes = quizService.getQuizzes(title, creator, pageable);
 
         return ResponseEntity.ok().body(quizzes);
