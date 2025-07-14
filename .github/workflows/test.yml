@@ -9,6 +9,8 @@ jobs:
       contents: read
     env:
       PROJECT_DIR: backend
+      KAKAO_CLIENT: ${{ secrets.KAKAO_CLIENT }}
+      KAKAO_SECRET: ${{ secrets.KAKAO_SECRET }}
     steps:
       - uses: actions/checkout@v4
 
