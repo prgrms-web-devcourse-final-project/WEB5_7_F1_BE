@@ -18,12 +18,11 @@ import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
-
 import io.micrometer.common.util.StringUtils;
-import java.util.NoSuchElementException;
-import lombok.RequiredArgsConstructor;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -115,7 +114,7 @@ public class QuizService {
                         .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         // TODO : util 메서드에서 사용자 ID 꺼내쓰는 식으로 수정하기
-        if(1L != quiz.getCreator().getId()) {
+        if (1L != quiz.getCreator().getId()) {
             throw new RuntimeException("권한이 없습니다.");
         }
 
@@ -161,7 +160,7 @@ public class QuizService {
 
         try {
             boolean deleted = deleteIfExists(filePath);
-            if( deleted ) {
+            if (deleted) {
                 log.info("기존 썸네일 삭제 완료 : {}", filePath);
             } else {
                 log.info("기존 썸네일 존재 X : {}", filePath);
@@ -178,9 +177,9 @@ public class QuizService {
         Page<Quiz> quizzes;
 
         // 검색어가 있을 때
-        if(StringUtils.isBlank(title)) {
+        if (StringUtils.isBlank(title)) {
             quizzes = quizRepository.findQuizzesByTitleContaining(title, pageable);
-        } else if(StringUtils.isBlank(creator)) {
+        } else if (StringUtils.isBlank(creator)) {
             quizzes = quizRepository.findQuizzesByCreator_NicknameContaining(creator, pageable);
         } else { // 검색어가 없을 때 혹은 빈 문자열일 때
             quizzes = quizRepository.findAll(pageable);
