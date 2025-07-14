@@ -41,13 +41,13 @@ public class QuizService {
     private final QuizRepository quizRepository;
 
     @Transactional
-    public QuizCreateResponse saveQuiz(MultipartFile file, QuizCreateRequest request)
+    public QuizCreateResponse saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request)
             throws IOException {
         String thumbnailPath = defaultThumbnailPath;
 
-        if (file != null && !file.isEmpty()) {
-            validateImageFile(file);
-            thumbnailPath = convertToThumbnailPath(file);
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            validateImageFile(thumbnailFile);
+            thumbnailPath = convertToThumbnailPath(thumbnailFile);
         }
 
         // TODO : 시큐리티 구현 이후 삭제 (data.sql로 초기 저장해둔 유저 get), 나중엔 현재 로그인한 유저의 아이디를 받아오도록 수정
@@ -64,26 +64,26 @@ public class QuizService {
         return quizToQuizCreateResponse(savedQuiz);
     }
 
-    private void validateImageFile(MultipartFile file) {
+    private void validateImageFile(MultipartFile thumbnailFile) {
 
-        if (!file.getContentType().startsWith("image")) {
+        if (!thumbnailFile.getContentType().startsWith("image")) {
             // TODO : 이후 커스텀 예외로 변경
             throw new IllegalArgumentException("이미지 파일을 업로드해주세요.");
         }
 
         List<String> allowedExt = List.of("jpg", "jpeg", "png", "webp");
-        if (!allowedExt.contains(getExtension(file.getOriginalFilename()))) {
+        if (!allowedExt.contains(getExtension(thumbnailFile.getOriginalFilename()))) {
             throw new IllegalArgumentException("지원하지 않는 확장자입니다.");
         }
     }
 
-    private String convertToThumbnailPath(MultipartFile file) throws IOException {
-        String originalFilename = file.getOriginalFilename();
+    private String convertToThumbnailPath(MultipartFile thumbnailFile) throws IOException {
+        String originalFilename = thumbnailFile.getOriginalFilename();
         String ext = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID().toString() + "." + ext;
 
         Path savePath = Paths.get(uploadPath, savedFilename).toAbsolutePath();
-        file.transferTo(savePath.toFile());
+        thumbnailFile.transferTo(savePath.toFile());
 
         return "/images/thumbnail/" + savedFilename;
     }

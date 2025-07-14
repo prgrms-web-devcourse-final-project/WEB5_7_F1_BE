@@ -28,10 +28,10 @@ public class QuizController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuizCreateResponse> saveQuiz(
-            @RequestPart(required = false) MultipartFile file,
+            @RequestPart(required = false) MultipartFile thumbnailFile,
             @Valid @RequestPart QuizCreateRequest request)
             throws IOException {
-        QuizCreateResponse response = quizService.saveQuiz(file, request);
+        QuizCreateResponse response = quizService.saveQuiz(thumbnailFile, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
