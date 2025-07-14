@@ -189,4 +189,12 @@ public class QuizService {
 
         return toQuizListPageResponse(quizListResponses);
     }
+  
+    @Transactional(readOnly = true)
+    public Quiz getQuizById(Long quizId) {
+        return quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+
+    }
 }
