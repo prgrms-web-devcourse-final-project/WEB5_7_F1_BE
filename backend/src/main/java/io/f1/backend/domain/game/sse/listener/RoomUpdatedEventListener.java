@@ -5,7 +5,9 @@ import io.f1.backend.domain.game.sse.app.SseService;
 import io.f1.backend.domain.game.sse.dto.LobbySseEvent;
 import io.f1.backend.domain.game.sse.dto.RoomUpdatedPayload;
 import io.f1.backend.domain.game.sse.mapper.SseMapper;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
