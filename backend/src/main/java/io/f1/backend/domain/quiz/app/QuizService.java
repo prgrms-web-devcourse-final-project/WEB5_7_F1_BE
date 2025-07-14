@@ -4,6 +4,7 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.pageQuizToPageQuizList
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toQuizListPageResponse;
+
 import static java.nio.file.Files.deleteIfExists;
 
 import io.f1.backend.domain.question.app.QuestionService;
@@ -18,7 +19,6 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
 
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -104,10 +105,12 @@ public class QuizService {
     @Transactional
     public void deleteQuiz(Long quizId) {
 
-        Quiz quiz = quizRepository.findById(quizId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
-        if(1L != quiz.getCreator().getId()) {
+        if (1L != quiz.getCreator().getId()) {
             throw new RuntimeException("권한이 없습니다.");
         }
 
@@ -117,20 +120,22 @@ public class QuizService {
 
     @Transactional
     public void updateQuiz(Long quizId, MultipartFile thumbnailFile, QuizUpdateRequest request)
-        throws IOException {
+            throws IOException {
 
-        Quiz quiz = quizRepository.findById(quizId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
-        if(request.title() != null) {
+        if (request.title() != null) {
             quiz.changeTitle(request.title());
         }
 
-        if(request.description() != null) {
+        if (request.description() != null) {
             quiz.changeDescription(request.description());
         }
 
-        if(thumbnailFile !=null && !thumbnailFile.isEmpty()) {
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             validateImageFile(thumbnailFile);
             String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
 
@@ -140,7 +145,7 @@ public class QuizService {
     }
 
     private void deleteOldThumbnailFileIfNeeded(String oldFilename) {
-        if(oldFilename.contains("default")) {
+        if (oldFilename.contains("default")) {
             return;
         }
 
@@ -151,7 +156,7 @@ public class QuizService {
 
         try {
             boolean deleted = deleteIfExists(filePath);
-            if( deleted ) {
+            if (deleted) {
                 System.out.println("기존 썸네일 삭제 완료 : " + filePath);
             } else {
                 System.out.println("기존 썸네일 존재 X : " + filePath);
@@ -162,15 +167,15 @@ public class QuizService {
         }
     }
 
-    @Transactional(readOnly=true)
+    @Transactional(readOnly = true)
     public QuizListPageResponse getQuizzes(String title, String creator, Pageable pageable) {
 
         Page<Quiz> quizzes;
 
         // 검색어가 있을 때
-        if(title != null && !title.isBlank()) {
+        if (title != null && !title.isBlank()) {
             quizzes = quizRepository.findQuizzesByTitleContaining(title, pageable);
-        } else if(creator !=null && !creator.isBlank()) {
+        } else if (creator != null && !creator.isBlank()) {
             quizzes = quizRepository.findQuizzesByCreator_NicknameContaining(creator, pageable);
         } else { // 검색어가 없을 때 혹은 빈 문자열일 때
             quizzes = quizRepository.findAll(pageable);
