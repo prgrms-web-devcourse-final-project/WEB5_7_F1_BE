@@ -1,9 +1,11 @@
 package io.f1.backend.domain.user.dto;
 
 import io.f1.backend.domain.user.entity.User;
+
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import lombok.Getter;
 
 @Getter
 public class SessionUser implements Serializable {

@@ -6,8 +6,11 @@ import io.f1.backend.domain.user.dto.SignupRequestDto;
 import io.f1.backend.domain.user.dto.SignupResponseDto;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
+
 import jakarta.servlet.http.HttpSession;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +62,8 @@ public class UserService {
     }
 
     private User updateUserNickname(Long userId, String nickname) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자 없음"));
+        User user =
+                userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자 없음"));
         user.updateNickname(nickname);
 
         return userRepository.save(user);
