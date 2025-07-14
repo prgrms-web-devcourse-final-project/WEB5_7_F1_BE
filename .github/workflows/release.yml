@@ -11,9 +11,12 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      next_version: ${{ steps.bump.outputs.next_version }}
     steps:
       - uses: actions/checkout@v4
       - uses: haya14busa/action-bumpr@v1
+        id: bump
 
   package:
     runs-on: ubuntu-latest
