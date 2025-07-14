@@ -12,7 +12,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Stat extends BaseEntity {
 
     @Id
@@ -31,4 +36,12 @@ public class Stat extends BaseEntity {
 
     @Column(nullable = false)
     private Long score;
+
+    @Builder
+    public Stat(User user, Long totalGames, Long winningGames, Long score) {
+        this.user = user;
+        this.totalGames = totalGames;
+        this.winningGames = winningGames;
+        this.score = score;
+    }
 }
