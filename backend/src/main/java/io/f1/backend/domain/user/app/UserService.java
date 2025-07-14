@@ -24,8 +24,8 @@ public class UserService {
         SessionUser sessionUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();
-        validateNickname(nickname);
-        validateDuplicateNickname(nickname);
+        validateNicknameFormat(nickname);
+        validateNicknameDuplicate(nickname);
 
         User user = updateUserNickname(sessionUser.getUserId(), nickname);
         updateSessionAfterSignup(session, user);
@@ -37,12 +37,12 @@ public class UserService {
     private SessionUser extractSessionUser(HttpSession session) {
         SessionUser sessionUser = (SessionUser) session.getAttribute("OAuthUser");
         if (sessionUser == null) {
-            throw new RuntimeException("세션에 OAuth 정보 없음");
+            throw new RuntimeException("E401001: 로그인이 필요합니다.");
         }
         return sessionUser;
     }
 
-    private void validateNickname(String nickname) {
+    private void validateNicknameFormat(String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
             throw new RuntimeException("E400002: 닉네임은 필수 입력입니다.");
         }
@@ -54,15 +54,18 @@ public class UserService {
         }
     }
 
-    private void validateDuplicateNickname(String nickname) {
+    @Transactional(readOnly = true)
+    public void validateNicknameDuplicate(String nickname) {
         if (userRepository.existsUserByNickname(nickname)) {
-            throw new RuntimeException("닉네임 중복");
+            throw new RuntimeException("E409001: 중복된 닉네임입니다.");
         }
     }
 
-    private User updateUserNickname(Long userId, String nickname) {
+    @Transactional
+    public User updateUserNickname(Long userId, String nickname) {
         User user =
-            userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자 없음"));
+            userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
         user.updateNickname(nickname);
 
         return userRepository.save(user);
