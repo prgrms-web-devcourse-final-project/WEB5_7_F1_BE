@@ -8,7 +8,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TextQuestion {
 
     @Id
@@ -21,4 +25,9 @@ public class TextQuestion {
 
     @Column(nullable = false)
     private String content;
+
+    public TextQuestion(Question question, String content) {
+        this.question = question;
+        this.content = content;
+    }
 }

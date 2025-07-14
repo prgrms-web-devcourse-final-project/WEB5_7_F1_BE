@@ -2,6 +2,10 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  sql:
+    init:
+      mode: always # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url : ${DB_URL}
@@ -14,6 +18,7 @@ spring:
       port: ${REDIS_PORT}
 
   jpa:
+    defer-datasource-initialization: true # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
     hibernate:
       ddl-auto: create
 
@@ -21,3 +26,7 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+file:
+  thumbnail-path : images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
+  default-thumbnail-url: /images/thumbnail/default.png
