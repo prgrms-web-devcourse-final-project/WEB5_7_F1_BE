@@ -48,6 +48,8 @@ public class QuizService {
     @Value("${file.default-thumbnail-url}")
     private String defaultThumbnailPath;
 
+    private final String DEFAULT = "default";
+
     // TODO : 시큐리티 구현 이후 삭제해도 되는 의존성 주입
     private final UserRepository userRepository;
     private final QuestionService questionService;
@@ -149,7 +151,7 @@ public class QuizService {
     }
 
     private void deleteOldThumbnailFileIfNeeded(String oldFilename) {
-        if (oldFilename.contains("default")) {
+        if (oldFilename.contains(DEFAULT)) {
             return;
         }
 
