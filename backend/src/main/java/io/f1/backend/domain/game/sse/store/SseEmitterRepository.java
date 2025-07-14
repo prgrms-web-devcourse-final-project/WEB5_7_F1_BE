@@ -14,10 +14,7 @@ public class SseEmitterRepository {
     public void save(SseEmitter emitter) {
         emitters.add(emitter);
         // 연결종료 객체정리
-        emitter.onCompletion(
-                () -> {
-                    emitters.remove(emitter);
-                });
+        emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(error -> emitters.remove(emitter));
     }
