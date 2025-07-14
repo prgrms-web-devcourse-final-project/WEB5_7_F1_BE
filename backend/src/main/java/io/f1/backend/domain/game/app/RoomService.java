@@ -15,7 +15,6 @@ import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
-import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
@@ -30,7 +29,7 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,7 +148,7 @@ public class RoomService {
         }
 
         SystemNoticeResponse systemNoticeResponse = new SystemNoticeResponse(
-            removedPlayer.getNickname() + "님이 퇴장하셨습니다.", LocalDateTime.now());
+            removedPlayer.getNickname() + "님이 퇴장하셨습니다.", Instant.now());
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 

@@ -1,7 +1,7 @@
 package io.f1.backend.domain.game.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-public record SystemNoticeResponse(String noticeMessage, LocalDateTime timestamp) {
+public record SystemNoticeResponse(String noticeMessage, Instant timestamp) {
 
 }

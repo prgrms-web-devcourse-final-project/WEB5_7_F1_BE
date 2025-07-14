@@ -89,12 +89,16 @@ public class QuizService {
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
 
+    @Transactional(readOnly = true)
     public Quiz getQuizById(Long quizId) {
-        return quizRepository
+        Quiz quiz = quizRepository
             .findById(quizId)
             .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+        quiz.getQuestions().size();
+        return quiz;
     }
 
+    @Transactional(readOnly = true)
     public Long getQuizMinId() {
         return quizRepository.getQuizMinId();
     }
