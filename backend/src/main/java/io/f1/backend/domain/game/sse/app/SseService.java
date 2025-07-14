@@ -34,10 +34,7 @@ public class SseService {
     public <T> void notifyLobbyUpdate(LobbySseEvent<T> event) {
         for (SseEmitter emitter : emitterRepository.getAll()) {
             try {
-                emitter.send(SseEmitter.event()
-                    .name(event.type())
-                    .data(event)
-                );
+                emitter.send(SseEmitter.event().name(event.type()).data(event));
             } catch (IOException e) {
                 emitterRepository.remove(emitter);
             }

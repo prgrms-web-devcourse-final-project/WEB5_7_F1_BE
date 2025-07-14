@@ -4,9 +4,9 @@ import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.event.RoomDeletedEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Room;
+import io.f1.backend.domain.game.sse.dto.LobbySseEvent;
 import io.f1.backend.domain.game.sse.dto.RoomCreatedPayload;
 import io.f1.backend.domain.game.sse.dto.RoomDeletedPayload;
-import io.f1.backend.domain.game.sse.dto.LobbySseEvent;
 import io.f1.backend.domain.game.sse.dto.RoomUpdatedPayload;
 import io.f1.backend.domain.game.sse.dto.SseEventType;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -16,35 +16,35 @@ public class SseMapper {
     public static LobbySseEvent<RoomCreatedPayload> fromRoomCreated(RoomCreatedEvent event) {
         Room room = event.room();
         Quiz quiz = event.quiz();
-        RoomCreatedPayload payload = new RoomCreatedPayload(
-            room.getId(),
-            room.getRoomSetting().roomName(),
-            room.getRoomSetting().maxUserCount(),
-            room.getPlayerSessionMap().size(),
-            room.getRoomSetting().locked(),
-            room.getState().name(),
-            quiz.getTitle(),
-            quiz.getDescription(),
-            quiz.getCreator().getNickname(),
-            quiz.getQuestions().size(),
-            quiz.getThumbnailUrl()
-        );
+        RoomCreatedPayload payload =
+                new RoomCreatedPayload(
+                        room.getId(),
+                        room.getRoomSetting().roomName(),
+                        room.getRoomSetting().maxUserCount(),
+                        room.getPlayerSessionMap().size(),
+                        room.getRoomSetting().locked(),
+                        room.getState().name(),
+                        quiz.getTitle(),
+                        quiz.getDescription(),
+                        quiz.getCreator().getNickname(),
+                        quiz.getQuestions().size(),
+                        quiz.getThumbnailUrl());
         return new LobbySseEvent<>(SseEventType.CREATE.name(), payload);
     }
 
     public static LobbySseEvent<RoomUpdatedPayload> fromRoomUpdated(RoomUpdatedEvent event) {
         Room room = event.room();
         Quiz quiz = event.quiz();
-        RoomUpdatedPayload payload = new RoomUpdatedPayload(
-            room.getId(),
-            room.getPlayerSessionMap().size(),
-            room.getState().name(),
-            quiz.getTitle(),
-            quiz.getDescription(),
-            quiz.getCreator().getNickname(),
-            quiz.getQuestions().size(),
-            quiz.getThumbnailUrl()
-        );
+        RoomUpdatedPayload payload =
+                new RoomUpdatedPayload(
+                        room.getId(),
+                        room.getPlayerSessionMap().size(),
+                        room.getState().name(),
+                        quiz.getTitle(),
+                        quiz.getDescription(),
+                        quiz.getCreator().getNickname(),
+                        quiz.getQuestions().size(),
+                        quiz.getThumbnailUrl());
         return new LobbySseEvent<>(SseEventType.UPDATE.name(), payload);
     }
 
