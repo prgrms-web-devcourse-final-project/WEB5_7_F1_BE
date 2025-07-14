@@ -17,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 @Getter
 @Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
+@NoArgsConstructor
 public class Quiz extends BaseEntity {
 
     @Id
@@ -50,4 +52,21 @@ public class Quiz extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+
+    public Quiz(
+            String title,
+            String description,
+            QuizType quizType,
+            String thumbnailUrl,
+            User creator) {
+        this.title = title;
+        this.description = description;
+        this.quizType = quizType;
+        this.thumbnailUrl = thumbnailUrl;
+        this.creator = creator;
+    }
+
+    public void addQuestion(Question question) {
+        this.questions.add(question);
+    }
 }
