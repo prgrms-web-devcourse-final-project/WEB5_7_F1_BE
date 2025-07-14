@@ -58,7 +58,12 @@ public class SecurityConfig {
                                         .logoutSuccessHandler(oAuthLogoutSuccessHandler)
                                         .clearAuthentication(true)
                                         .invalidateHttpSession(true)
-                                        .permitAll());
+                                        .permitAll())
+                .sessionManagement(session ->
+                    session
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1)
+                );
         return http.build();
     }
 }
