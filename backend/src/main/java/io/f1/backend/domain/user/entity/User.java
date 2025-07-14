@@ -12,7 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 @Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
 @Table(name = "`user`")
+@NoArgsConstructor
 public class User extends BaseEntity {
 
     @Id
@@ -30,7 +34,7 @@ public class User extends BaseEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Stat stat;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String nickname;
 
     @Column(nullable = false)
@@ -41,4 +45,23 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDateTime lastLogin;
+
+    @Builder
+    public User(String provider, String providerId, LocalDateTime lastLogin) {
+        this.provider = provider;
+        this.providerId = providerId;
+        this.lastLogin = lastLogin;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public void initStat(Stat stat) {
+        this.stat = stat;
+    }
 }
