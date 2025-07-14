@@ -6,7 +6,6 @@ import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
 
-import io.f1.backend.domain.game.dto.response.RoomValidationResponse;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -41,8 +40,9 @@ public class RoomController {
     }
 
     @PostMapping("/validation")
-    public RoomValidationResponse validateRoom(@RequestBody RoomValidationRequest request) {
-        return roomService.validateRoom(request);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void validateRoom(@RequestBody RoomValidationRequest request) {
+        roomService.validateRoom(request);
     }
 
     @GetMapping

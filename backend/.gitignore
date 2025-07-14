@@ -41,3 +41,8 @@ out/
 
 ### .idea ###
 .idea
+
+
+src/main/resources/static/ws-test.html
+src/main/resources/static/ws-test.js
+

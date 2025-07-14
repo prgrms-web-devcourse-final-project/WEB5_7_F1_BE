@@ -1,6 +1,10 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.*;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -9,10 +13,9 @@ import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
-import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
-import io.f1.backend.domain.game.dto.response.RoomValidationResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
+import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -21,19 +24,12 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
@@ -56,7 +52,7 @@ public class RoomService {
         return new RoomCreateResponse(newId);
     }
 
-    public RoomValidationResponse validateRoom(RoomValidationRequest request) {
+    public void validateRoom(RoomValidationRequest request) {
 
         Room room = roomRepository.findRoom(request.roomId())
             .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
@@ -74,8 +70,6 @@ public class RoomService {
         if (room.getRoomSetting().locked() && !room.getRoomSetting().password().equals(request.password())) {
             throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
         }
-
-        return new RoomValidationResponse(request.roomId());
     }
 
     public RoomInitialData enterRoom(Long roomId, String sessionId) {
