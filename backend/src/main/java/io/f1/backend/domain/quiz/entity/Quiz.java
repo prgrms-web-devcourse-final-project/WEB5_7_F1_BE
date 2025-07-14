@@ -19,10 +19,13 @@ import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
