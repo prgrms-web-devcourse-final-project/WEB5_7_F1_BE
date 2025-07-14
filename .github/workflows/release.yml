@@ -41,7 +41,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ needs.release.outputs.current_version }}
+            type=raw,value=${{ needs.release.outputs.next_version }}
 
       - uses: docker/build-push-action@v6
         with:
