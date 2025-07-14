@@ -36,7 +36,7 @@ public class Room {
         this.host = host;
     }
 
-    public void updateHost(Player nextHost){
+    public void updateHost(Player nextHost) {
         this.host = nextHost;
     }
 }

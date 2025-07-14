@@ -34,9 +34,9 @@ public class RoomMapper {
                 room.getPlayerSessionMap().size());
     }
 
-    public static GameSettingResponse toGameSettingResponse(
-            GameSetting gameSetting, Quiz quiz) {
-        return new GameSettingResponse(gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz));
+    public static GameSettingResponse toGameSettingResponse(GameSetting gameSetting, Quiz quiz) {
+        return new GameSettingResponse(
+                gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz));
     }
 
     public static PlayerListResponse toPlayerListResponse(Room room) {
@@ -64,6 +64,11 @@ public class RoomMapper {
     }
 
     public static QuizResponse toQuizResponse(Quiz quiz) {
-        return new QuizResponse(quiz.getId(), quiz.getTitle(), quiz.getDescription(), quiz.getThumbnailUrl(), quiz.getQuestions().size());
+        return new QuizResponse(
+                quiz.getId(),
+                quiz.getTitle(),
+                quiz.getDescription(),
+                quiz.getThumbnailUrl(),
+                quiz.getQuestions().size());
     }
 }

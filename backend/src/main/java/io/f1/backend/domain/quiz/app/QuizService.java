@@ -11,16 +11,19 @@ import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +42,7 @@ public class QuizService {
 
     @Transactional
     public QuizCreateResponse saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request)
-        throws IOException {
+            throws IOException {
         String thumbnailPath = defaultThumbnailPath;
 
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
@@ -91,9 +94,10 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz getQuizById(Long quizId) {
-        Quiz quiz = quizRepository
-            .findById(quizId)
-            .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
         quiz.getQuestions().size();
         return quiz;
     }

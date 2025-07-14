@@ -47,11 +47,9 @@ public class GameSocketController {
 
         if (!roomExitData.removedRoom()) {
             messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomExitData.playerListResponses()
-            );
+                    destination, MessageType.PLAYER_LIST, roomExitData.playerListResponses());
             messageSender.send(
-                destination , MessageType.SYSTEM_NOTICE, roomExitData.systemNoticeResponse()
-            );
+                    destination, MessageType.SYSTEM_NOTICE, roomExitData.systemNoticeResponse());
         }
     }
 
