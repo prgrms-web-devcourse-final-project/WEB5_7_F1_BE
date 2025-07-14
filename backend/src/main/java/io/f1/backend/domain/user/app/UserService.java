@@ -67,8 +67,9 @@ public class UserService {
     @Transactional
     public User updateUserNickname(Long userId, String nickname) {
         User user =
-            userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
         user.updateNickname(nickname);
 
         return userRepository.save(user);

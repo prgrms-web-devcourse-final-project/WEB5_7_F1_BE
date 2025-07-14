@@ -59,11 +59,8 @@ public class SecurityConfig {
                                         .clearAuthentication(true)
                                         .invalidateHttpSession(true)
                                         .permitAll())
-                .sessionManagement(session ->
-                    session
-                        .sessionFixation().migrateSession()
-                        .maximumSessions(1)
-                );
+                .sessionManagement(
+                        session -> session.sessionFixation().migrateSession().maximumSessions(1));
         return http.build();
     }
 }

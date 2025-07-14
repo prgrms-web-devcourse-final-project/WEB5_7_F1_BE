@@ -7,16 +7,20 @@ import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
+
 import jakarta.servlet.http.HttpSession;
-import java.time.LocalDateTime;
-import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +38,10 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
         String providerId = Objects.requireNonNull(oAuth2User.getAttribute("id")).toString();
 
         User user =
-            userRepository
-                .findByProviderAndProviderId(provider, providerId)
-                .map(this::updateLastLogin)
-                .orElseGet(() -> createNewUser(provider, providerId));
+                userRepository
+                        .findByProviderAndProviderId(provider, providerId)
+                        .map(this::updateLastLogin)
+                        .orElseGet(() -> createNewUser(provider, providerId));
 
         httpSession.setAttribute(OAUTH_USER, AuthenticationUser.from(user));
         return new UserPrincipal(user, oAuth2User.getAttributes());
@@ -50,11 +54,11 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
 
     private User createNewUser(String provider, String providerId) {
         User user =
-            User.builder()
-                .provider(provider)
-                .providerId(providerId)
-                .lastLogin(LocalDateTime.now())
-                .build();
+                User.builder()
+                        .provider(provider)
+                        .providerId(providerId)
+                        .lastLogin(LocalDateTime.now())
+                        .build();
 
         Stat stat = Stat.builder().totalGames(0L).winningGames(0L).score(0L).user(user).build();
 
