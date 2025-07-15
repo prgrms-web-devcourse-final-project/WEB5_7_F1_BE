@@ -82,4 +82,11 @@ public class UserService {
         session.removeAttribute(OAUTH_USER);
         session.setAttribute(USER, AuthenticationUser.from(user));
     }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
+        userRepository.delete(user);
+    }
 }
