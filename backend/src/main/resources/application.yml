@@ -2,18 +2,24 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  sql:
+    init:
+      mode: always # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url : ${DB_URL}
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+#  Redis 도입 시 정의
+#  data:
+#    redis:
+#      host: ${REDIS_HOST}
+#      port: ${REDIS_PORT}
 
   jpa:
+    defer-datasource-initialization: true # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
     hibernate:
       ddl-auto: create
 
@@ -21,3 +27,26 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-name: Kakao
+            client-id: ${KAKAO_CLIENT}
+            client-secret: ${KAKAO_SECRET}
+            redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+file:
+  thumbnail-path : images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
+  default-thumbnail-url: /images/thumbnail/default.png

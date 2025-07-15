@@ -41,3 +41,12 @@ out/
 
 ### .idea ###
 .idea
+
+### websocket test ###
+src/main/resources/static/ws-test.html
+src/main/resources/static/ws-test.js
+
+
+
+### images/thumbnail ###
+images/thumbnail/**
