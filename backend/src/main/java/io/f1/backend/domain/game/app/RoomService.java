@@ -31,17 +31,13 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hibernate.boot.model.naming.IllegalIdentifierException;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -93,7 +89,7 @@ public class RoomService {
             throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
         }
 
-        room.getUserIdSessionMap().put(getCurrentUserId(), null);
+        room.getUserIdSessionMap().put(getCurrentUserId(), "");
     }
 
     public RoomInitialData initializeRoomSocket(Long roomId, String sessionId) {
