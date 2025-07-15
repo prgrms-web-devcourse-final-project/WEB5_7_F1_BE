@@ -50,8 +50,8 @@ public class RoomService {
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
-        Long minQuizId = quizService.getQuizMinId();
-        Quiz quiz = quizService.getQuizById(minQuizId);
+        Long quizMinId = quizService.getQuizMinId();
+        Quiz quiz = quizService.getQuizById(quizMinId);
 
         GameSetting gameSetting = toGameSetting(quiz);
 
