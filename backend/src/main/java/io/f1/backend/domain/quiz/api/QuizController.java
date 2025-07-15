@@ -4,6 +4,7 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
+import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 
 import jakarta.validation.Valid;
@@ -77,5 +78,14 @@ public class QuizController {
         QuizListPageResponse quizzes = quizService.getQuizzes(title, creator, pageable);
 
         return ResponseEntity.ok().body(quizzes);
+    }
+
+    @GetMapping("/{quizId}")
+    public ResponseEntity<QuizQuestionListResponse> getQuizWithQuestions(
+            @PathVariable Long quizId) {
+
+        QuizQuestionListResponse response = quizService.getQuizWithQuestions(quizId);
+
+        return ResponseEntity.ok().body(response);
     }
 }
