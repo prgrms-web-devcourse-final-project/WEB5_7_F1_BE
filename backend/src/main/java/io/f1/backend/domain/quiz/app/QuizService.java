@@ -132,10 +132,12 @@ public class QuizService {
                         .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         if (request.title() != null) {
+            validateTitle(request.title());
             quiz.changeTitle(request.title());
         }
 
         if (request.description() != null) {
+            validateDesc(request.description());
             quiz.changeDescription(request.description());
         }
 
@@ -145,6 +147,18 @@ public class QuizService {
 
             deleteThumbnailFile(quiz.getThumbnailUrl());
             quiz.changeThumbnailUrl(newThumbnailPath);
+        }
+    }
+
+    private void validateDesc(String desc) {
+        if( desc.trim().length() < 10 || desc.trim().length() > 50) {
+            throw new IllegalArgumentException("설명은 10자 이상 50자 이하로 입력해주세요.");
+        }
+    }
+
+    private void validateTitle(String title) {
+        if (title.trim().length() < 2 || title.trim().length() > 30) {
+            throw new IllegalArgumentException("제목은 2자 이상 30자 이하로 입력해주세요.");
         }
     }
 
