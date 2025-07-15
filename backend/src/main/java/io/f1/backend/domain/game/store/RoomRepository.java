@@ -11,4 +11,6 @@ public interface RoomRepository {
     Optional<Room> findRoom(Long roomId);
 
     List<Room> findAll();
+
+    void removeRoom(Long roomId);
 }

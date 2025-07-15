@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/rooms")
 @RequiredArgsConstructor
@@ -31,12 +28,7 @@ public class RoomController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RoomCreateResponse saveRoom(@RequestBody @Valid RoomCreateRequest request) {
-
-        Map<String, Object> loginUser = new HashMap<>();
-        loginUser.put("id", 1L);
-        loginUser.put("nickname", "빵야빵야");
-
-        return roomService.saveRoom(request, loginUser);
+        return roomService.saveRoom(request);
     }
 
     @PostMapping("/validation")

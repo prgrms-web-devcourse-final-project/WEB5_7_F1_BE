@@ -1,17 +1,27 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.*;
+import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
+import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
+import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.RoomEventType;
+import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
-import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
+import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
@@ -29,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -40,12 +51,15 @@ public class RoomService {
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
     private final ApplicationEventPublisher eventPublisher;
 
-    public RoomCreateResponse saveRoom(RoomCreateRequest request, Map<String, Object> loginUser) {
+    public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
-        // todo 제일 작은 index quizId 가져와서 gameSetting(round 설정)
-        GameSetting gameSetting = new GameSetting(1L, 10, 60);
-        // todo security에서 가져오는걸로 변경
-        Player host = new Player((Long) loginUser.get("id"), loginUser.get("nickname").toString());
+        Long quizMinId = quizService.getQuizMinId();
+        Quiz quiz = quizService.getQuizById(quizMinId);
+
+        GameSetting gameSetting = toGameSetting(quiz);
+
+        Player host = createPlayer();
+
         RoomSetting roomSetting = toRoomSetting(request);
 
         Long newId = roomIdGenerator.incrementAndGet();
@@ -53,9 +67,6 @@ public class RoomService {
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
         roomRepository.saveRoom(room);
-
-        Long quizId = room.getGameSetting().getQuizId();
-        Quiz quiz = quizService.getQuizById(quizId);
 
         eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
@@ -67,7 +78,7 @@ public class RoomService {
         Room room =
                 roomRepository
                         .findRoom(request.roomId())
-                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다.-1"));
 
         if (room.getState().equals(RoomState.PLAYING)) {
             throw new IllegalArgumentException("403 게임이 진행중입니다.");
@@ -92,26 +103,69 @@ public class RoomService {
                         .findRoom(roomId)
                         .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
-        // todo security
-        Player player = new Player(1L, "빵야빵야");
+        Player player = createPlayer();
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         playerSessionMap.put(sessionId, player);
 
-        String destination = "/sub/room/" + roomId;
-
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
-        // todo quiz 생성 api 완성 후 수정
-        QuizResponse quiz =
-                new QuizResponse(room.getGameSetting().getQuizId(), "title", "설명", "url", 10);
+
+        Long quizId = room.getGameSetting().getQuizId();
+        Quiz quiz = quizService.getQuizById(quizId);
+
         GameSettingResponse gameSettingResponse =
                 toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
+        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player, RoomEventType.ENTER);
+
         return new RoomInitialData(
-                destination, roomSettingResponse, gameSettingResponse, playerListResponse);
+                getDestination(roomId),
+                roomSettingResponse,
+                gameSettingResponse,
+                playerListResponse,
+                systemNoticeResponse);
+    }
+
+    public RoomExitData exitRoom(Long roomId, String sessionId) {
+        Room room =
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+
+        String destination = getDestination(roomId);
+
+        if (playerSessionMap.size() == 1 && playerSessionMap.get(sessionId) != null) {
+            roomRepository.removeRoom(roomId);
+            return RoomExitData.builder().destination(destination).removedRoom(true).build();
+        }
+
+        Player removedPlayer = playerSessionMap.remove(sessionId);
+        if (removedPlayer == null) {
+            throw new IllegalArgumentException("퇴장 처리 불가 - 404 해당 세션 플레이어는 존재하지않습니다.");
+        }
+
+        if (room.getHost().getId().equals(removedPlayer.getId())) {
+            Optional<String> nextHostSessionId = playerSessionMap.keySet().stream().findFirst();
+            Player nextHost =
+                    playerSessionMap.get(
+                            nextHostSessionId.orElseThrow(
+                                    () ->
+                                            new IllegalArgumentException(
+                                                    "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
+            room.updateHost(nextHost);
+        }
+
+        SystemNoticeResponse systemNoticeResponse =
+                ofPlayerEvent(removedPlayer, RoomEventType.EXIT);
+
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+        return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
     }
 
     public RoomListResponse getAllRooms() {
@@ -127,5 +181,13 @@ public class RoomService {
                                 })
                         .toList();
         return new RoomListResponse(roomResponses);
+    }
+
+    private static String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
+    }
+
+    private static Player createPlayer() {
+        return new Player(getCurrentUserId(), getCurrentUserNickname());
     }
 }

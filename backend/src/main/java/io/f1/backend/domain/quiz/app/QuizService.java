@@ -194,8 +194,16 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz getQuizById(Long quizId) {
-        return quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+        quiz.getQuestions().size();
+        return quiz;
+    }
+
+    @Transactional(readOnly = true)
+    public Long getQuizMinId() {
+        return quizRepository.getQuizMinId();
     }
 }
