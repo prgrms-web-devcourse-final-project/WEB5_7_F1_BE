@@ -31,13 +31,16 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -70,13 +73,12 @@ public class RoomService {
         return new RoomCreateResponse(newId);
     }
 
-
     public void validateRoom(RoomValidationRequest request) {
 
         Room room =
-            roomRepository
-                .findRoom(request.roomId())
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다.-1"));
+                roomRepository
+                        .findRoom(request.roomId())
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다.-1"));
 
         if (room.getState().equals(RoomState.PLAYING)) {
             throw new IllegalArgumentException("403 게임이 진행중입니다.");
@@ -89,7 +91,7 @@ public class RoomService {
         }
 
         if (room.getRoomSetting().locked()
-            && !room.getRoomSetting().password().equals(request.password())) {
+                && !room.getRoomSetting().password().equals(request.password())) {
             throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
         }
     }
@@ -97,9 +99,9 @@ public class RoomService {
     public RoomInitialData enterRoom(Long roomId, String sessionId) {
 
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
         Player player = createPlayer();
 
@@ -113,21 +115,25 @@ public class RoomService {
         Quiz quiz = quizService.getQuizById(quizId);
 
         GameSettingResponse gameSettingResponse =
-            toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player, RoomEventType.ENTER);
 
         return new RoomInitialData(
-            getDestination(roomId), roomSettingResponse, gameSettingResponse, playerListResponse,systemNoticeResponse);
+                getDestination(roomId),
+                roomSettingResponse,
+                gameSettingResponse,
+                playerListResponse,
+                systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId) {
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
@@ -145,12 +151,17 @@ public class RoomService {
 
         if (room.getHost().getId().equals(removedPlayer.getId())) {
             Optional<String> nextHostSessionId = playerSessionMap.keySet().stream().findFirst();
-            Player nextHost = playerSessionMap.get(nextHostSessionId.orElseThrow(
-                () -> new IllegalArgumentException("방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
+            Player nextHost =
+                    playerSessionMap.get(
+                            nextHostSessionId.orElseThrow(
+                                    () ->
+                                            new IllegalArgumentException(
+                                                    "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
             room.updateHost(nextHost);
         }
 
-        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(removedPlayer, RoomEventType.EXIT);
+        SystemNoticeResponse systemNoticeResponse =
+                ofPlayerEvent(removedPlayer, RoomEventType.EXIT);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -160,15 +171,15 @@ public class RoomService {
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-            rooms.stream()
-                .map(
-                    room -> {
-                        Long quizId = room.getGameSetting().getQuizId();
-                        Quiz quiz = quizService.getQuizById(quizId);
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizById(quizId);
 
-                        return toRoomResponse(room, quiz);
-                    })
-                .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 
