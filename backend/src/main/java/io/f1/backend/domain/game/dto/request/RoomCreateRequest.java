@@ -11,5 +11,5 @@ public record RoomCreateRequest(
                 @Min(value = 2, message = "방 인원 수는 최소 2명입니다.")
                 @Max(value = 8, message = "방 인원 수는 최대 8명 입니다.")
                 Integer maxUserCount,
-        @NotBlank String password,
+        @NotNull String password,
         @NotNull Boolean locked) {}
