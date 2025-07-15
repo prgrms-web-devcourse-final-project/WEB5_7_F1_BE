@@ -34,6 +34,9 @@ public class GameSocketController {
                 destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
         messageSender.send(
                 destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
+        messageSender.send(
+            destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
+
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -43,14 +46,14 @@ public class GameSocketController {
 
         RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId);
 
-        String destination = roomExitData.destination();
+        String destination = roomExitData.getDestination();
 
-        if (!roomExitData.removedRoom()) {
+        if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomExitData.playerListResponses()
+                destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses()
             );
             messageSender.send(
-                destination , MessageType.SYSTEM_NOTICE, roomExitData.systemNoticeResponse()
+                destination , MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse()
             );
         }
     }

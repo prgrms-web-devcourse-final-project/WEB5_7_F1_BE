@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
@@ -9,6 +10,7 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -29,7 +31,6 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -116,8 +117,10 @@ public class RoomService {
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
+        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player, RoomEventType.ENTER);
+
         return new RoomInitialData(
-            getDestination(roomId), roomSettingResponse, gameSettingResponse, playerListResponse);
+            getDestination(roomId), roomSettingResponse, gameSettingResponse, playerListResponse,systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId) {
@@ -132,7 +135,7 @@ public class RoomService {
 
         if (playerSessionMap.size() == 1 && playerSessionMap.get(sessionId) != null) {
             roomRepository.removeRoom(roomId);
-            return new RoomExitData(destination, null, null, true);
+            return RoomExitData.builder().destination(destination).build();
         }
 
         Player removedPlayer = playerSessionMap.remove(sessionId);
@@ -147,8 +150,7 @@ public class RoomService {
             room.updateHost(nextHost);
         }
 
-        SystemNoticeResponse systemNoticeResponse = new SystemNoticeResponse(
-            removedPlayer.getNickname() + "님이 퇴장하셨습니다.", Instant.now());
+        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(removedPlayer, RoomEventType.EXIT);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 

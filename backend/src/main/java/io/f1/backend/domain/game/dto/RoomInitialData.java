@@ -3,9 +3,11 @@ package io.f1.backend.domain.game.dto;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
+import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 
 public record RoomInitialData(
         String destination,
         RoomSettingResponse roomSettingResponse,
         GameSettingResponse gameSettingResponse,
-        PlayerListResponse playerListResponse) {}
+        PlayerListResponse playerListResponse,
+        SystemNoticeResponse systemNoticeResponse) {}
