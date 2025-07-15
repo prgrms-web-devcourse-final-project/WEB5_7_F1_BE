@@ -2,12 +2,12 @@ package io.f1.backend.global.exception.errorcode;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
 public enum AuthErrorCode implements ErrorCode {
-
     UNAUTHORIZED("E401001", HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     AUTH_SESSION_NOT_FOUND("E401002", HttpStatus.UNAUTHORIZED, "세션이 존재하지 않습니다. 로그인 후 이용해주세요."),
     AUTH_SESSION_EXPIRED("E401003", HttpStatus.UNAUTHORIZED, "세션이 만료되었습니다. 다시 로그인해주세요."),
@@ -21,5 +21,4 @@ public enum AuthErrorCode implements ErrorCode {
     private final HttpStatus httpStatus;
 
     private final String message;
-
 }
