@@ -1,9 +1,6 @@
 package io.f1.backend.domain.quiz.app;
 
-import static io.f1.backend.domain.quiz.mapper.QuizMapper.pageQuizToPageQuizListResponse;
-import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
-import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
-import static io.f1.backend.domain.quiz.mapper.QuizMapper.toQuizListPageResponse;
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.*;
 
 import static java.nio.file.Files.deleteIfExists;
 
@@ -14,6 +11,7 @@ import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
+import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
@@ -197,5 +195,12 @@ public class QuizService {
         return quizRepository
                 .findById(quizId)
                 .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+    }
+
+    public QuizQuestionListResponse getQuizWithQuestions(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        return quizToQuizQuestionListResponse(quiz);
     }
 }

@@ -1,12 +1,16 @@
 package io.f1.backend.domain.quiz.mapper;
 
+import io.f1.backend.domain.question.dto.QuestionResponse;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
+import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 
 public class QuizMapper {
@@ -55,5 +59,27 @@ public class QuizMapper {
 
     public static Page<QuizListResponse> pageQuizToPageQuizListResponse(Page<Quiz> quizzes) {
         return quizzes.map(QuizMapper::quizToQuizListResponse);
+    }
+
+    public static List<QuestionResponse> questionsToQuestionResponses(List<Question> questions) {
+        return questions.stream()
+            .map(question -> new QuestionResponse(
+                    question.getId(),
+                    question.getTextQuestion().getContent(),
+                    question.getAnswer()
+            ))
+            .toList();
+    }
+
+    public static QuizQuestionListResponse quizToQuizQuestionListResponse(Quiz quiz) {
+        return new QuizQuestionListResponse(
+            quiz.getTitle(),
+            quiz.getQuizType(),
+            quiz.getCreator().getId(),
+            quiz.getDescription(),
+            quiz.getThumbnailUrl(),
+            quiz.getQuestions().size(),
+            questionsToQuestionResponses(quiz.getQuestions())
+        );
     }
 }
