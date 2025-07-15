@@ -141,7 +141,7 @@ public class RoomService {
 
         if (playerSessionMap.size() == 1 && playerSessionMap.get(sessionId) != null) {
             roomRepository.removeRoom(roomId);
-            return RoomExitData.builder().destination(destination).build();
+            return RoomExitData.builder().destination(destination).removedRoom(true).build();
         }
 
         Player removedPlayer = playerSessionMap.remove(sessionId);
