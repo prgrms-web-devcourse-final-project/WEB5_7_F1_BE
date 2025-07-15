@@ -198,8 +198,10 @@ public class QuizService {
     }
 
     public QuizQuestionListResponse getQuizWithQuestions(Long quizId) {
-        Quiz quiz = quizRepository.findById(quizId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         return quizToQuizQuestionListResponse(quiz);
     }

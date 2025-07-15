@@ -10,8 +10,9 @@ import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.entity.User;
 
-import java.util.List;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public class QuizMapper {
 
@@ -63,23 +64,23 @@ public class QuizMapper {
 
     public static List<QuestionResponse> questionsToQuestionResponses(List<Question> questions) {
         return questions.stream()
-            .map(question -> new QuestionResponse(
-                    question.getId(),
-                    question.getTextQuestion().getContent(),
-                    question.getAnswer()
-            ))
-            .toList();
+                .map(
+                        question ->
+                                new QuestionResponse(
+                                        question.getId(),
+                                        question.getTextQuestion().getContent(),
+                                        question.getAnswer()))
+                .toList();
     }
 
     public static QuizQuestionListResponse quizToQuizQuestionListResponse(Quiz quiz) {
         return new QuizQuestionListResponse(
-            quiz.getTitle(),
-            quiz.getQuizType(),
-            quiz.getCreator().getId(),
-            quiz.getDescription(),
-            quiz.getThumbnailUrl(),
-            quiz.getQuestions().size(),
-            questionsToQuestionResponses(quiz.getQuestions())
-        );
+                quiz.getTitle(),
+                quiz.getQuizType(),
+                quiz.getCreator().getId(),
+                quiz.getDescription(),
+                quiz.getThumbnailUrl(),
+                quiz.getQuestions().size(),
+                questionsToQuestionResponses(quiz.getQuestions()));
     }
 }
