@@ -31,10 +31,10 @@ public class RoomController {
         return roomService.saveRoom(request);
     }
 
-    @PostMapping("/validation")
+    @PostMapping("/enterRoom")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void validateRoom(@RequestBody @Valid RoomValidationRequest request) {
-        roomService.validateRoom(request);
+        roomService.enterRoom(request);
     }
 
     @GetMapping
