@@ -1,5 +1,6 @@
 package io.f1.backend.domain.quiz.app;
 
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.pageQuizToPageQuizListResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toQuizListPageResponse;
