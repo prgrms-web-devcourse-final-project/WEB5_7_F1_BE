@@ -16,7 +16,7 @@ public class TrimmedSizeValidator implements ConstraintValidator<TrimmedSize, St
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if( value == null ) return true;
+        if (value == null) return true;
 
         String trimmed = value.trim();
         int length = trimmed.length();

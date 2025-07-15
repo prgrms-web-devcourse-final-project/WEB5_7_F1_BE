@@ -11,11 +11,12 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -39,41 +40,43 @@ public class QuestionService {
     @Transactional
     public void updateQuestion(Long questionId, QuestionUpdateRequest request) {
 
-        Question question = questionRepository.findById(questionId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
 
         TextQuestion textQuestion = question.getTextQuestion();
 
-        if(request.content() != null) {
+        if (request.content() != null) {
             validateContent(request.content());
             textQuestion.changeContent(request.content());
         }
 
-        if(request.answer() != null) {
+        if (request.answer() != null) {
             validateAnswer(request.answer());
             question.changeAnswer(request.answer());
         }
-
     }
 
     @Transactional
     public void deleteQuestion(Long questionId) {
 
-        Question question = questionRepository.findById(questionId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
 
         questionRepository.delete(question);
-
     }
 
     private void validateAnswer(String answer) {
-        if(answer.trim().length() < 5 || answer.trim().length() > 30) {
+        if (answer.trim().length() < 5 || answer.trim().length() > 30) {
             throw new IllegalArgumentException("정답은 1자 이상 30자 이하로 입력해주세요.");
         }
     }
 
     private void validateContent(String content) {
-        if(content.trim().length() < 5 || content.trim().length() > 30) {
+        if (content.trim().length() < 5 || content.trim().length() > 30) {
             throw new IllegalArgumentException("문제는 5자 이상 30자 이하로 입력해주세요.");
         }
     }

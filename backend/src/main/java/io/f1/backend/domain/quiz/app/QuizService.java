@@ -151,7 +151,7 @@ public class QuizService {
     }
 
     private void validateDesc(String desc) {
-        if( desc.trim().length() < 10 || desc.trim().length() > 50) {
+        if (desc.trim().length() < 10 || desc.trim().length() > 50) {
             throw new IllegalArgumentException("설명은 10자 이상 50자 이하로 입력해주세요.");
         }
     }

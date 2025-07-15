@@ -2,7 +2,9 @@ package io.f1.backend.domain.question.api;
 
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +21,8 @@ public class QuestionController {
     private final QuestionService questionService;
 
     @PutMapping("/{questionId}")
-    public ResponseEntity<Void> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionUpdateRequest request) {
+    public ResponseEntity<Void> updateQuestion(
+            @PathVariable Long questionId, @RequestBody QuestionUpdateRequest request) {
         questionService.updateQuestion(questionId, request);
 
         return ResponseEntity.noContent().build();
@@ -31,5 +34,4 @@ public class QuestionController {
 
         return ResponseEntity.noContent().build();
     }
-
 }
