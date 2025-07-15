@@ -42,6 +42,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/ws/**")
                                         .authenticated()
+                                        .requestMatchers("/user/me")
+                                        .hasRole("USER")
                                         .anyRequest()
                                         .authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)

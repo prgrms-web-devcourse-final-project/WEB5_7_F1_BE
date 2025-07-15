@@ -3,6 +3,8 @@ package io.f1.backend.global.util;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,5 +38,16 @@ public class SecurityUtils {
 
     public static String getCurrentUserNickname() {
         return getCurrentUserPrincipal().getUserNickname();
+    }
+
+    public static void logout(HttpSession session) {
+        if (session != null) {
+            session.invalidate();
+        }
+        clearAuthentication();
+    }
+
+    private static void clearAuthentication() {
+        SecurityContextHolder.clearContext();
     }
 }
