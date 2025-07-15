@@ -76,14 +76,13 @@ public class RoomMapper {
                 quiz.getQuestions().size());
     }
 
-    public static SystemNoticeResponse ofPlayerEvent(Player player, RoomEventType roomEventType ){
+    public static SystemNoticeResponse ofPlayerEvent(Player player, RoomEventType roomEventType) {
         String message = "";
-        if(roomEventType == RoomEventType.ENTER){
+        if (roomEventType == RoomEventType.ENTER) {
             message = " 님이 입장하셨습니다";
-        }else if (roomEventType == RoomEventType.EXIT) {
+        } else if (roomEventType == RoomEventType.EXIT) {
             message = " 님이 퇴장하셨습니다";
         }
         return new SystemNoticeResponse(player.getNickname() + message, Instant.now());
-
     }
 }

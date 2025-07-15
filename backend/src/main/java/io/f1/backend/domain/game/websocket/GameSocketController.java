@@ -35,8 +35,7 @@ public class GameSocketController {
         messageSender.send(
                 destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
         messageSender.send(
-            destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
-
+                destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -50,11 +49,9 @@ public class GameSocketController {
 
         if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses()
-            );
+                    destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
             messageSender.send(
-                destination , MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse()
-            );
+                    destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
     }
 

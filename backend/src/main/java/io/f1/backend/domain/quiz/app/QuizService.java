@@ -4,6 +4,7 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.pageQuizToPageQuizList
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizCreateRequestToQuiz;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.quizToQuizCreateResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toQuizListPageResponse;
+
 import static java.nio.file.Files.deleteIfExists;
 
 import io.f1.backend.domain.question.app.QuestionService;
@@ -17,14 +18,10 @@ import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,6 +29,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -190,9 +194,10 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz getQuizById(Long quizId) {
-        Quiz quiz = quizRepository
-            .findById(quizId)
-            .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
         quiz.getQuestions().size();
         return quiz;
     }
