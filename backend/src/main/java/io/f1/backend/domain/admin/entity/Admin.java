@@ -27,4 +27,8 @@ public class Admin extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDateTime lastLogin;
+
+    public void updateLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
 }
