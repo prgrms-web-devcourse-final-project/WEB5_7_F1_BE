@@ -46,7 +46,6 @@ public class Room {
         this.host = nextHost;
     }
 
-
     public void updateRoomState(RoomState newState) {
         this.state = newState;
     }
@@ -57,6 +56,5 @@ public class Room {
 
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
-
     }
 }
