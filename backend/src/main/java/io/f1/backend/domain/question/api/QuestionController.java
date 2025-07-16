@@ -21,13 +21,14 @@ public class QuestionController {
     private final QuestionService questionService;
 
     @PutMapping("/{questionId}")
-    public ResponseEntity<Void> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionUpdateRequest request) {
+    public ResponseEntity<Void> updateQuestion(
+            @PathVariable Long questionId, @RequestBody QuestionUpdateRequest request) {
 
-        if(request.content()!=null) {
+        if (request.content() != null) {
             questionService.updateQuestionContent(questionId, request.content());
         }
 
-        if(request.content()!=null) {
+        if (request.content() != null) {
             questionService.updateQuestionAnswer(questionId, request.answer());
         }
 

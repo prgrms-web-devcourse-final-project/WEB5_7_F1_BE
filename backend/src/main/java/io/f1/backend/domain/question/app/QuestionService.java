@@ -6,7 +6,6 @@ import static io.f1.backend.domain.question.mapper.TextQuestionMapper.questionRe
 import io.f1.backend.domain.question.dao.QuestionRepository;
 import io.f1.backend.domain.question.dao.TextQuestionRepository;
 import io.f1.backend.domain.question.dto.QuestionRequest;
-import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -56,11 +55,12 @@ public class QuestionService {
 
         validateAnswer(answer);
 
-        Question question = questionRepository.findById(questionId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
 
         question.changeAnswer(answer);
-
     }
 
     @Transactional
