@@ -83,20 +83,18 @@ public class Quiz extends BaseEntity {
     }
 
     public Long getUserIdIfExists() {
-        Long userId = null;
-        if (this.creator != null) {
-            userId = this.creator.getId();
+        if (this.creator == null) {
+            return null;
         }
 
-        return userId;
+        return this.creator.getId();
     }
 
     public String getUserNicknameIfExists() {
-        String nickname = null;
-        if (this.creator != null) {
-            nickname = this.creator.getNickname();
+        if (this.creator == null) {
+            return "탈퇴한 사용자";
         }
 
-        return nickname;
+        return this.creator.getNickname();
     }
 }
