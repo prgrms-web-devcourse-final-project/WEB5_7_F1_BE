@@ -33,15 +33,19 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
@@ -50,6 +54,8 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
     private final ApplicationEventPublisher eventPublisher;
+    private final Map<Long, Object> roomLocks = new ConcurrentHashMap<>();
+    private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
@@ -66,6 +72,8 @@ public class RoomService {
 
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
+        room.getUserIdSessionMap().put(host.id, PENDING_SESSION_ID);
+
         roomRepository.saveRoom(room);
 
         eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
@@ -73,41 +81,53 @@ public class RoomService {
         return new RoomCreateResponse(newId);
     }
 
-    public void validateRoom(RoomValidationRequest request) {
+    public void enterRoom(RoomValidationRequest request) {
 
-        Room room =
-                roomRepository
-                        .findRoom(request.roomId())
-                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다.-1"));
+        Long roomId = request.roomId();
 
-        if (room.getState().equals(RoomState.PLAYING)) {
-            throw new IllegalArgumentException("403 게임이 진행중입니다.");
-        }
+        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
 
-        int maxUserCnt = room.getRoomSetting().maxUserCount();
-        int currentCnt = room.getPlayerSessionMap().size();
-        if (maxUserCnt == currentCnt) {
-            throw new IllegalArgumentException("403 정원이 모두 찼습니다.");
-        }
+        synchronized (lock) {
+            Room room = findRoom(request.roomId());
 
-        if (room.getRoomSetting().locked()
-                && !room.getRoomSetting().password().equals(request.password())) {
-            throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
+            if (room.getState().equals(RoomState.PLAYING)) {
+                throw new IllegalArgumentException("403 게임이 진행중입니다.");
+            }
+
+            int maxUserCnt = room.getRoomSetting().maxUserCount();
+            int currentCnt = room.getUserIdSessionMap().size();
+            if (maxUserCnt == currentCnt) {
+                throw new IllegalArgumentException("403 정원이 모두 찼습니다.");
+            }
+
+            if (room.getRoomSetting().locked()
+                    && !room.getRoomSetting().password().equals(request.password())) {
+                throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
+            }
+
+            room.getUserIdSessionMap().put(getCurrentUserId(), PENDING_SESSION_ID);
         }
     }
 
-    public RoomInitialData enterRoom(Long roomId, String sessionId) {
+    public RoomInitialData initializeRoomSocket(Long roomId, String sessionId) {
 
-        Room room =
-                roomRepository
-                        .findRoom(roomId)
-                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+        Room room = findRoom(roomId);
 
         Player player = createPlayer();
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Map<Long, String> userIdSessionMap = room.getUserIdSessionMap();
+
+        if (room.isHost(player.getId())) {
+            player.toggleReady();
+        }
 
         playerSessionMap.put(sessionId, player);
+        String existingSession = userIdSessionMap.get(player.getId());
+        /* 정상 흐름 or 재연결 */
+        if (existingSession.equals(PENDING_SESSION_ID) || !existingSession.equals(sessionId)) {
+            userIdSessionMap.put(player.getId(), sessionId);
+        }
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -130,42 +150,36 @@ public class RoomService {
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId) {
-        Room room =
-                roomRepository
-                        .findRoom(roomId)
-                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
 
-        String destination = getDestination(roomId);
+        synchronized (lock) {
+            Room room = findRoom(roomId);
 
-        if (playerSessionMap.size() == 1 && playerSessionMap.get(sessionId) != null) {
-            roomRepository.removeRoom(roomId);
-            return RoomExitData.builder().destination(destination).removedRoom(true).build();
+            String destination = getDestination(roomId);
+
+            Player removePlayer = getRemovePlayer(room, sessionId);
+
+            /* 방 삭제 */
+            if (isLastPlayer(room, sessionId)) {
+                return removeRoom(room, destination);
+            }
+
+            /* 방장 변경 */
+            if (room.isHost(removePlayer.getId())) {
+                changeHost(room, sessionId);
+            }
+
+            /* 플레이어 삭제 */
+            removePlayer(room, sessionId, removePlayer);
+
+            SystemNoticeResponse systemNoticeResponse =
+                    ofPlayerEvent(removePlayer, RoomEventType.EXIT);
+
+            PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+            return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
         }
-
-        Player removedPlayer = playerSessionMap.remove(sessionId);
-        if (removedPlayer == null) {
-            throw new IllegalArgumentException("퇴장 처리 불가 - 404 해당 세션 플레이어는 존재하지않습니다.");
-        }
-
-        if (room.getHost().getId().equals(removedPlayer.getId())) {
-            Optional<String> nextHostSessionId = playerSessionMap.keySet().stream().findFirst();
-            Player nextHost =
-                    playerSessionMap.get(
-                            nextHostSessionId.orElseThrow(
-                                    () ->
-                                            new IllegalArgumentException(
-                                                    "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
-            room.updateHost(nextHost);
-        }
-
-        SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(removedPlayer, RoomEventType.EXIT);
-
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-
-        return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
     }
 
     public RoomListResponse getAllRooms() {
@@ -183,11 +197,63 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
+    private Player getRemovePlayer(Room room, String sessionId) {
+        Player removePlayer = room.getPlayerSessionMap().get(sessionId);
+        if (removePlayer == null) {
+            room.removeUserId(getCurrentUserId());
+            throw new IllegalIdentifierException("404 세션 없음 비정상적인 퇴장 요청");
+        }
+        return removePlayer;
+    }
+
     private static String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
 
-    private static Player createPlayer() {
+    private Player createPlayer() {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
+    }
+
+    private Room findRoom(Long roomId) {
+        return roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+    }
+
+    private boolean isLastPlayer(Room room, String sessionId) {
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        return playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId);
+    }
+
+    private RoomExitData removeRoom(Room room, String destination) {
+        Long roomId = room.getId();
+        roomRepository.removeRoom(roomId);
+        roomLocks.remove(roomId);
+        log.info("{}번 방 삭제", roomId);
+        return RoomExitData.builder().destination(destination).removedRoom(true).build();
+    }
+
+    private void changeHost(Room room, String hostSessionId) {
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+
+        Optional<String> nextHostSessionId =
+                playerSessionMap.keySet().stream()
+                        .filter(key -> !key.equals(hostSessionId))
+                        .findFirst();
+
+        Player nextHost =
+                playerSessionMap.get(
+                        nextHostSessionId.orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
+
+        room.updateHost(nextHost);
+        log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
+    }
+
+    private void removePlayer(Room room, String sessionId, Player removePlayer) {
+        room.removeUserId(removePlayer.getId());
+        room.removeSessionId(sessionId);
     }
 }
