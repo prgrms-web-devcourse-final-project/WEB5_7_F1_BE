@@ -4,8 +4,10 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.*;
 
 import static java.nio.file.Files.deleteIfExists;
 
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
@@ -214,12 +216,11 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public Quiz getQuizById(Long quizId) {
+    public Quiz getQuizWithQuestionsById(Long quizId) {
         Quiz quiz =
                 quizRepository
-                        .findById(quizId)
+                        .findQuizWithQuestionsById(quizId)
                         .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
-        quiz.getQuestions().size();
         return quiz;
     }
 
@@ -228,6 +229,7 @@ public class QuizService {
         return quizRepository.getQuizMinId();
     }
 
+    @Transactional(readOnly = true)
     public QuizQuestionListResponse getQuizWithQuestions(Long quizId) {
         Quiz quiz =
                 quizRepository
@@ -235,5 +237,16 @@ public class QuizService {
                         .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         return quizToQuizQuestionListResponse(quiz);
+    }
+
+    @Transactional(readOnly = true)
+    public GameStartResponse getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
+        quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        List<Question> randomQuestions = quizRepository.findRandQuestionsByQuizId(quizId, round);
+
+        return toGameStartResponse(randomQuestions);
     }
 }

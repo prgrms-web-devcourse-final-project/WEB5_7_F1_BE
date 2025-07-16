@@ -1,9 +1,12 @@
 package io.f1.backend.domain.game.websocket;
 
+import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
+import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.request.GameStartRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +22,7 @@ public class GameSocketController {
 
     private final MessageSender messageSender;
     private final RoomService roomService;
+    private final GameService gameService;
 
     @MessageMapping("/room/initializeRoomSocket/{roomId}")
     public void initializeRoomSocket(@DestinationVariable Long roomId, Message<?> message) {
@@ -54,6 +58,18 @@ public class GameSocketController {
             messageSender.send(
                     destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
+    }
+
+    @MessageMapping("/room/start/{roomId}")
+    public void gameStart(@DestinationVariable Long roomId, Message<GameStartRequest> message) {
+
+        Long quizId = message.getPayload().quizId();
+
+        GameStartData gameStartData = gameService.gameStart(roomId, quizId);
+
+        String destination = gameStartData.destination();
+
+        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
     }
 
     private static String getSessionId(Message<?> message) {

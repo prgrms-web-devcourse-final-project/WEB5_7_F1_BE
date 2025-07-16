@@ -5,4 +5,5 @@ public enum MessageType {
     GAME_SETTING,
     PLAYER_LIST,
     SYSTEM_NOTICE,
+    GAME_START,
 }
