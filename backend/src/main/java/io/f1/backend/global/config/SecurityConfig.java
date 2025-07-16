@@ -32,7 +32,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
+                .cors(Customizer.withDefaults())
                 .exceptionHandling(
                         exception ->
                                 exception.authenticationEntryPoint(customAuthenticationEntryPoint))
