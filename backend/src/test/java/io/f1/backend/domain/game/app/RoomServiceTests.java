@@ -174,7 +174,7 @@ class RoomServiceTests {
 
         User user = User.builder()
             .provider(provider)
-            .provider(providerId).lastLogin(lastLogin).build();
+            .providerId(providerId).lastLogin(lastLogin).build();
         user.setId(userId);
 
         return user;
