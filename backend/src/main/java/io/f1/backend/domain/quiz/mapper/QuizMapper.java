@@ -45,7 +45,7 @@ public class QuizMapper {
 
     private static Long getUserIdIfExists(Quiz quiz) {
         Long userId = null;
-        if(quiz.getCreator()!=null){
+        if (quiz.getCreator() != null) {
             userId = quiz.getCreator().getId();
         }
 
@@ -54,7 +54,7 @@ public class QuizMapper {
 
     private static String getUserNicknameIfExists(Quiz quiz) {
         String nickname = null;
-        if(quiz.getCreator()!=null){
+        if (quiz.getCreator() != null) {
             nickname = quiz.getCreator().getNickname();
         }
 

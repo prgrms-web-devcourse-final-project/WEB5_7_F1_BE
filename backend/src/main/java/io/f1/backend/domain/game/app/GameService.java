@@ -10,10 +10,10 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
-
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,9 +32,9 @@ public class GameService {
     public GameStartData gameStart(Long roomId, Long quizId) {
 
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
 
         if (!validateReadyStatus(room)) {
             throw new CustomException(RoomErrorCode.PLAYER_NOT_READY);

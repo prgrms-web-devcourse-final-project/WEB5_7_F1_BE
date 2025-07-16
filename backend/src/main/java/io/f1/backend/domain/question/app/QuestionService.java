@@ -9,15 +9,13 @@ import io.f1.backend.domain.question.dto.QuestionRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
-
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +44,8 @@ public class QuestionService {
         Question question =
                 questionRepository
                         .findById(questionId)
-                        .orElseThrow(() -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
         TextQuestion textQuestion = question.getTextQuestion();
         textQuestion.changeContent(content);
@@ -60,7 +59,8 @@ public class QuestionService {
         Question question =
                 questionRepository
                         .findById(questionId)
-                        .orElseThrow(() -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
         question.changeAnswer(answer);
     }
@@ -71,7 +71,8 @@ public class QuestionService {
         Question question =
                 questionRepository
                         .findById(questionId)
-                        .orElseThrow(() -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
         questionRepository.delete(question);
     }

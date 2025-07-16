@@ -17,10 +17,10 @@ import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
-
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuizErrorCode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -93,12 +93,12 @@ public class QuizService {
             throw new CustomException(QuizErrorCode.UNSUPPORTED_IMAGE_FORMAT);
         }
 
-        if(thumbnailFile.getSize() > MAX_FILE_SIZE) {
+        if (thumbnailFile.getSize() > MAX_FILE_SIZE) {
             throw new CustomException(QuizErrorCode.FILE_SIZE_TOO_LARGE);
         }
     }
 
-    private String convertToThumbnailPath(MultipartFile thumbnailFile){
+    private String convertToThumbnailPath(MultipartFile thumbnailFile) {
         String originalFilename = thumbnailFile.getOriginalFilename();
         String ext = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID().toString() + "." + ext;
