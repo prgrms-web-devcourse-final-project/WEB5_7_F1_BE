@@ -1,6 +1,5 @@
 package io.f1.backend.domain.admin.app;
 
-
 import io.f1.backend.domain.admin.dao.AdminRepository;
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.admin.entity.Admin;
