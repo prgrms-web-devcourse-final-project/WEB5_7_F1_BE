@@ -31,11 +31,12 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -91,18 +92,18 @@ public class RoomService {
             Room room = findRoom(request.roomId());
 
             if (room.getState().equals(RoomState.PLAYING)) {
-                throw new IllegalArgumentException("403 게임이 진행중입니다.");
+                throw new CustomException(RoomErrorCode.ROOM_GAME_IN_PROGRESS);
             }
 
             int maxUserCnt = room.getRoomSetting().maxUserCount();
             int currentCnt = room.getUserIdSessionMap().size();
             if (maxUserCnt == currentCnt) {
-                throw new IllegalArgumentException("403 정원이 모두 찼습니다.");
+                throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
             }
 
             if (room.getRoomSetting().locked()
                     && !room.getRoomSetting().password().equals(request.password())) {
-                throw new IllegalArgumentException("401 비밀번호가 일치하지 않습니다.");
+                throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
             room.getUserIdSessionMap().put(getCurrentUserId(), PENDING_SESSION_ID);
@@ -201,7 +202,7 @@ public class RoomService {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
             room.removeUserId(getCurrentUserId());
-            throw new IllegalIdentifierException("404 세션 없음 비정상적인 퇴장 요청");
+            throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
     }
@@ -217,7 +218,7 @@ public class RoomService {
     private Room findRoom(Long roomId) {
         return roomRepository
                 .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private boolean isLastPlayer(Room room, String sessionId) {
@@ -244,9 +245,7 @@ public class RoomService {
         Player nextHost =
                 playerSessionMap.get(
                         nextHostSessionId.orElseThrow(
-                                () ->
-                                        new IllegalArgumentException(
-                                                "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
+                                () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
 
         room.updateHost(nextHost);
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
