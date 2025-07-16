@@ -81,4 +81,22 @@ public class Quiz extends BaseEntity {
     public void changeThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
+
+    public Long getUserIdIfExists() {
+        Long userId = null;
+        if (this.creator != null) {
+            userId = this.creator.getId();
+        }
+
+        return userId;
+    }
+
+    public String getUserNicknameIfExists() {
+        String nickname = null;
+        if (this.creator != null) {
+            nickname = this.creator.getNickname();
+        }
+
+        return nickname;
+    }
 }
