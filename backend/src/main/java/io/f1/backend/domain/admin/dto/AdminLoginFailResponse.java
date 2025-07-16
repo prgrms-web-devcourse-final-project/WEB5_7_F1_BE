@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class AdminLoginFailResponseDto {
+public class AdminLoginFailResponse {
     private String code;
     private String message;
 }
