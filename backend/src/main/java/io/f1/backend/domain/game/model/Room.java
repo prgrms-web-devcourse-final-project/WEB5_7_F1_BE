@@ -27,7 +27,7 @@ public class Room {
 
     private Map<String, Player> playerSessionMap = new ConcurrentHashMap<>();
 
-    private Map<Long,String> userIdSessionMap = new ConcurrentHashMap<>();
+    private Map<Long, String> userIdSessionMap = new ConcurrentHashMap<>();
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
@@ -36,7 +36,6 @@ public class Room {
         this.roomSetting = roomSetting;
         this.gameSetting = gameSetting;
         this.host = host;
-
     }
 
     public boolean isHost(Long id){

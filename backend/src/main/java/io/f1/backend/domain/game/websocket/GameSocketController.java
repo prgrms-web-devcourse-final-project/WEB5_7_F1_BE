@@ -25,7 +25,8 @@ public class GameSocketController {
 
         String websocketSessionId = getSessionId(message);
 
-        RoomInitialData roomInitialData = roomService.initializeRoomSocket(roomId, websocketSessionId);
+        RoomInitialData roomInitialData =
+                roomService.initializeRoomSocket(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
 
         messageSender.send(
