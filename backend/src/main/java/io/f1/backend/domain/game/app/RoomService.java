@@ -10,14 +10,12 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
-import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
@@ -192,5 +190,4 @@ public class RoomService {
     private static Player createPlayer() {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
     }
-
 }

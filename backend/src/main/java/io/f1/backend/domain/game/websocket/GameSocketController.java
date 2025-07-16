@@ -7,7 +7,6 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
-import io.f1.backend.domain.quiz.app.QuizService;
 
 import lombok.RequiredArgsConstructor;
 
