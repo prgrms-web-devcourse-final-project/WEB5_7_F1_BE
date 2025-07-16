@@ -65,13 +65,11 @@ class RoomServiceTests {
         Long roomId = 1L;
         Long quizId = 1L;
         Long playerId = 1L;
+        int maxUserCount = 5;
         String password = "123";
+        boolean locked = true;
 
-        RoomSetting roomSetting = new RoomSetting("방제목", 5, true, password);
-        GameSetting gameSetting = new GameSetting(quizId, 10, 60);
-        Player host = new Player(playerId, "닉네임");
-
-        Room room = new Room(roomId, roomSetting, gameSetting, host);
+        Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
 
         when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
 
@@ -80,23 +78,14 @@ class RoomServiceTests {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
         RoomValidationRequest roomValidationRequest = new RoomValidationRequest(roomId, password);
         for (int i = 1; i <= threadCount; i++) {
-            Long userId = i + 1L;
-            String provider = "provider +" + i;
-            String providerId = "providerId" + i;
-            LocalDateTime lastLogin = LocalDateTime.now();
+            User user = createUser(i);
+
             executorService.submit(() -> {
                 try {
-                    User user = User.builder()
-                        .provider(provider)
-                        .provider(providerId).lastLogin(lastLogin).build();
-
-                    user.setId(userId);
-
                     SecurityUtils.setAuthentication(user);
-
                     roomService.enterRoom(roomValidationRequest);
                 } catch (Exception e) {
-                    //e.printStackTrace();
+                    e.printStackTrace();
                 } finally {
                     SecurityContextHolder.clearContext();
                     countDownLatch.countDown();
@@ -113,12 +102,14 @@ class RoomServiceTests {
     void exitRoom_synchronized() throws Exception {
         Long roomId = 1L;
         Long quizId = 1L;
-        int threadCount = 10;
-
+        Long playerId = 1L;
+        int maxUserCount = 5;
         String password = "123";
+        boolean locked = true;
 
-        RoomSetting roomSetting = new RoomSetting("방제목", 5, true, password);
-        GameSetting gameSetting = new GameSetting(quizId, 10, 60);
+        Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
+
+        int threadCount = 10;
 
         List<Player> players = new ArrayList<>();
         for (int i = 1; i <=threadCount; i++) {
@@ -127,10 +118,10 @@ class RoomServiceTests {
 
             Player player = new Player(id, nickname);
             players.add(player);
-
         }
         Player host = players.getFirst();
-        Room room = new Room(roomId, roomSetting, gameSetting, host);
+        room.updateHost(host);
+
 
         for (int i = 1; i <=threadCount; i++) {
             String sessionId = "sessionId" + i;
@@ -148,20 +139,11 @@ class RoomServiceTests {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
         for (int i = 1; i <= threadCount; i++) {
-            Long userId = i + 1L;
             String sessionId = "sessionId" + i;
-            String provider = "provider +" + i;
-            String providerId = "providerId" + i;
-            LocalDateTime lastLogin = LocalDateTime.now();
+            User user = createUser(i);
             executorService.submit(() -> {
                 try {
-                    User user = User.builder()
-                        .provider(provider)
-                        .provider(providerId).lastLogin(lastLogin).build();
-                    user.setId(userId);
                     SecurityUtils.setAuthentication(user);
-
-                    log.info("userId = {}", userId);
                     log.info("room.getHost().getId() = {}", room.getHost().getId());
                     roomService.exitRoom(roomId, sessionId);
                 } catch (Exception e) {
@@ -176,6 +158,26 @@ class RoomServiceTests {
         assertThat(room.getUserIdSessionMap()).hasSize(1);
     }
 
+    private Room createRoom(Long roomId, Long playerId, Long quizId, String password, int maxUserCount, boolean locked) {
+        RoomSetting roomSetting = new RoomSetting("방제목", maxUserCount, locked, password);
+        GameSetting gameSetting = new GameSetting(quizId, 10, 60);
+        Player host = new Player(playerId, "nickname");
 
+        return new Room(roomId, roomSetting, gameSetting, host);
+    }
+
+    private User createUser(int i) {
+        Long userId = i + 1L;
+        String provider = "provider +" + i;
+        String providerId = "providerId" + i;
+        LocalDateTime lastLogin = LocalDateTime.now();
+
+        User user = User.builder()
+            .provider(provider)
+            .provider(providerId).lastLogin(lastLogin).build();
+        user.setId(userId);
+
+        return user;
+    }
 
 }
