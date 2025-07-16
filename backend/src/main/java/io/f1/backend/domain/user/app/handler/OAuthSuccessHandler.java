@@ -1,6 +1,5 @@
 package io.f1.backend.domain.user.app.handler;
 
-
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
