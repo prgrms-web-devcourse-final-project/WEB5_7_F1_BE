@@ -57,4 +57,8 @@ public class Room {
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
     }
+
+    public void increasePlayerCorrectCount(String sessionId) {
+        this.playerSessionMap.get(sessionId).increaseCorrectCount();
+    }
 }

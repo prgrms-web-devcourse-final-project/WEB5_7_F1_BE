@@ -23,4 +23,8 @@ public class Player {
     public void toggleReady() {
         this.isReady = !this.isReady;
     }
+
+    public void increaseCorrectCount() {
+        correctCount++;
+    }
 }
