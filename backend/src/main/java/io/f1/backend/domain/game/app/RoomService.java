@@ -32,6 +32,8 @@ import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -182,6 +184,11 @@ public class RoomService {
         }
     }
 
+    public Player findPlayerInRoomBySessionId(String sessionId, Long roomId) {
+        return roomRepository.findPlayerInRoomBySessionId(sessionId, roomId)
+            .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+    }
+
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
@@ -255,5 +262,12 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
+    }
+
+    public PlayerListResponse getPlayerListResponse(Long roomId) {
+        Room room = roomRepository.findRoom(roomId)
+            .orElseThrow(() -> new IllegalStateException("방을 찾을 수 없습니다. roomId=" + roomId));
+
+        return toPlayerListResponse(room);
     }
 }

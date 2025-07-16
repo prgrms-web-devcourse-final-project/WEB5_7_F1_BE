@@ -5,6 +5,8 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.game.model.Player;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
@@ -27,6 +29,7 @@ public class GameSocketController {
 
         RoomInitialData roomInitialData =
                 roomService.initializeRoomSocket(roomId, websocketSessionId);
+
         String destination = roomInitialData.destination();
 
         messageSender.send(
@@ -54,6 +57,21 @@ public class GameSocketController {
             messageSender.send(
                     destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
+    }
+
+    @MessageMapping("/room/ready/{roomId}")
+    public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        String sessionId = accessor.getSessionId();
+
+        Player player = roomService.findPlayerInRoomBySessionId(sessionId, roomId);
+
+        player.toggleReady();
+
+        PlayerListResponse response = roomService.getPlayerListResponse(roomId);
+
+        String destination = "/sub/room/" + roomId;
+        messageSender.send(destination, MessageType.PLAYER_LIST, response);
     }
 
     private static String getSessionId(Message<?> message) {
