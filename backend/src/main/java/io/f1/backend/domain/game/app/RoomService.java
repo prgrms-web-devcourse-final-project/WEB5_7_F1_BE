@@ -10,12 +10,14 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
 import io.f1.backend.domain.game.dto.response.RoomListResponse;
@@ -192,32 +194,51 @@ public class RoomService {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
     }
 
-    @Transactional(readOnly = true)
-    public Integer checkGameSetting(Long roomId, Long quizId) {
-        Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+    private Integer checkGameSetting(Room room, Long quizId) {
 
         GameSetting gameSetting = room.getGameSetting();
 
         Long roomQuizId = gameSetting.getQuizId();
 
-        // TODO : 에러 코드 추가하기
         if(!roomQuizId.equals(quizId)) {
-            throw new IllegalArgumentException("게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
+            throw new IllegalArgumentException("E409002 : 게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
         }
 
         return gameSetting.getRound();
     }
 
-    @Transactional
-    public void gameStart(Long roomId) {
+    public GameStartData gameStart(Long roomId, Long quizId) {
+
         Room room =
             roomRepository
                 .findRoom(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
-        room.gameStart();
+        if(!validateReadyStatus(room)){
+            throw new IllegalArgumentException("E403004 : 레디 상태가 아닙니다.");
+        }
+
+        // 방의 gameSetting에 설정된 퀴즈랑 요청 퀴즈랑 같은지 체크 후 GameSetting에서 라운드 가져오기
+        Integer round = checkGameSetting(room, quizId);
+
+        // 라운드 수만큼 랜덤 Question 추출
+        GameStartResponse questions = quizService.getRandomQuestionsWithoutAnswer(quizId, round);
+
+        // 방 정보 게임 중으로 변경
+        room.updateRoomState(RoomState.PLAYING);
+
+        return new GameStartData(getDestination(roomId), questions);
+    }
+
+    private boolean validateReadyStatus(Room room) {
+
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+
+        for(Player player : playerSessionMap.values()) {
+            if(!player.isReady()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

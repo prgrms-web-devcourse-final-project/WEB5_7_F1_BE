@@ -7,8 +7,8 @@ import static java.nio.file.Files.deleteIfExists;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
-import io.f1.backend.domain.quiz.dto.GameQuestionResponse;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
@@ -218,15 +218,13 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public GameStartResponse getQuestionsWithoutAnswer(Long quizId, Integer round) {
-        Quiz quiz =
-            quizRepository
-                .findById(quizId)
+    public GameStartResponse getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
+        quizRepository.findById(quizId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
+        List<Question> randomQuestions = quizRepository.findRandQuestionsByQuizId(quizId, round);
 
-
-        return toGameStartResponse(quiz);
+        return toGameStartResponse(randomQuestions);
     }
 
 }

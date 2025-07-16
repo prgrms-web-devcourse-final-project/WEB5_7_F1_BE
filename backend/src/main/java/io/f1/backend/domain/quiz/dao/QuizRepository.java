@@ -1,7 +1,9 @@
 package io.f1.backend.domain.quiz.dao;
 
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +17,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     @Query("SELECT MIN(q.id) FROM Quiz q")
     Long getQuizMinId();
+
+    @Query(value="SELECT * FROM question WHERE quiz_id = :quizId ORDER BY RAND() LIMIT :round", nativeQuery = true)
+    List<Question> findRandQuestionsByQuizId(Long quizId, Integer round);
 }

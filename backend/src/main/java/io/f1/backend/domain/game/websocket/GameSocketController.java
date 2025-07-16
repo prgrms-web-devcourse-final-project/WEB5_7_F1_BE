@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.app.RoomService;
+import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
@@ -64,12 +65,11 @@ public class GameSocketController {
 
         Long quizId = message.getPayload().quizId();
 
-        Integer round = roomService.checkGameSetting(roomId, quizId);
+        GameStartData gameStartData = roomService.gameStart(roomId, quizId);
 
-        // TODO : 라운드 수만큼 랜덤하게 문제 주기..!
-        GameStartResponse questions = quizService.getQuestionsWithoutAnswer(quizId, round);
+        String destination = gameStartData.destination();
 
-        roomService.gameStart(roomId);
+        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
 
     }
 

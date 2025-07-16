@@ -40,7 +40,7 @@ public class Room {
         this.host = nextHost;
     }
 
-    public void gameStart() {
-        this.state = RoomState.PLAYING;
+    public void updateRoomState(RoomState newState) {
+        this.state = newState;
     }
 }
