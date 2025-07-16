@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
@@ -61,17 +62,11 @@ public class GameSocketController {
 
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        String sessionId = accessor.getSessionId();
 
-        Player player = roomService.findPlayerInRoomBySessionId(sessionId, roomId);
+        PlayerReadyData playerReadyData = roomService.handlePlayerReady(roomId, getSessionId(message));
 
-        player.toggleReady();
-
-        PlayerListResponse response = roomService.getPlayerListResponse(roomId);
-
-        String destination = "/sub/room/" + roomId;
-        messageSender.send(destination, MessageType.PLAYER_LIST, response);
+        messageSender.send(
+            playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
     }
 
     private static String getSessionId(Message<?> message) {

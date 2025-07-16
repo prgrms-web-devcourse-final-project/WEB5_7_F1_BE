@@ -16,5 +16,5 @@ public interface RoomRepository {
 
     void removeRoom(Long roomId);
 
-    Optional<Player> findPlayerInRoomBySessionId(String sessionId, Long roomId);
+    Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId);
 }

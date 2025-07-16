@@ -10,6 +10,7 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
@@ -31,9 +32,9 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -184,10 +185,18 @@ public class RoomService {
         }
     }
 
-    public Player findPlayerInRoomBySessionId(String sessionId, Long roomId) {
-        return roomRepository
-                .findPlayerInRoomBySessionId(sessionId, roomId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+    public PlayerReadyData handlePlayerReady(Long roomId, String sessionId) {
+        Player player = roomRepository.findPlayerInRoomBySessionId(
+            roomId, sessionId).orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+
+        player.toggleReady();
+
+        String destination = getDestination(roomId);
+
+        Room room = findRoom(roomId);
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+        return new PlayerReadyData(destination, playerListResponse);
     }
 
     public RoomListResponse getAllRooms() {
@@ -265,13 +274,4 @@ public class RoomService {
         room.removeSessionId(sessionId);
     }
 
-    public PlayerListResponse getPlayerListResponse(Long roomId) {
-        Room room =
-                roomRepository
-                        .findRoom(roomId)
-                        .orElseThrow(
-                                () -> new IllegalStateException("방을 찾을 수 없습니다. roomId=" + roomId));
-
-        return toPlayerListResponse(room);
-    }
 }

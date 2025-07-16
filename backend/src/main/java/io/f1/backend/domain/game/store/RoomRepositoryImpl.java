@@ -37,7 +37,7 @@ public class RoomRepositoryImpl implements RoomRepository {
     }
 
     @Override
-    public Optional<Player> findPlayerInRoomBySessionId(String sessionId, Long roomId) {
+    public Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId) {
         return findRoom(roomId).map(room -> room.getPlayerSessionMap().get(sessionId));
     }
 
