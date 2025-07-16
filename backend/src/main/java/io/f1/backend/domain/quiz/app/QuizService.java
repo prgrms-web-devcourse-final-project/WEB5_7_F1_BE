@@ -12,7 +12,6 @@ import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
-import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
@@ -125,9 +124,9 @@ public class QuizService {
     @Transactional
     public void updateQuizTitle(Long quizId, String title) {
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         validateTitle(title);
         quiz.changeTitle(title);
@@ -137,22 +136,21 @@ public class QuizService {
     public void updateQuizDesc(Long quizId, String description) {
 
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         validateDesc(description);
         quiz.changeDescription(description);
-
     }
 
     @Transactional
     public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) throws IOException {
 
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         validateImageFile(thumbnailFile);
         String newThumbnailPath = convertToThumbnailPath(thumbnailFile);

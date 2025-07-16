@@ -65,7 +65,7 @@ public class QuizController {
             quizService.updateQuizTitle(quizId, request.title());
         }
 
-        if(request.description()!=null) {
+        if (request.description() != null) {
             quizService.updateQuizDesc(quizId, request.description());
         }
 
