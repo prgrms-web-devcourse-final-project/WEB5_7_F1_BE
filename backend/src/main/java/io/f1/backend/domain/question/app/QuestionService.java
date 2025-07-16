@@ -38,7 +38,9 @@ public class QuestionService {
     }
 
     @Transactional
-    public void updateQuestion(Long questionId, QuestionUpdateRequest request) {
+    public void updateQuestionContent(Long questionId, String content) {
+
+        validateContent(content);
 
         Question question =
                 questionRepository
@@ -46,16 +48,19 @@ public class QuestionService {
                         .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
 
         TextQuestion textQuestion = question.getTextQuestion();
+        textQuestion.changeContent(content);
+    }
 
-        if (request.content() != null) {
-            validateContent(request.content());
-            textQuestion.changeContent(request.content());
-        }
+    @Transactional
+    public void updateQuestionAnswer(Long questionId, String answer) {
 
-        if (request.answer() != null) {
-            validateAnswer(request.answer());
-            question.changeAnswer(request.answer());
-        }
+        validateAnswer(answer);
+
+        Question question = questionRepository.findById(questionId)
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+
+        question.changeAnswer(answer);
+
     }
 
     @Transactional
