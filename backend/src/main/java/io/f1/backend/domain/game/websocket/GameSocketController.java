@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.websocket;
 
+import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
@@ -22,7 +23,7 @@ public class GameSocketController {
 
     private final MessageSender messageSender;
     private final RoomService roomService;
-    private final QuizService quizService;
+    private final GameService gameService;
 
     @MessageMapping("/room/enter/{roomId}")
     public void roomEnter(@DestinationVariable Long roomId, Message<?> message) {
@@ -64,7 +65,7 @@ public class GameSocketController {
 
         Long quizId = message.getPayload().quizId();
 
-        GameStartData gameStartData = roomService.gameStart(roomId, quizId);
+        GameStartData gameStartData = gameService.gameStart(roomId, quizId);
 
         String destination = gameStartData.destination();
 
