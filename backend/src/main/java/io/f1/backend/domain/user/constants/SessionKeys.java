@@ -6,4 +6,5 @@ public final class SessionKeys {
 
     public static final String OAUTH_USER = "OAuthUser";
     public static final String USER = "user";
+    public static final String ADMIN = "admin";
 }
