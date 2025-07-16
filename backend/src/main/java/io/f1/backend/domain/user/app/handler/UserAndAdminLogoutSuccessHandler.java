@@ -8,7 +8,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.stereotype.Component;
 
 @Component
-public class OAuthLogoutSuccessHandler implements LogoutSuccessHandler {
+public class UserAndAdminLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(

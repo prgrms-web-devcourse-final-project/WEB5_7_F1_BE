@@ -4,7 +4,7 @@ import io.f1.backend.domain.admin.app.handler.AdminLoginFailureHandler;
 import io.f1.backend.domain.admin.app.handler.AdminLoginSuccessHandler;
 import io.f1.backend.domain.user.app.CustomOAuthUserService;
 import io.f1.backend.domain.user.app.handler.CustomAuthenticationEntryPoint;
-import io.f1.backend.domain.user.app.handler.OAuthLogoutSuccessHandler;
+import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
 import io.f1.backend.domain.user.app.handler.OAuthSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomOAuthUserService customOAuthUserService;
     private final OAuthSuccessHandler oAuthSuccessHandler;
-    private final OAuthLogoutSuccessHandler oAuthLogoutSuccessHandler;
+    private final UserAndAdminLogoutSuccessHandler userAndAdminLogoutSuccessHandler;
     private final AdminLoginSuccessHandler adminLoginSuccessHandler;
     private final AdminLoginFailureHandler adminLoginFailureHandler;
 
@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .logout(
                         logout ->
                                 logout.logoutUrl("/logout")
-                                        .logoutSuccessHandler(oAuthLogoutSuccessHandler)
+                                        .logoutSuccessHandler(userAndAdminLogoutSuccessHandler)
                                         .clearAuthentication(true)
                                         .invalidateHttpSession(true)
                                         .permitAll())
