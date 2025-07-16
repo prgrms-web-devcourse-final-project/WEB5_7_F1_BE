@@ -6,8 +6,8 @@ import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
 
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
-import io.f1.backend.domain.user.dto.SignupRequestDto;
-import io.f1.backend.domain.user.dto.SignupResponseDto;
+import io.f1.backend.domain.user.dto.SignupRequest;
+import io.f1.backend.domain.user.dto.SignupResponse;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
 
@@ -25,7 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public SignupResponseDto signup(HttpSession session, SignupRequestDto signupRequest) {
+    public SignupResponse signup(HttpSession session, SignupRequest signupRequest) {
         AuthenticationUser authenticationUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();

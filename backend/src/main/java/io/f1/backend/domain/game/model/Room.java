@@ -46,6 +46,10 @@ public class Room {
         this.host = nextHost;
     }
 
+    public void updateRoomState(RoomState newState) {
+        this.state = newState;
+    }
+
     public void removeUserId(Long id) {
         this.userIdSessionMap.remove(id);
     }

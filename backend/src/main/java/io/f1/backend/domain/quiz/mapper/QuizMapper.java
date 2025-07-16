@@ -1,7 +1,9 @@
 package io.f1.backend.domain.quiz.mapper;
 
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.question.dto.QuestionResponse;
 import io.f1.backend.domain.question.entity.Question;
+import io.f1.backend.domain.quiz.dto.GameQuestionResponse;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
@@ -82,5 +84,17 @@ public class QuizMapper {
                 quiz.getThumbnailUrl(),
                 quiz.getQuestions().size(),
                 questionsToQuestionResponses(quiz.getQuestions()));
+    }
+
+    public static List<GameQuestionResponse> toGameQuestionResponseList(List<Question> questions) {
+        return questions.stream().map(QuizMapper::toGameQuestionResponse).toList();
+    }
+
+    public static GameQuestionResponse toGameQuestionResponse(Question question) {
+        return new GameQuestionResponse(question.getId(), question.getTextQuestion().getContent());
+    }
+
+    public static GameStartResponse toGameStartResponse(List<Question> questions) {
+        return new GameStartResponse(toGameQuestionResponseList(questions));
     }
 }
