@@ -69,7 +69,6 @@ public class GameService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         return playerSessionMap.values().stream().allMatch(Player::isReady);
-
     }
 
     private static String getDestination(Long roomId) {

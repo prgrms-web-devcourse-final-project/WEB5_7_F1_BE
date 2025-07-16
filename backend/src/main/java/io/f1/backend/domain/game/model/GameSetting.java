@@ -12,7 +12,7 @@ public class GameSetting {
     private int timeLimit = 60;
 
     public boolean checkQuizId(Long quizId) {
-        if(this.quizId != null && this.quizId.equals(quizId)) {
+        if (this.quizId != null && this.quizId.equals(quizId)) {
             return false;
         }
         return true;
