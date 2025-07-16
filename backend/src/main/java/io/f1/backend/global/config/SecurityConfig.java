@@ -38,7 +38,8 @@ public class SecurityConfig {
                                                 "/oauth2/**",
                                                 "/signup",
                                                 "/css/**",
-                                                "/js/**", "/**")
+                                                "/js/**",
+                                                "/**")
                                         .permitAll()
                                         .requestMatchers("/ws/**")
                                         .authenticated()
