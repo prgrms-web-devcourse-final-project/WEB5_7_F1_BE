@@ -33,13 +33,32 @@ public class QuizMapper {
 
     public static QuizCreateResponse quizToQuizCreateResponse(Quiz quiz) {
         // TODO : creatorId 넣어주는 부분에서 Getter를 안 쓰고, 현재 로그인한 유저의 id를 담는 식으로 바꿔도 될 듯
+        getUserIdIfExists(quiz);
         return new QuizCreateResponse(
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getQuizType(),
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
-                quiz.getCreator().getId());
+                getUserIdIfExists(quiz));
+    }
+
+    private static Long getUserIdIfExists(Quiz quiz) {
+        Long userId = null;
+        if(quiz.getCreator()!=null){
+            userId = quiz.getCreator().getId();
+        }
+
+        return userId;
+    }
+
+    private static String getUserNicknameIfExists(Quiz quiz) {
+        String nickname = null;
+        if(quiz.getCreator()!=null){
+            nickname = quiz.getCreator().getNickname();
+        }
+
+        return nickname;
     }
 
     public static QuizListResponse quizToQuizListResponse(Quiz quiz) {
@@ -47,7 +66,7 @@ public class QuizMapper {
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
-                quiz.getCreator().getNickname(),
+                getUserNicknameIfExists(quiz),
                 quiz.getQuestions().size(),
                 quiz.getThumbnailUrl());
     }
@@ -79,7 +98,7 @@ public class QuizMapper {
         return new QuizQuestionListResponse(
                 quiz.getTitle(),
                 quiz.getQuizType(),
-                quiz.getCreator().getId(),
+                getUserIdIfExists(quiz),
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
                 quiz.getQuestions().size(),

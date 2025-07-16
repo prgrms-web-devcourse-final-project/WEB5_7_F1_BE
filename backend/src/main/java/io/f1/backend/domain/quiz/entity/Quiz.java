@@ -50,7 +50,7 @@ public class Quiz extends BaseEntity {
     private String thumbnailUrl;
 
     @ManyToOne
-    @JoinColumn(name = "creator_id")
+    @JoinColumn(name = "creator_id", nullable = true)
     private User creator;
 
     public Quiz(

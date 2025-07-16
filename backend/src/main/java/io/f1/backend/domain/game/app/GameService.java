@@ -11,6 +11,9 @@ import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.GameErrorCode;
+import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,12 +32,12 @@ public class GameService {
     public GameStartData gameStart(Long roomId, Long quizId) {
 
         Room room =
-                roomRepository
-                        .findRoom(roomId)
-                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+            roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
 
         if (!validateReadyStatus(room)) {
-            throw new IllegalArgumentException("E403004 : 레디 상태가 아닙니다.");
+            throw new CustomException(RoomErrorCode.PLAYER_NOT_READY);
         }
 
         // 방의 gameSetting에 설정된 퀴즈랑 요청 퀴즈랑 같은지 체크 후 GameSetting에서 라운드 가져오기
@@ -58,7 +61,7 @@ public class GameService {
         GameSetting gameSetting = room.getGameSetting();
 
         if (!gameSetting.checkQuizId(quizId)) {
-            throw new IllegalArgumentException("E409002 : 게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
+            throw new CustomException(GameErrorCode.GAME_SETTING_CONFLICT);
         }
 
         return gameSetting.getRound();

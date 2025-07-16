@@ -40,8 +40,7 @@ public class QuizController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuizCreateResponse> saveQuiz(
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @Valid @RequestPart QuizCreateRequest request)
-            throws IOException {
+            @Valid @RequestPart QuizCreateRequest request) {
         QuizCreateResponse response = quizService.saveQuiz(thumbnailFile, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -58,8 +57,7 @@ public class QuizController {
     public ResponseEntity<Void> updateQuiz(
             @PathVariable Long quizId,
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @RequestPart QuizUpdateRequest request)
-            throws IOException {
+            @RequestPart QuizUpdateRequest request) {
 
         if (request.title() != null) {
             quizService.updateQuizTitle(quizId, request.title());
