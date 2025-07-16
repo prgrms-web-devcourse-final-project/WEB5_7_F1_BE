@@ -60,7 +60,7 @@ public class RoomService {
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         Long quizMinId = quizService.getQuizMinId();
-        Quiz quiz = quizService.getQuizById(quizMinId);
+        Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
 
         GameSetting gameSetting = toGameSetting(quiz);
 
@@ -132,7 +132,7 @@ public class RoomService {
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
         Long quizId = room.getGameSetting().getQuizId();
-        Quiz quiz = quizService.getQuizById(quizId);
+        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
                 toGameSettingResponse(room.getGameSetting(), quiz);
@@ -189,7 +189,7 @@ public class RoomService {
                         .map(
                                 room -> {
                                     Long quizId = room.getGameSetting().getQuizId();
-                                    Quiz quiz = quizService.getQuizById(quizId);
+                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
                                     return toRoomResponse(room, quiz);
                                 })

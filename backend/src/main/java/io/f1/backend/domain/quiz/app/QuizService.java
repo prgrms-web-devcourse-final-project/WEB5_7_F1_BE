@@ -216,12 +216,11 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public Quiz getQuizById(Long quizId) {
+    public Quiz getQuizWithQuestionsById(Long quizId) {
         Quiz quiz =
                 quizRepository
-                        .findById(quizId)
+                        .findQuizWithQuestionsById(quizId)
                         .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
-        quiz.getQuestions().size();
         return quiz;
     }
 
