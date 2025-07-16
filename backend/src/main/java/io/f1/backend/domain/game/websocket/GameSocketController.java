@@ -12,7 +12,9 @@ import io.f1.backend.domain.game.dto.request.AnswerMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.DefaultWebSocketResponse;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -76,26 +78,33 @@ public class GameSocketController {
     }
 
     @MessageMapping("room/chatInWaiting/{roomId}")
-    public void chatInWaiting(@DestinationVariable Long roomId, Message<DefaultWebSocketResponse<ChatMessage>> message) {
+    public void chatInWaiting(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketResponse<ChatMessage>> message) {
         String destination = "/sub/room/" + roomId;
 
-        messageSender.send(destination,MessageType.CHAT,message.getPayload());
+        messageSender.send(destination, MessageType.CHAT, message.getPayload());
     }
 
     @MessageMapping("room/chatInPlaying/{roomId}")
-    public void chatInPlaying(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<AnswerMessage>> message) {
+    public void chatInPlaying(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<AnswerMessage>> message) {
 
-        RoundResult roundResult = roomService.chatInPlaying(roomId, getSessionId(message),
-            message.getPayload().getMessage());
+        RoundResult roundResult =
+                roomService.chatInPlaying(
+                        roomId, getSessionId(message), message.getPayload().getMessage());
 
         String destination = roundResult.getDestination();
 
-        messageSender.send(destination,MessageType.CHAT, roundResult.getChat());
+        messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
 
-        if(!roundResult.hasOnlyChat()){
-            messageSender.send(destination,MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
-            messageSender.send(destination,MessageType.RANK_UPDATE, roundResult.getRankUpdate());
-            messageSender.send(destination,MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
+        if (!roundResult.hasOnlyChat()) {
+            messageSender.send(
+                    destination, MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
+            messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
+            messageSender.send(
+                    destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
         }
     }
 
