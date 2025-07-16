@@ -33,7 +33,7 @@ public class RoomController {
 
     @PostMapping("/enterRoom")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void validateRoom(@RequestBody @Valid RoomValidationRequest request) {
+    public void enterRoom(@RequestBody @Valid RoomValidationRequest request) {
         roomService.enterRoom(request);
     }
 
