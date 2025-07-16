@@ -6,8 +6,8 @@ import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
 
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
-import io.f1.backend.domain.user.dto.SignupRequestDto;
-import io.f1.backend.domain.user.dto.SignupResponseDto;
+import io.f1.backend.domain.user.dto.SignupRequest;
+import io.f1.backend.domain.user.dto.SignupResponse;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
 
@@ -25,14 +25,14 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public SignupResponseDto signup(HttpSession session, SignupRequestDto signupRequest) {
+    public SignupResponse signup(HttpSession session, SignupRequest signupRequest) {
         AuthenticationUser authenticationUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();
         validateNicknameFormat(nickname);
         validateNicknameDuplicate(nickname);
 
-        User user = updateUserNickname(authenticationUser.userId(), nickname);
+        User user = initNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
         SecurityUtils.setAuthentication(user);
 
@@ -68,7 +68,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUserNickname(Long userId, String nickname) {
+    public User initNickname(Long userId, String nickname) {
         User user =
                 userRepository
                         .findById(userId)
@@ -81,5 +81,24 @@ public class UserService {
     private void updateSessionAfterSignup(HttpSession session, User user) {
         session.removeAttribute(OAUTH_USER);
         session.setAttribute(USER, AuthenticationUser.from(user));
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
+        userRepository.delete(user);
+    }
+
+    @Transactional
+    public void updateNickname(Long userId, String newNickname, HttpSession session) {
+        validateNicknameFormat(newNickname);
+        validateNicknameDuplicate(newNickname);
+
+        User user = initNickname(userId, newNickname);
+        session.setAttribute(USER, AuthenticationUser.from(user));
+        SecurityUtils.setAuthentication(user);
     }
 }

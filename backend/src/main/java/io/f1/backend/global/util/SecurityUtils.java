@@ -1,7 +1,10 @@
 package io.f1.backend.global.util;
 
+import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
+
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,5 +39,29 @@ public class SecurityUtils {
 
     public static String getCurrentUserNickname() {
         return getCurrentUserPrincipal().getUserNickname();
+    }
+
+    public static void logout(HttpSession session) {
+        if (session != null) {
+            session.invalidate();
+        }
+        clearAuthentication();
+    }
+
+    private static void clearAuthentication() {
+        SecurityContextHolder.clearContext();
+    }
+
+    public static AdminPrincipal getCurrentAdminPrincipal() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
+            return adminPrincipal;
+        }
+        throw new RuntimeException("E401001: 로그인이 필요합니다.");
+    }
+
+    public static Authentication getAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
     }
 }

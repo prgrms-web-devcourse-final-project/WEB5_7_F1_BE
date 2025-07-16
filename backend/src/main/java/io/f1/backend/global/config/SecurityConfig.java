@@ -1,14 +1,17 @@
 package io.f1.backend.global.config;
 
+import io.f1.backend.domain.admin.app.handler.AdminLoginFailureHandler;
+import io.f1.backend.domain.admin.app.handler.AdminLoginSuccessHandler;
 import io.f1.backend.domain.user.app.CustomOAuthUserService;
 import io.f1.backend.domain.user.app.handler.CustomAuthenticationEntryPoint;
-import io.f1.backend.domain.user.app.handler.OAuthLogoutSuccessHandler;
 import io.f1.backend.domain.user.app.handler.OAuthSuccessHandler;
+import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,11 +25,14 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomOAuthUserService customOAuthUserService;
     private final OAuthSuccessHandler oAuthSuccessHandler;
-    private final OAuthLogoutSuccessHandler oAuthLogoutSuccessHandler;
+    private final UserAndAdminLogoutSuccessHandler userAndAdminLogoutSuccessHandler;
+    private final AdminLoginSuccessHandler adminLoginSuccessHandler;
+    private final AdminLoginFailureHandler adminLoginFailureHandler;
 
     @Bean
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .exceptionHandling(
                         exception ->
                                 exception.authenticationEntryPoint(customAuthenticationEntryPoint))
@@ -38,13 +44,25 @@ public class SecurityConfig {
                                                 "/oauth2/**",
                                                 "/signup",
                                                 "/css/**",
-                                                "/js/**")
+                                                "/js/**",
+                                                "/admin/login")
                                         .permitAll()
                                         .requestMatchers("/ws/**")
                                         .authenticated()
+                                        .requestMatchers("/user/me")
+                                        .hasRole("USER")
+                                        .requestMatchers("/admin/**")
+                                        .hasRole("ADMIN")
+                                        .requestMatchers("/auth/me")
+                                        .hasAnyRole("USER", "ADMIN")
                                         .anyRequest()
                                         .authenticated())
-                .formLogin(AbstractHttpConfigurer::disable)
+                .formLogin(
+                        form ->
+                                form.loginProcessingUrl("/admin/login") // 로그인 form action 경로
+                                        .successHandler(adminLoginSuccessHandler)
+                                        .failureHandler(adminLoginFailureHandler)
+                                        .permitAll())
                 .oauth2Login(
                         oauth2 ->
                                 oauth2.userInfoEndpoint(
@@ -55,7 +73,7 @@ public class SecurityConfig {
                 .logout(
                         logout ->
                                 logout.logoutUrl("/logout")
-                                        .logoutSuccessHandler(oAuthLogoutSuccessHandler)
+                                        .logoutSuccessHandler(userAndAdminLogoutSuccessHandler)
                                         .clearAuthentication(true)
                                         .invalidateHttpSession(true)
                                         .permitAll())

@@ -32,4 +32,8 @@ public class TextQuestion {
         this.question = question;
         this.content = content;
     }
+
+    public void changeContent(String content) {
+        this.content = content;
+    }
 }

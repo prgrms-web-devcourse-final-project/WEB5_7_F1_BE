@@ -8,9 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 public class Admin extends BaseEntity {
 
     @Id
@@ -25,4 +28,8 @@ public class Admin extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDateTime lastLogin;
+
+    public void updateLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
 }

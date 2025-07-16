@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
@@ -32,5 +34,55 @@ public class QuestionService {
         TextQuestion textQuestion = questionRequestToTextQuestion(question, request.getContent());
         textQuestionRepository.save(textQuestion);
         question.addTextQuestion(textQuestion);
+    }
+
+    @Transactional
+    public void updateQuestionContent(Long questionId, String content) {
+
+        validateContent(content);
+
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+
+        TextQuestion textQuestion = question.getTextQuestion();
+        textQuestion.changeContent(content);
+    }
+
+    @Transactional
+    public void updateQuestionAnswer(Long questionId, String answer) {
+
+        validateAnswer(answer);
+
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+
+        question.changeAnswer(answer);
+    }
+
+    @Transactional
+    public void deleteQuestion(Long questionId) {
+
+        Question question =
+                questionRepository
+                        .findById(questionId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 문제입니다."));
+
+        questionRepository.delete(question);
+    }
+
+    private void validateAnswer(String answer) {
+        if (answer.trim().length() < 5 || answer.trim().length() > 30) {
+            throw new IllegalArgumentException("정답은 1자 이상 30자 이하로 입력해주세요.");
+        }
+    }
+
+    private void validateContent(String content) {
+        if (content.trim().length() < 5 || content.trim().length() > 30) {
+            throw new IllegalArgumentException("문제는 5자 이상 30자 이하로 입력해주세요.");
+        }
     }
 }
