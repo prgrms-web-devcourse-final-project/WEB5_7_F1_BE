@@ -151,44 +151,22 @@ public class RoomService {
 
             Room room = findRoom(roomId);
 
-            Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
-
             String destination = getDestination(roomId);
 
-            Player removePlayer = playerSessionMap.get(sessionId);
-
-        if (removePlayer == null) {
-            room.getUserIdSessionMap().remove(getCurrentUserId());
-            throw new IllegalIdentifierException("404 세션 없음 비정상적인 퇴장 요청");
-        }
+            Player removePlayer = getRemovePlayer(room,sessionId);
 
             /* 방 삭제 */
-            if (playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId)) {
-                roomRepository.removeRoom(roomId);
-                roomLocks.remove(roomId);
-                log.info("{}번 방 삭제", roomId);
-                return RoomExitData.builder().destination(destination).removedRoom(true).build();
+            if (isLastPlayer(room,sessionId)) {
+                return removeRoom(room,destination);
             }
 
             /* 방장 변경 */
-            if (room.getHost().getId().equals(removePlayer.getId())) {
-
-                Optional<String> nextHostSessionId = playerSessionMap.keySet().stream()
-                    .filter(key -> !key.equals(sessionId)).findFirst();
-
-                Player nextHost =
-                    playerSessionMap.get(
-                        nextHostSessionId.orElseThrow(
-                            () ->
-                                new IllegalArgumentException(
-                                    "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
-
-                room.updateHost(nextHost);
-                log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
+            if (room.isHost(removePlayer.getId())) {
+                changeHost(room,sessionId);
             }
 
-            room.getUserIdSessionMap().remove(removePlayer.getId());
-            playerSessionMap.remove(sessionId);
+            /* 플레이어 삭제 */
+            removePlayer(room,sessionId,removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                 ofPlayerEvent(removePlayer, RoomEventType.EXIT);
@@ -214,6 +192,15 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
+    private Player getRemovePlayer(Room room, String sessionId) {
+        Player removePlayer = room.getPlayerSessionMap().get(sessionId);
+        if (removePlayer == null) {
+            room.removeUserId(getCurrentUserId());
+            throw new IllegalIdentifierException("404 세션 없음 비정상적인 퇴장 요청");
+        }
+        return removePlayer;
+    }
+
     private static String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
@@ -228,5 +215,39 @@ public class RoomService {
             .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
     }
 
+    private boolean isLastPlayer(Room room, String sessionId) {
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        return playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId);
+    }
+
+    private RoomExitData removeRoom(Room room, String destination) {
+        Long roomId = room.getId();
+        roomRepository.removeRoom(roomId);
+        roomLocks.remove(roomId);
+        log.info("{}번 방 삭제", roomId);
+        return RoomExitData.builder().destination(destination).removedRoom(true).build();
+    }
+
+    private void changeHost(Room room, String hostSessionId) {
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+
+        Optional<String> nextHostSessionId = playerSessionMap.keySet().stream()
+            .filter(key -> !key.equals(hostSessionId)).findFirst();
+
+        Player nextHost =
+            playerSessionMap.get(
+                nextHostSessionId.orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "방장 교체 불가 - 404 해당 세션 플레이어는 존재하지않습니다.")));
+
+        room.updateHost(nextHost);
+        log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
+    }
+
+    private void removePlayer(Room room, String sessionId, Player removePlayer) {
+        room.removeUserId(removePlayer.getId());
+        room.removeSessionId(sessionId);
+    }
 
 }

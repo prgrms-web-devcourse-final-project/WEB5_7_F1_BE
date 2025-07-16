@@ -39,7 +39,19 @@ public class Room {
 
     }
 
+    public boolean isHost(Long id){
+        return this.host.getId().equals(id);
+    }
+
     public void updateHost(Player nextHost) {
         this.host = nextHost;
+    }
+
+    public void removeUserId(Long id){
+        this.userIdSessionMap.remove(id);
+    }
+
+    public void removeSessionId(String sessionId){
+        this.playerSessionMap.remove(sessionId);
     }
 }
