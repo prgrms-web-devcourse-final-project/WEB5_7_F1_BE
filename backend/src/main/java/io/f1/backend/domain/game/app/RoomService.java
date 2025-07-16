@@ -35,8 +35,6 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import io.f1.backend.global.exception.CustomException;
-import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -187,8 +185,10 @@ public class RoomService {
     }
 
     public PlayerReadyData handlePlayerReady(Long roomId, String sessionId) {
-        Player player = roomRepository.findPlayerInRoomBySessionId(
-            roomId, sessionId).orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+        Player player =
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         player.toggleReady();
 
@@ -272,5 +272,4 @@ public class RoomService {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
     }
-
 }

@@ -26,5 +26,4 @@ public class SignupController {
         SignupResponse response = userService.signup(httpSession, signupRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 }

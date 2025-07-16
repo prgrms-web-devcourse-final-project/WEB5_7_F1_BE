@@ -77,10 +77,11 @@ public class GameSocketController {
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
-        PlayerReadyData playerReadyData = roomService.handlePlayerReady(roomId, getSessionId(message));
+        PlayerReadyData playerReadyData =
+                roomService.handlePlayerReady(roomId, getSessionId(message));
 
         messageSender.send(
-            playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
+                playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
     }
 
     private static String getSessionId(Message<?> message) {
