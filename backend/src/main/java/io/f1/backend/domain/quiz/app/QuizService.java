@@ -14,7 +14,6 @@ import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
-import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
@@ -125,28 +124,52 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateQuiz(Long quizId, MultipartFile thumbnailFile, QuizUpdateRequest request)
-            throws IOException {
+    public void updateQuizTitle(Long quizId, String title) {
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        validateTitle(title);
+        quiz.changeTitle(title);
+    }
+
+    @Transactional
+    public void updateQuizDesc(Long quizId, String description) {
 
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
                         .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
-        if (request.title() != null) {
-            quiz.changeTitle(request.title());
+        validateDesc(description);
+        quiz.changeDescription(description);
+    }
+
+    @Transactional
+    public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) throws IOException {
+
+        Quiz quiz =
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        validateImageFile(thumbnailFile);
+        String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
+
+        deleteThumbnailFile(quiz.getThumbnailUrl());
+        quiz.changeThumbnailUrl(newThumbnailPath);
+    }
+
+    private void validateDesc(String desc) {
+        if (desc.trim().length() < 10 || desc.trim().length() > 50) {
+            throw new IllegalArgumentException("설명은 10자 이상 50자 이하로 입력해주세요.");
         }
+    }
 
-        if (request.description() != null) {
-            quiz.changeDescription(request.description());
-        }
-
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            validateImageFile(thumbnailFile);
-            String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
-
-            deleteThumbnailFile(quiz.getThumbnailUrl());
-            quiz.changeThumbnailUrl(newThumbnailPath);
+    private void validateTitle(String title) {
+        if (title.trim().length() < 2 || title.trim().length() > 30) {
+            throw new IllegalArgumentException("제목은 2자 이상 30자 이하로 입력해주세요.");
         }
     }
 

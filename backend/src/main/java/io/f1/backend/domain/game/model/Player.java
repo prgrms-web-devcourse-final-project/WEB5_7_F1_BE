@@ -19,4 +19,8 @@ public class Player {
         this.id = id;
         this.nickname = nickname;
     }
+
+    public void toggleReady() {
+        this.isReady = !this.isReady;
+    }
 }

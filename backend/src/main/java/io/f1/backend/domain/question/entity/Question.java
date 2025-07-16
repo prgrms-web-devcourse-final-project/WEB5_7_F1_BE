@@ -45,4 +45,8 @@ public class Question extends BaseEntity {
     public void addTextQuestion(TextQuestion textQuestion) {
         this.textQuestion = textQuestion;
     }
+
+    public void changeAnswer(String answer) {
+        this.answer = answer;
+    }
 }

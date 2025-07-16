@@ -24,12 +24,13 @@ public class GameSocketController {
     private final RoomService roomService;
     private final GameService gameService;
 
-    @MessageMapping("/room/enter/{roomId}")
-    public void roomEnter(@DestinationVariable Long roomId, Message<?> message) {
+    @MessageMapping("/room/initializeRoomSocket/{roomId}")
+    public void initializeRoomSocket(@DestinationVariable Long roomId, Message<?> message) {
 
         String websocketSessionId = getSessionId(message);
 
-        RoomInitialData roomInitialData = roomService.enterRoom(roomId, websocketSessionId);
+        RoomInitialData roomInitialData =
+                roomService.initializeRoomSocket(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
 
         messageSender.send(
