@@ -87,8 +87,7 @@ public class QuizMapper {
     }
 
     public static List<GameQuestionResponse> toGameQuestionResponseList(List<Question> questions) {
-        return questions.stream()
-            .map(QuizMapper::toGameQuestionResponse).toList();
+        return questions.stream().map(QuizMapper::toGameQuestionResponse).toList();
     }
 
     public static GameQuestionResponse toGameQuestionResponse(Question question) {

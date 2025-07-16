@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -200,7 +199,7 @@ public class RoomService {
 
         Long roomQuizId = gameSetting.getQuizId();
 
-        if(!roomQuizId.equals(quizId)) {
+        if (!roomQuizId.equals(quizId)) {
             throw new IllegalArgumentException("E409002 : 게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
         }
 
@@ -210,11 +209,11 @@ public class RoomService {
     public GameStartData gameStart(Long roomId, Long quizId) {
 
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
 
-        if(!validateReadyStatus(room)){
+        if (!validateReadyStatus(room)) {
             throw new IllegalArgumentException("E403004 : 레디 상태가 아닙니다.");
         }
 
@@ -234,8 +233,8 @@ public class RoomService {
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
-        for(Player player : playerSessionMap.values()) {
-            if(!player.isReady()) {
+        for (Player player : playerSessionMap.values()) {
+            if (!player.isReady()) {
                 return false;
             }
         }

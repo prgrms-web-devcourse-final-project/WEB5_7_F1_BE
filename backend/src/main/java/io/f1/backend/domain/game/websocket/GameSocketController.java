@@ -5,10 +5,9 @@ import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
-
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.quiz.app.QuizService;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
@@ -70,7 +69,6 @@ public class GameSocketController {
         String destination = gameStartData.destination();
 
         messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
-
     }
 
     private static String getSessionId(Message<?> message) {
