@@ -1,6 +1,5 @@
 package io.f1.backend.domain.user.app.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
@@ -14,7 +13,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
