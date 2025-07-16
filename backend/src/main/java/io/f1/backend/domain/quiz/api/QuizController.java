@@ -6,10 +6,9 @@ import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
-
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.CommonErrorCode;
-import io.f1.backend.global.exception.errorcode.QuizErrorCode;
+
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -82,10 +81,10 @@ public class QuizController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String creator) {
 
-        if(page <= 0) {
+        if (page <= 0) {
             throw new CustomException(CommonErrorCode.INVALID_PAGINATION);
         }
-        if(size <= 0 || size > 100) {
+        if (size <= 0 || size > 100) {
             throw new CustomException(CommonErrorCode.INVALID_PAGINATION);
         }
 
