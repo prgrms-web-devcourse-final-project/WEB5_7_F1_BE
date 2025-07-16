@@ -25,9 +25,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         if (principal.getUserNickname() == null) {
-            response.sendRedirect("/signup");
+            getRedirectStrategy().sendRedirect(request, response, "/signup");
         } else {
-            response.sendRedirect("/room");
+            getRedirectStrategy().sendRedirect(request, response, "/room");
         }
     }
 }
