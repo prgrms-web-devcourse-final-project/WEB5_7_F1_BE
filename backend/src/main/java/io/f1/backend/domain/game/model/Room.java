@@ -38,7 +38,7 @@ public class Room {
         this.host = host;
     }
 
-    public boolean isHost(Long id){
+    public boolean isHost(Long id) {
         return this.host.getId().equals(id);
     }
 
@@ -46,11 +46,11 @@ public class Room {
         this.host = nextHost;
     }
 
-    public void removeUserId(Long id){
+    public void removeUserId(Long id) {
         this.userIdSessionMap.remove(id);
     }
 
-    public void removeSessionId(String sessionId){
+    public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
     }
 }
