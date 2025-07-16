@@ -3,7 +3,7 @@ package io.f1.backend.domain.user.api;
 import static io.f1.backend.global.util.SecurityUtils.logout;
 
 import io.f1.backend.domain.user.app.UserService;
-import io.f1.backend.domain.user.dto.SignupRequestDto;
+import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,7 +36,7 @@ public class UserController {
     @PutMapping
     public ResponseEntity<Void> updateNickname(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody SignupRequestDto signupRequest,
+            @RequestBody SignupRequest signupRequest,
             HttpSession httpSession) {
         userService.updateNickname(
                 userPrincipal.getUserId(), signupRequest.nickname(), httpSession);
