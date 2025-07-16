@@ -13,14 +13,9 @@ import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,22 +27,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class RoomServiceTests {
 
     private RoomService roomService;
 
-    @Mock
-    private RoomRepository roomRepository;
-    @Mock
-    private QuizService quizService;
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
-
+    @Mock private RoomRepository roomRepository;
+    @Mock private QuizService quizService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
         roomService = new RoomService(quizService, roomRepository, eventPublisher);
 
@@ -80,22 +79,22 @@ class RoomServiceTests {
         for (int i = 1; i <= threadCount; i++) {
             User user = createUser(i);
 
-            executorService.submit(() -> {
-                try {
-                    SecurityUtils.setAuthentication(user);
-                    roomService.enterRoom(roomValidationRequest);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    countDownLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        try {
+                            SecurityUtils.setAuthentication(user);
+                            roomService.enterRoom(roomValidationRequest);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            countDownLatch.countDown();
+                        }
+                    });
         }
         countDownLatch.await();
         assertThat(room.getUserIdSessionMap()).hasSize(room.getRoomSetting().maxUserCount());
     }
-
 
     @Test
     @DisplayName("exitRoom_동시성_테스트")
@@ -112,7 +111,7 @@ class RoomServiceTests {
         int threadCount = 10;
 
         List<Player> players = new ArrayList<>();
-        for (int i = 1; i <=threadCount; i++) {
+        for (int i = 1; i <= threadCount; i++) {
             Long id = i + 1L;
             String nickname = "nickname " + i;
 
@@ -122,12 +121,11 @@ class RoomServiceTests {
         Player host = players.getFirst();
         room.updateHost(host);
 
-
-        for (int i = 1; i <=threadCount; i++) {
+        for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
-            room.getPlayerSessionMap().put(sessionId,player);
-            room.getUserIdSessionMap().put(player.getId(),sessionId);
+            room.getPlayerSessionMap().put(sessionId, player);
+            room.getUserIdSessionMap().put(player.getId(), sessionId);
         }
 
         log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerSessionMap().size());
@@ -141,24 +139,31 @@ class RoomServiceTests {
         for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             User user = createUser(i);
-            executorService.submit(() -> {
-                try {
-                    SecurityUtils.setAuthentication(user);
-                    log.info("room.getHost().getId() = {}", room.getHost().getId());
-                    roomService.exitRoom(roomId, sessionId);
-                } catch (Exception e) {
-                     e.printStackTrace();
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    countDownLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        try {
+                            SecurityUtils.setAuthentication(user);
+                            log.info("room.getHost().getId() = {}", room.getHost().getId());
+                            roomService.exitRoom(roomId, sessionId);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            countDownLatch.countDown();
+                        }
+                    });
         }
         countDownLatch.await();
         assertThat(room.getUserIdSessionMap()).hasSize(1);
     }
 
-    private Room createRoom(Long roomId, Long playerId, Long quizId, String password, int maxUserCount, boolean locked) {
+    private Room createRoom(
+            Long roomId,
+            Long playerId,
+            Long quizId,
+            String password,
+            int maxUserCount,
+            boolean locked) {
         RoomSetting roomSetting = new RoomSetting("방제목", maxUserCount, locked, password);
         GameSetting gameSetting = new GameSetting(quizId, 10, 60);
         Player host = new Player(playerId, "nickname");
@@ -172,12 +177,10 @@ class RoomServiceTests {
         String providerId = "providerId" + i;
         LocalDateTime lastLogin = LocalDateTime.now();
 
-        User user = User.builder()
-            .provider(provider)
-            .provider(providerId).lastLogin(lastLogin).build();
+        User user =
+                User.builder().provider(provider).provider(providerId).lastLogin(lastLogin).build();
         user.setId(userId);
 
         return user;
     }
-
 }
