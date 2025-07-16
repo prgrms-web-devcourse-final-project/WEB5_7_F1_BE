@@ -123,31 +123,42 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateQuiz(Long quizId, MultipartFile thumbnailFile, QuizUpdateRequest request)
-            throws IOException {
+    public void updateQuizTitle(Long quizId, String title) {
+        Quiz quiz =
+            quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        validateTitle(title);
+        quiz.changeTitle(title);
+    }
+
+    @Transactional
+    public void updateQuizDesc(Long quizId, String description) {
 
         Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+            quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
-        if (request.title() != null) {
-            validateTitle(request.title());
-            quiz.changeTitle(request.title());
-        }
+        validateDesc(description);
+        quiz.changeDescription(description);
 
-        if (request.description() != null) {
-            validateDesc(request.description());
-            quiz.changeDescription(request.description());
-        }
+    }
 
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            validateImageFile(thumbnailFile);
-            String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
+    @Transactional
+    public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) throws IOException {
 
-            deleteThumbnailFile(quiz.getThumbnailUrl());
-            quiz.changeThumbnailUrl(newThumbnailPath);
-        }
+        Quiz quiz =
+            quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+
+        validateImageFile(thumbnailFile);
+        String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
+
+        deleteThumbnailFile(quiz.getThumbnailUrl());
+        quiz.changeThumbnailUrl(newThumbnailPath);
     }
 
     private void validateDesc(String desc) {

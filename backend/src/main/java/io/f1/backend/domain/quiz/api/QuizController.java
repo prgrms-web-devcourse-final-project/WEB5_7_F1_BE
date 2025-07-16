@@ -61,7 +61,17 @@ public class QuizController {
             @RequestPart QuizUpdateRequest request)
             throws IOException {
 
-        quizService.updateQuiz(quizId, thumbnailFile, request);
+        if (request.title() != null) {
+            quizService.updateQuizTitle(quizId, request.title());
+        }
+
+        if(request.description()!=null) {
+            quizService.updateQuizDesc(quizId, request.description());
+        }
+
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            quizService.updateThumbnail(quizId, thumbnailFile);
+        }
 
         return ResponseEntity.noContent().build();
     }
