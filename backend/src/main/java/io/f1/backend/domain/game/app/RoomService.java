@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -189,5 +190,34 @@ public class RoomService {
 
     private static Player createPlayer() {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
+    }
+
+    @Transactional(readOnly = true)
+    public Integer checkGameSetting(Long roomId, Long quizId) {
+        Room room =
+            roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+
+        GameSetting gameSetting = room.getGameSetting();
+
+        Long roomQuizId = gameSetting.getQuizId();
+
+        // TODO : 에러 코드 추가하기
+        if(!roomQuizId.equals(quizId)) {
+            throw new IllegalArgumentException("게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
+        }
+
+        return gameSetting.getRound();
+    }
+
+    @Transactional
+    public void gameStart(Long roomId) {
+        Room room =
+            roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("404 존재하지 않는 방입니다."));
+
+        room.gameStart();
     }
 }

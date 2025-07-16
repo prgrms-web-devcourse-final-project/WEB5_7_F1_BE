@@ -5,6 +5,9 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 
+import io.f1.backend.domain.game.dto.request.GameStartRequest;
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
+import io.f1.backend.domain.quiz.app.QuizService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
@@ -19,6 +22,7 @@ public class GameSocketController {
 
     private final MessageSender messageSender;
     private final RoomService roomService;
+    private final QuizService quizService;
 
     @MessageMapping("/room/enter/{roomId}")
     public void roomEnter(@DestinationVariable Long roomId, Message<?> message) {
@@ -53,6 +57,20 @@ public class GameSocketController {
             messageSender.send(
                     destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
+    }
+
+    @MessageMapping("/room/start/{roomId}")
+    public void gameStart(@DestinationVariable Long roomId, Message<GameStartRequest> message) {
+
+        Long quizId = message.getPayload().quizId();
+
+        Integer round = roomService.checkGameSetting(roomId, quizId);
+
+        // TODO : 라운드 수만큼 랜덤하게 문제 주기..!
+        GameStartResponse questions = quizService.getQuestionsWithoutAnswer(quizId, round);
+
+        roomService.gameStart(roomId);
+
     }
 
     private static String getSessionId(Message<?> message) {

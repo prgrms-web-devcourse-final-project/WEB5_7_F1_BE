@@ -39,4 +39,8 @@ public class Room {
     public void updateHost(Player nextHost) {
         this.host = nextHost;
     }
+
+    public void gameStart() {
+        this.state = RoomState.PLAYING;
+    }
 }
