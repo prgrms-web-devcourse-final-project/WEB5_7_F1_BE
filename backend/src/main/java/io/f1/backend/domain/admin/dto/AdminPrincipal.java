@@ -1,11 +1,14 @@
 package io.f1.backend.domain.admin.dto;
 
 import io.f1.backend.domain.admin.entity.Admin;
-import java.util.Collection;
-import java.util.Collections;
+
 import lombok.Getter;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Getter
 public class AdminPrincipal implements UserDetails {

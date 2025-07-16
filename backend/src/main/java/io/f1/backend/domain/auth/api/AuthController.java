@@ -5,7 +5,9 @@ import static io.f1.backend.global.util.SecurityUtils.getAuthentication;
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;

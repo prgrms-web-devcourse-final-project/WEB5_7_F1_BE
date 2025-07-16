@@ -4,8 +4,8 @@ import io.f1.backend.domain.admin.app.handler.AdminLoginFailureHandler;
 import io.f1.backend.domain.admin.app.handler.AdminLoginSuccessHandler;
 import io.f1.backend.domain.user.app.CustomOAuthUserService;
 import io.f1.backend.domain.user.app.handler.CustomAuthenticationEntryPoint;
-import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
 import io.f1.backend.domain.user.app.handler.OAuthSuccessHandler;
+import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,12 +55,12 @@ public class SecurityConfig {
                                         .hasAnyRole("USER", "ADMIN")
                                         .anyRequest()
                                         .authenticated())
-                .formLogin(form -> form
-                    .loginProcessingUrl("/admin/login") // 로그인 form action 경로
-                    .successHandler(adminLoginSuccessHandler)
-                    .failureHandler(adminLoginFailureHandler)
-                    .permitAll()
-                )
+                .formLogin(
+                        form ->
+                                form.loginProcessingUrl("/admin/login") // 로그인 form action 경로
+                                        .successHandler(adminLoginSuccessHandler)
+                                        .failureHandler(adminLoginFailureHandler)
+                                        .permitAll())
                 .oauth2Login(
                         oauth2 ->
                                 oauth2.userInfoEndpoint(
