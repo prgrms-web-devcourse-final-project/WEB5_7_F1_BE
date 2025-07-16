@@ -116,6 +116,10 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
         Map<Long, String> userIdSessionMap = room.getUserIdSessionMap();
 
+        if(room.isHost(player.getId())) {
+            player.toggleReady();
+        }
+
         playerSessionMap.put(sessionId, player);
         String existingSession = userIdSessionMap.get(player.getId());
         /* 정상 흐름 or 재연결 */
