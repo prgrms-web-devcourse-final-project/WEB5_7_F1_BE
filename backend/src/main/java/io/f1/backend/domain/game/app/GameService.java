@@ -57,9 +57,7 @@ public class GameService {
 
         GameSetting gameSetting = room.getGameSetting();
 
-        Long roomQuizId = gameSetting.getQuizId();
-
-        if (!roomQuizId.equals(quizId)) {
+        if (!gameSetting.checkQuizId(quizId)) {
             throw new IllegalArgumentException("E409002 : 게임 설정이 다릅니다. (게임을 시작할 수 없습니다.)");
         }
 
@@ -70,12 +68,8 @@ public class GameService {
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
-        for (Player player : playerSessionMap.values()) {
-            if (!player.isReady()) {
-                return false;
-            }
-        }
-        return true;
+        return playerSessionMap.values().stream().allMatch(Player::isReady);
+
     }
 
     private static String getDestination(Long roomId) {
