@@ -13,12 +13,14 @@ import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
+import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -117,6 +119,7 @@ public class GameSocketController {
 
     private static UserPrincipal getSessionUser(Message<?> message) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        return (UserPrincipal) accessor.getUser();
+        Authentication auth = (Authentication) accessor.getUser();
+        return (UserPrincipal) auth.getPrincipal();
     }
 }
