@@ -12,7 +12,9 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOriginPattern("*");
+        config.addAllowedOrigin("http://localhost:3000"); // 개발 환경
+        config.addAllowedOrigin("http://brainrace.duckdns.org"); // 배포 환경
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
