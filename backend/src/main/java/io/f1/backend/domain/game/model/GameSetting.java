@@ -1,8 +1,9 @@
 package io.f1.backend.domain.game.model;
 
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
