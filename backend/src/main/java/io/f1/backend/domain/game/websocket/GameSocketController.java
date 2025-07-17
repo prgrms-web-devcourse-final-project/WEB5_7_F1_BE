@@ -76,7 +76,7 @@ public class GameSocketController {
     }
 
     @MessageMapping("room/chatInWaiting/{roomId}")
-    public void chatInWaiting(@DestinationVariable Long roomId, Message<DefaultWebSocketResponse<ChatMessage>> message) {
+    public void chatInWaiting(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<ChatMessage>> message) {
         String destination = "/sub/room/" + roomId;
 
         messageSender.send(destination,MessageType.CHAT,message.getPayload());
