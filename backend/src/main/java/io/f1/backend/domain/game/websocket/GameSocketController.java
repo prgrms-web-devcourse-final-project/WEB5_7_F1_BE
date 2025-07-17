@@ -12,6 +12,7 @@ import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 
+import io.f1.backend.domain.user.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
@@ -33,8 +34,10 @@ public class GameSocketController {
 
         String websocketSessionId = getSessionId(message);
 
+        UserPrincipal principal = getSessionUser(message);
+
         RoomInitialData roomInitialData =
-                roomService.initializeRoomSocket(roomId, websocketSessionId);
+                roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
         String destination = roomInitialData.destination();
 
         messageSender.send(
@@ -51,8 +54,9 @@ public class GameSocketController {
     public void exitRoom(@DestinationVariable Long roomId, Message<?> message) {
 
         String websocketSessionId = getSessionId(message);
+        UserPrincipal principal = getSessionUser(message);
 
-        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId);
+        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId, principal);
 
         String destination = roomExitData.getDestination();
 
@@ -109,5 +113,10 @@ public class GameSocketController {
     private static String getSessionId(Message<?> message) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         return accessor.getSessionId();
+    }
+
+    private static UserPrincipal getSessionUser(Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        return (UserPrincipal) accessor.getUser();
     }
 }
