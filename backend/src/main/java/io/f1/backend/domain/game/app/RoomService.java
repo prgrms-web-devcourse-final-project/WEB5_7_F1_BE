@@ -117,7 +117,8 @@ public class RoomService {
         }
     }
 
-    public RoomInitialData initializeRoomSocket(Long roomId, String sessionId, UserPrincipal principal) {
+    public RoomInitialData initializeRoomSocket(
+            Long roomId, String sessionId, UserPrincipal principal) {
 
         Room room = findRoom(roomId);
 
