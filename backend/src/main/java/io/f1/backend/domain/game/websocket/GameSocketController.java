@@ -117,7 +117,7 @@ public class GameSocketController {
         return accessor.getSessionId();
     }
 
-    private static UserPrincipal getSessionUser(Message<?> message) {
+    public static UserPrincipal getSessionUser(Message<?> message) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         Authentication auth = (Authentication) accessor.getUser();
         return (UserPrincipal) auth.getPrincipal();

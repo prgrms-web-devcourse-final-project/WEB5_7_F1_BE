@@ -1,17 +1,17 @@
 package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
-
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.Getter;
 
 @Getter
 public class Room {
+
+    private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     private final Long id;
 
@@ -38,6 +38,24 @@ public class Room {
         this.roomSetting = roomSetting;
         this.gameSetting = gameSetting;
         this.host = host;
+    }
+
+    public void addPlayer(String sessionId, Player player) {
+
+        if (isHost(player.getId())) {
+            player.toggleReady();
+        }
+        playerSessionMap.put(sessionId, player);
+
+        String existingSession = userIdSessionMap.get(player.getId());
+        /* 정상 흐름 */
+        if (existingSession.equals(PENDING_SESSION_ID)) {
+            userIdSessionMap.put(player.getId(), sessionId);
+        }
+    }
+
+    public void addUserId(Long userId) {
+        userIdSessionMap.put(userId, PENDING_SESSION_ID);
     }
 
     public boolean isHost(Long id) {
@@ -79,4 +97,18 @@ public class Room {
     public void increaseCorrectCount() {
         currentRound++;
     }
+
+    public void reconnectSession(Long userId, String newSessionId) {
+        String oldSessionId = userIdSessionMap.get(userId);
+        Player player = playerSessionMap.get(oldSessionId);
+        removeSessionId(oldSessionId);
+        userIdSessionMap.put(userId, newSessionId);
+        playerSessionMap.put(newSessionId, player);
+    }
+
+    public boolean isPendingSession(Long userId) {
+        return PENDING_SESSION_ID.equals(userIdSessionMap.get(userId));
+    }
+
 }
+
