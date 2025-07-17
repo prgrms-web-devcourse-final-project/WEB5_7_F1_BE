@@ -21,7 +21,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class GameSocketController {
