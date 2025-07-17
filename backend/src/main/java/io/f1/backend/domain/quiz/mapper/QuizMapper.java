@@ -39,7 +39,7 @@ public class QuizMapper {
                 quiz.getQuizType(),
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
-                quiz.getUserIdIfExists());
+                quiz.findCreatorId());
     }
 
     public static QuizListResponse quizToQuizListResponse(Quiz quiz) {
@@ -47,7 +47,7 @@ public class QuizMapper {
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
-                quiz.getUserNicknameIfExists(),
+                quiz.findCreatorNickname(),
                 quiz.getQuestions().size(),
                 quiz.getThumbnailUrl());
     }
@@ -79,7 +79,7 @@ public class QuizMapper {
         return new QuizQuestionListResponse(
                 quiz.getTitle(),
                 quiz.getQuizType(),
-                quiz.getUserIdIfExists(),
+                quiz.findCreatorId(),
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
                 quiz.getQuestions().size(),

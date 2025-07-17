@@ -82,7 +82,7 @@ public class Quiz extends BaseEntity {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public Long getUserIdIfExists() {
+    public Long findCreatorId() {
         if (this.creator == null) {
             return null;
         }
@@ -90,7 +90,7 @@ public class Quiz extends BaseEntity {
         return this.creator.getId();
     }
 
-    public String getUserNicknameIfExists() {
+    public String findCreatorNickname() {
         if (this.creator == null) {
             return "탈퇴한 사용자";
         }
