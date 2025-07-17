@@ -13,7 +13,6 @@ import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
-import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;
