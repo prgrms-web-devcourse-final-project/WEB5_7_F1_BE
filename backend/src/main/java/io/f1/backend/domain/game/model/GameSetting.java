@@ -11,10 +11,7 @@ public class GameSetting {
     private Integer round; // 게임 변경 시 해당 게임의 총 문제 수로 설정
     private int timeLimit = 60;
 
-    public boolean checkQuizId(Long quizId) {
-        if (this.quizId != null && this.quizId.equals(quizId)) {
-            return true;
-        }
-        return false;
+    public boolean validateQuizId(Long quizId) {
+        return this.quizId != null && this.quizId.equals(quizId);
     }
 }

@@ -72,7 +72,7 @@ public class GameService {
 
         GameSetting gameSetting = room.getGameSetting();
 
-        if (!gameSetting.checkQuizId(quizId)) {
+        if (!gameSetting.validateQuizId(quizId)) {
             throw new CustomException(GameErrorCode.GAME_SETTING_CONFLICT);
         }
 
