@@ -4,7 +4,6 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.*;
 
 import static java.nio.file.Files.deleteIfExists;
 
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
 import io.f1.backend.domain.question.entity.Question;
