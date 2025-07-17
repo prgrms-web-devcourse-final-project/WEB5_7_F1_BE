@@ -11,8 +11,8 @@ import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
-
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.Message;

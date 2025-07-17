@@ -20,8 +20,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/game-room")
-            .addInterceptors(new HttpSessionHandshakeInterceptor())
-            .setAllowedOriginPatterns("*");
+                .addInterceptors(new HttpSessionHandshakeInterceptor())
+                .setAllowedOriginPatterns("*");
     }
 
     @Override
