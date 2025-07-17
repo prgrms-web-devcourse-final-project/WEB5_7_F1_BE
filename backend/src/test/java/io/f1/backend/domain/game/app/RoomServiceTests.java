@@ -11,9 +11,11 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.quiz.app.QuizService;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
 
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.AfterEach;
@@ -142,9 +144,10 @@ class RoomServiceTests {
             executorService.submit(
                     () -> {
                         try {
+                            UserPrincipal principal = new UserPrincipal(user, Collections.emptyMap());
                             SecurityUtils.setAuthentication(user);
                             log.info("room.getHost().getId() = {}", room.getHost().getId());
-                            roomService.exitRoom(roomId, sessionId);
+                            roomService.exitRoom(roomId, sessionId, principal);
                         } catch (Exception e) {
                             e.printStackTrace();
                         } finally {
