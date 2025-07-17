@@ -6,6 +6,8 @@ import static io.f1.backend.global.util.SecurityUtils.getCurrentAdminPrincipal;
 import io.f1.backend.domain.admin.dao.AdminRepository;
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.admin.entity.Admin;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.AdminErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +38,7 @@ public class AdminLoginSuccessHandler implements AuthenticationSuccessHandler {
         Admin admin =
                 adminRepository
                         .findByUsername(principal.getUsername())
-                        .orElseThrow(() -> new RuntimeException("E404007: 존재하지 않는 관리자입니다."));
+                        .orElseThrow(() -> new CustomException(AdminErrorCode.ADMIN_NOT_FOUND));
 
         admin.updateLastLogin(LocalDateTime.now());
         adminRepository.save(admin);

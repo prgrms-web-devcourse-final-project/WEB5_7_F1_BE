@@ -25,9 +25,11 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         if (principal.getUserNickname() == null) {
-            getRedirectStrategy().sendRedirect(request, response, "/signup");
+            String SIGNUP_REDIRECT_URL = "http://localhost:3000/signup";
+            getRedirectStrategy().sendRedirect(request, response, SIGNUP_REDIRECT_URL);
         } else {
-            getRedirectStrategy().sendRedirect(request, response, "/room");
+            String MAIN_REDIRECT_URL = "http://localhost:3000/room";
+            getRedirectStrategy().sendRedirect(request, response, MAIN_REDIRECT_URL);
         }
     }
 }

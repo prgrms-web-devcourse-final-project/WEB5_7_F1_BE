@@ -2,10 +2,13 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
+import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 
@@ -74,6 +77,36 @@ public class GameSocketController {
         String destination = gameStartData.destination();
 
         messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
+    }
+
+    @MessageMapping("room/chat/{roomId}")
+    public void chat(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        RoundResult roundResult =
+                roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
+
+        String destination = roundResult.getDestination();
+
+        messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
+
+        if (!roundResult.hasOnlyChat()) {
+            messageSender.send(
+                    destination, MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
+            messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
+            messageSender.send(
+                    destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
+        }
+    }
+
+    @MessageMapping("/room/ready/{roomId}")
+    public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
+
+        PlayerReadyData playerReadyData =
+                roomService.handlePlayerReady(roomId, getSessionId(message));
+
+        messageSender.send(
+                playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
     }
 
     private static String getSessionId(Message<?> message) {

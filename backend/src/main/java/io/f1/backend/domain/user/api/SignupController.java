@@ -1,8 +1,8 @@
 package io.f1.backend.domain.user.api;
 
+import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.user.app.UserService;
 import io.f1.backend.domain.user.dto.SignupRequest;
-import io.f1.backend.domain.user.dto.SignupResponse;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -21,9 +21,9 @@ public class SignupController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> completeSignup(
+    public ResponseEntity<CurrentUserAndAdminResponse> completeSignup(
             @RequestBody SignupRequest signupRequest, HttpSession httpSession) {
-        SignupResponse response = userService.signup(httpSession, signupRequest);
+        CurrentUserAndAdminResponse response = userService.signup(httpSession, signupRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

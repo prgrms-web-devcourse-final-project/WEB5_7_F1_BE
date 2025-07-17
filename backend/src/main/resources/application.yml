@@ -16,11 +16,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
-#  Redis 도입 시 정의
-#  data:
-#    redis:
-#      host: ${REDIS_HOST}
-#      port: ${REDIS_PORT}
+  #  Redis 도입 시 정의
+  #  data:
+  #    redis:
+  #      host: ${REDIS_HOST}
+  #      port: ${REDIS_PORT}
 
   jpa:
     defer-datasource-initialization: true # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
@@ -52,5 +52,12 @@ spring:
             user-name-attribute: id
 
 file:
-  thumbnail-path : images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
+  thumbnail-path: images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
   default-thumbnail-url: /images/thumbnail/default.png
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+      timeout: 1800

@@ -1,11 +1,15 @@
 package io.f1.backend.domain.game.mapper;
 
+import io.f1.backend.domain.game.dto.ChatMessage;
+import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
+import io.f1.backend.domain.game.dto.response.QuestionResultResponse;
 import io.f1.backend.domain.game.dto.response.QuizResponse;
+import io.f1.backend.domain.game.dto.response.RankUpdateResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
@@ -16,6 +20,7 @@ import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 
 public class RoomMapper {
@@ -76,13 +81,26 @@ public class RoomMapper {
                 quiz.getQuestions().size());
     }
 
-    public static SystemNoticeResponse ofPlayerEvent(Player player, RoomEventType roomEventType) {
+    public static SystemNoticeResponse ofPlayerEvent(String nickname, RoomEventType roomEventType) {
         String message = "";
         if (roomEventType == RoomEventType.ENTER) {
             message = " 님이 입장하셨습니다";
         } else if (roomEventType == RoomEventType.EXIT) {
             message = " 님이 퇴장하셨습니다";
         }
-        return new SystemNoticeResponse(player.getNickname() + message, Instant.now());
+        return new SystemNoticeResponse(nickname + message, Instant.now());
+    }
+
+    public static QuestionResultResponse toQuestionResultResponse(
+            Long questionId, ChatMessage chatMessage, String answer) {
+        return new QuestionResultResponse(questionId, chatMessage.nickname(), answer);
+    }
+
+    public static RankUpdateResponse toRankUpdateResponse(Room room) {
+        return new RankUpdateResponse(
+                room.getPlayerSessionMap().values().stream()
+                        .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
+                        .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
+                        .toList());
     }
 }

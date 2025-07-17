@@ -2,13 +2,16 @@ package io.f1.backend.domain.user.app;
 
 import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
 import static io.f1.backend.domain.user.constants.SessionKeys.USER;
-import static io.f1.backend.domain.user.mapper.UserMapper.toSignupResponse;
 
+import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
-import io.f1.backend.domain.user.dto.SignupResponse;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.AuthErrorCode;
+import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.util.SecurityUtils;
 
 import jakarta.servlet.http.HttpSession;
@@ -25,7 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public SignupResponse signup(HttpSession session, SignupRequest signupRequest) {
+    public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
         AuthenticationUser authenticationUser = extractSessionUser(session);
 
         String nickname = signupRequest.nickname();
@@ -34,36 +37,38 @@ public class UserService {
 
         User user = initNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
-        SecurityUtils.setAuthentication(user);
 
-        return toSignupResponse(user);
+        SecurityUtils.setAuthentication(user);
+        UserPrincipal userPrincipal = SecurityUtils.getCurrentUserPrincipal();
+
+        return CurrentUserAndAdminResponse.from(userPrincipal);
     }
 
     private AuthenticationUser extractSessionUser(HttpSession session) {
         AuthenticationUser authenticationUser =
                 (AuthenticationUser) session.getAttribute(OAUTH_USER);
         if (authenticationUser == null) {
-            throw new RuntimeException("E401001: 로그인이 필요합니다.");
+            throw new CustomException(AuthErrorCode.UNAUTHORIZED);
         }
         return authenticationUser;
     }
 
     private void validateNicknameFormat(String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
-            throw new RuntimeException("E400002: 닉네임은 필수 입력입니다.");
+            throw new CustomException(UserErrorCode.NICKNAME_EMPTY);
         }
         if (nickname.length() > 6) {
-            throw new RuntimeException("E400003: 닉네임은 6글자 이하로 입력해야 합니다.");
+            throw new CustomException(UserErrorCode.NICKNAME_TOO_LONG);
         }
         if (!nickname.matches("^[가-힣a-zA-Z0-9]+$")) {
-            throw new RuntimeException("E400004: 한글, 영문, 숫자만 입력해주세요.");
+            throw new CustomException(UserErrorCode.NICKNAME_NOT_ALLOWED);
         }
     }
 
     @Transactional(readOnly = true)
     public void validateNicknameDuplicate(String nickname) {
         if (userRepository.existsUserByNickname(nickname)) {
-            throw new RuntimeException("E409001: 중복된 닉네임입니다.");
+            throw new CustomException(UserErrorCode.NICKNAME_CONFLICT);
         }
     }
 
@@ -72,7 +77,7 @@ public class UserService {
         User user =
                 userRepository
                         .findById(userId)
-                        .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.updateNickname(nickname);
 
         return userRepository.save(user);
@@ -88,7 +93,7 @@ public class UserService {
         User user =
                 userRepository
                         .findById(userId)
-                        .orElseThrow(() -> new RuntimeException("E404001: 존재하지 않는 회원입니다."));
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(user);
     }
 
