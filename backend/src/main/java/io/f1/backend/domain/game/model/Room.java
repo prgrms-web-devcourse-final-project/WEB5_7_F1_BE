@@ -64,8 +64,8 @@ public class Room {
         this.playerSessionMap.get(sessionId).increaseCorrectCount();
     }
 
-    public Long getCurrentQuestionId() {
-        return questions.get(currentRound - 1).getId();
+    public Question getCurrentQuestion(){
+        return questions.get(currentRound - 1);
     }
 
     public Boolean isPlaying() {

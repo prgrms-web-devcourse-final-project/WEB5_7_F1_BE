@@ -214,16 +214,9 @@ public class RoomService {
             return buildResultOnlyChat(destination, chatMessage);
         }
 
-        Long questionId = room.getCurrentQuestionId();
+        Question currentQuestion = room.getCurrentQuestion();
 
-        Question question =
-                room.getQuestions().stream()
-                        .filter(q -> q.getId().equals(questionId))
-                        .findFirst()
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
-
-        String answer = question.getAnswer();
+        String answer = currentQuestion.getAnswer();
 
         if (!answer.equals(chatMessage.message())) {
             return buildResultOnlyChat(destination, chatMessage);
@@ -233,7 +226,7 @@ public class RoomService {
 
         return RoundResult.builder()
                 .destination(destination)
-                .questionResult(toQuestionResultResponse(questionId, chatMessage, answer))
+                .questionResult(toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
                 .rankUpdate(toRankUpdateResponse(room))
                 .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
                 .chat(chatMessage)
