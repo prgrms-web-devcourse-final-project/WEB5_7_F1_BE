@@ -2,6 +2,7 @@ package io.f1.backend.global.exception.errorcode;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -15,4 +16,3 @@ public enum AdminErrorCode implements ErrorCode {
 
     private final String message;
 }
-

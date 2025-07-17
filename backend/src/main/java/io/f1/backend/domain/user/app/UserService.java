@@ -13,8 +13,11 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.util.SecurityUtils;
+
 import jakarta.servlet.http.HttpSession;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +46,7 @@ public class UserService {
 
     private AuthenticationUser extractSessionUser(HttpSession session) {
         AuthenticationUser authenticationUser =
-            (AuthenticationUser) session.getAttribute(OAUTH_USER);
+                (AuthenticationUser) session.getAttribute(OAUTH_USER);
         if (authenticationUser == null) {
             throw new CustomException(AuthErrorCode.UNAUTHORIZED);
         }
@@ -72,9 +75,9 @@ public class UserService {
     @Transactional
     public User initNickname(Long userId, String nickname) {
         User user =
-            userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         user.updateNickname(nickname);
 
         return userRepository.save(user);
@@ -88,9 +91,9 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         User user =
-            userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(user);
     }
 
