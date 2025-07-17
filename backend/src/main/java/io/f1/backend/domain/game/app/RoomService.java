@@ -39,15 +39,18 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -207,7 +210,7 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        if(!room.isPlaying()) {
+        if (!room.isPlaying()) {
             return buildResultOnlyChat(destination, chatMessage);
         }
 
@@ -230,7 +233,7 @@ public class RoomService {
 
         return RoundResult.builder()
                 .destination(destination)
-                .questionResult(toQuestionResultResponse(questionId,chatMessage, answer))
+                .questionResult(toQuestionResultResponse(questionId, chatMessage, answer))
                 .rankUpdate(toRankUpdateResponse(room))
                 .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
                 .chat(chatMessage)
@@ -296,9 +299,6 @@ public class RoomService {
     }
 
     private RoundResult buildResultOnlyChat(String destination, ChatMessage chatMessage) {
-        return RoundResult.builder()
-            .destination(destination)
-            .chat(chatMessage)
-            .build();
+        return RoundResult.builder().destination(destination).chat(chatMessage).build();
     }
 }

@@ -65,10 +65,10 @@ public class Room {
     }
 
     public Long getCurrentQuestionId() {
-        return questions.get(currentRound-1).getId();
+        return questions.get(currentRound - 1).getId();
     }
 
-    public Boolean isPlaying(){
+    public Boolean isPlaying() {
         return state == RoomState.PLAYING;
     }
 

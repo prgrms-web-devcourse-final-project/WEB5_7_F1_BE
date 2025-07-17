@@ -10,7 +10,9 @@ import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -74,21 +76,22 @@ public class GameSocketController {
     }
 
     @MessageMapping("room/chat/{roomId}")
-    public void chat(@DestinationVariable Long roomId,
-        Message<DefaultWebSocketRequest<ChatMessage>> message) {
-        RoundResult roundResult = roomService.chat(roomId, getSessionId(message),
-            message.getPayload().getMessage());
+    public void chat(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        RoundResult roundResult =
+                roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
 
         String destination = roundResult.getDestination();
 
         messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
 
         if (!roundResult.hasOnlyChat()) {
-            messageSender.send(destination, MessageType.QUESTION_RESULT,
-                roundResult.getQuestionResult());
+            messageSender.send(
+                    destination, MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
             messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
-            messageSender.send(destination, MessageType.SYSTEM_NOTICE,
-                roundResult.getSystemNotice());
+            messageSender.send(
+                    destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
         }
     }
 
