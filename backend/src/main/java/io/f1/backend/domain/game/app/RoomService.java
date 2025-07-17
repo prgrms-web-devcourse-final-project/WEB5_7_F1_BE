@@ -4,16 +4,20 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
@@ -30,6 +34,7 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
@@ -141,7 +146,8 @@ public class RoomService {
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player, RoomEventType.ENTER);
+        SystemNoticeResponse systemNoticeResponse =
+                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
                 getDestination(roomId),
@@ -176,7 +182,7 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                    ofPlayerEvent(removePlayer, RoomEventType.EXIT);
+                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -213,6 +219,36 @@ public class RoomService {
                                 })
                         .toList();
         return new RoomListResponse(roomResponses);
+    }
+
+    // todo 동시성적용
+    public RoundResult chat(Long roomId, String sessionId, ChatMessage chatMessage) {
+        Room room = findRoom(roomId);
+
+        String destination = getDestination(roomId);
+
+        if (!room.isPlaying()) {
+            return buildResultOnlyChat(destination, chatMessage);
+        }
+
+        Question currentQuestion = room.getCurrentQuestion();
+
+        String answer = currentQuestion.getAnswer();
+
+        if (!answer.equals(chatMessage.message())) {
+            return buildResultOnlyChat(destination, chatMessage);
+        }
+
+        room.increasePlayerCorrectCount(sessionId);
+
+        return RoundResult.builder()
+                .destination(destination)
+                .questionResult(
+                        toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
+                .rankUpdate(toRankUpdateResponse(room))
+                .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
+                .chat(chatMessage)
+                .build();
     }
 
     private Player getRemovePlayer(Room room, String sessionId) {
@@ -271,5 +307,9 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
+    }
+
+    private RoundResult buildResultOnlyChat(String destination, ChatMessage chatMessage) {
+        return RoundResult.builder().destination(destination).chat(chatMessage).build();
     }
 }

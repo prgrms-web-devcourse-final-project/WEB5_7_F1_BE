@@ -6,4 +6,7 @@ public enum MessageType {
     PLAYER_LIST,
     SYSTEM_NOTICE,
     GAME_START,
+    CHAT,
+    QUESTION_RESULT,
+    RANK_UPDATE,
 }
