@@ -252,13 +252,13 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public GameStartResponse getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
+    public List<Question> getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
         quizRepository
                 .findById(quizId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         List<Question> randomQuestions = quizRepository.findRandQuestionsByQuizId(quizId, round);
 
-        return toGameStartResponse(randomQuestions);
+        return randomQuestions;
     }
 }

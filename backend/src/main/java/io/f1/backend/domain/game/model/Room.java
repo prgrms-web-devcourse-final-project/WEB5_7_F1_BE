@@ -42,6 +42,10 @@ public class Room {
         return this.host.getId().equals(id);
     }
 
+    public void updateQuestions(List<Question> questions) {
+        this.questions = questions;
+    }
+
     public void updateHost(Player nextHost) {
         this.host = nextHost;
     }

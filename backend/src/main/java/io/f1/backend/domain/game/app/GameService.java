@@ -1,6 +1,9 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
+
 import io.f1.backend.domain.game.dto.GameStartData;
+import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
@@ -8,19 +11,23 @@ import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GameService {
@@ -29,7 +36,9 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public GameStartData gameStart(Long roomId, Long quizId) {
+    public GameStartData gameStart(Long roomId, GameStartRequest gameStartRequest) {
+
+        Long quizId = gameStartRequest.quizId();
 
         Room room =
                 roomRepository
@@ -46,14 +55,17 @@ public class GameService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         // 라운드 수만큼 랜덤 Question 추출
-        GameStartResponse questions = quizService.getRandomQuestionsWithoutAnswer(quizId, round);
+        List<Question> questions = quizService.getRandomQuestionsWithoutAnswer(quizId, round);
+        room.updateQuestions(questions);
+
+        GameStartResponse gameStartResponse = toGameStartResponse(questions);
 
         // 방 정보 게임 중으로 변경
         room.updateRoomState(RoomState.PLAYING);
 
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
 
-        return new GameStartData(getDestination(roomId), questions);
+        return new GameStartData(getDestination(roomId), gameStartResponse);
     }
 
     private Integer checkGameSetting(Room room, Long quizId) {

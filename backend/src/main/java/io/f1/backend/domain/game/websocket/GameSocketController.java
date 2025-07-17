@@ -6,16 +6,19 @@ import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class GameSocketController {
@@ -61,11 +64,9 @@ public class GameSocketController {
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(@DestinationVariable Long roomId, Message<GameStartRequest> message) {
+    public void gameStart(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<GameStartRequest>> message) {
 
-        Long quizId = message.getPayload().quizId();
-
-        GameStartData gameStartData = gameService.gameStart(roomId, quizId);
+        GameStartData gameStartData = gameService.gameStart(roomId, message.getPayload().getMessage());
 
         String destination = gameStartData.destination();
 

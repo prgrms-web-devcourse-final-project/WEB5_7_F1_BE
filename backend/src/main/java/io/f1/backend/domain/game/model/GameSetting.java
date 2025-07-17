@@ -13,8 +13,8 @@ public class GameSetting {
 
     public boolean checkQuizId(Long quizId) {
         if (this.quizId != null && this.quizId.equals(quizId)) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 }
