@@ -6,6 +6,8 @@ import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.CommonErrorCode;
 
 import jakarta.validation.Valid;
 
@@ -28,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/quizzes")
 @RequiredArgsConstructor
@@ -40,8 +40,7 @@ public class QuizController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuizCreateResponse> saveQuiz(
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @Valid @RequestPart QuizCreateRequest request)
-            throws IOException {
+            @Valid @RequestPart QuizCreateRequest request) {
         QuizCreateResponse response = quizService.saveQuiz(thumbnailFile, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -58,8 +57,7 @@ public class QuizController {
     public ResponseEntity<Void> updateQuiz(
             @PathVariable Long quizId,
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @RequestPart QuizUpdateRequest request)
-            throws IOException {
+            @RequestPart QuizUpdateRequest request) {
 
         if (request.title() != null) {
             quizService.updateQuizTitle(quizId, request.title());
@@ -82,6 +80,13 @@ public class QuizController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String creator) {
+
+        if (page <= 0) {
+            throw new CustomException(CommonErrorCode.INVALID_PAGINATION);
+        }
+        if (size <= 0 || size > 100) {
+            throw new CustomException(CommonErrorCode.INVALID_PAGINATION);
+        }
 
         Pageable pageable =
                 PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));

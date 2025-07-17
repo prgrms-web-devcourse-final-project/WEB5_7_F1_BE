@@ -50,7 +50,7 @@ public class Quiz extends BaseEntity {
     private String thumbnailUrl;
 
     @ManyToOne
-    @JoinColumn(name = "creator_id")
+    @JoinColumn(name = "creator_id", nullable = true)
     private User creator;
 
     public Quiz(
@@ -80,5 +80,21 @@ public class Quiz extends BaseEntity {
 
     public void changeThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public Long findCreatorId() {
+        if (this.creator == null) {
+            return null;
+        }
+
+        return this.creator.getId();
+    }
+
+    public String findCreatorNickname() {
+        if (this.creator == null) {
+            return "탈퇴한 사용자";
+        }
+
+        return this.creator.getNickname();
     }
 }
