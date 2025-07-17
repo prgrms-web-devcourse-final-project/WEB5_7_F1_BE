@@ -205,6 +205,7 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
+    //todo 동시성적용
     public RoundResult chat(Long roomId, String sessionId, ChatMessage chatMessage) {
         Room room = findRoom(roomId);
 
