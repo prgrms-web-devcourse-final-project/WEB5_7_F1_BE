@@ -11,6 +11,7 @@ import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +19,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -33,8 +35,10 @@ public class GameSocketController {
 
         String websocketSessionId = getSessionId(message);
 
+        UserPrincipal principal = getSessionUser(message);
+
         RoomInitialData roomInitialData =
-                roomService.initializeRoomSocket(roomId, websocketSessionId);
+                roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
         String destination = roomInitialData.destination();
 
         messageSender.send(
@@ -51,8 +55,9 @@ public class GameSocketController {
     public void exitRoom(@DestinationVariable Long roomId, Message<?> message) {
 
         String websocketSessionId = getSessionId(message);
+        UserPrincipal principal = getSessionUser(message);
 
-        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId);
+        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId, principal);
 
         String destination = roomExitData.getDestination();
 
@@ -109,5 +114,11 @@ public class GameSocketController {
     private static String getSessionId(Message<?> message) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         return accessor.getSessionId();
+    }
+
+    private static UserPrincipal getSessionUser(Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        Authentication auth = (Authentication) accessor.getUser();
+        return (UserPrincipal) auth.getPrincipal();
     }
 }

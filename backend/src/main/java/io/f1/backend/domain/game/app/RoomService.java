@@ -37,6 +37,7 @@ import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
@@ -116,11 +117,12 @@ public class RoomService {
         }
     }
 
-    public RoomInitialData initializeRoomSocket(Long roomId, String sessionId) {
+    public RoomInitialData initializeRoomSocket(
+            Long roomId, String sessionId, UserPrincipal principal) {
 
         Room room = findRoom(roomId);
 
-        Player player = createPlayer();
+        Player player = createPlayer(principal);
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
         Map<Long, String> userIdSessionMap = room.getUserIdSessionMap();
@@ -157,7 +159,7 @@ public class RoomService {
                 systemNoticeResponse);
     }
 
-    public RoomExitData exitRoom(Long roomId, String sessionId) {
+    public RoomExitData exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
 
         Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
 
@@ -166,7 +168,7 @@ public class RoomService {
 
             String destination = getDestination(roomId);
 
-            Player removePlayer = getRemovePlayer(room, sessionId);
+            Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
@@ -251,10 +253,10 @@ public class RoomService {
                 .build();
     }
 
-    private Player getRemovePlayer(Room room, String sessionId) {
+    private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
-            room.removeUserId(getCurrentUserId());
+            room.removeUserId(principal.getUserId());
             throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
@@ -262,6 +264,10 @@ public class RoomService {
 
     private static String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
+    }
+
+    private Player createPlayer(UserPrincipal principal) {
+        return new Player(principal.getUserId(), principal.getUserNickname());
     }
 
     private Player createPlayer() {
