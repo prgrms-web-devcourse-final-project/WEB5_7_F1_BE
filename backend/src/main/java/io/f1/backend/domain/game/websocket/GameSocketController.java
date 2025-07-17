@@ -31,17 +31,17 @@ public class GameSocketController {
         String websocketSessionId = getSessionId(message);
 
         RoomInitialData roomInitialData =
-            roomService.initializeRoomSocket(roomId, websocketSessionId);
+                roomService.initializeRoomSocket(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
 
         messageSender.send(
-            destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
+                destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
         messageSender.send(
-            destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
+                destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
         messageSender.send(
-            destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
+                destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
         messageSender.send(
-            destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
+                destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -55,9 +55,9 @@ public class GameSocketController {
 
         if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
+                    destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
             messageSender.send(
-                destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
+                    destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
     }
 
