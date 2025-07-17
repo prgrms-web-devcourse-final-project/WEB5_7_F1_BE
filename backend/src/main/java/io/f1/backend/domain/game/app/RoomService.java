@@ -37,7 +37,6 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
-import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
@@ -227,7 +226,8 @@ public class RoomService {
 
         return RoundResult.builder()
                 .destination(destination)
-                .questionResult(toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
+                .questionResult(
+                        toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
                 .rankUpdate(toRankUpdateResponse(room))
                 .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
                 .chat(chatMessage)
