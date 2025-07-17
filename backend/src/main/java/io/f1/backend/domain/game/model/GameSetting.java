@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.model;
 
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,6 +13,6 @@ public class GameSetting {
     private int timeLimit = 60;
 
     public boolean validateQuizId(Long quizId) {
-        return this.quizId != null && this.quizId.equals(quizId);
+        return Objects.equals(this.quizId, quizId);
     }
 }
