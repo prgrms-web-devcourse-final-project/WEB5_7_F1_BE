@@ -3,6 +3,7 @@ package io.f1.backend.domain.admin.app.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.f1.backend.domain.admin.dto.AdminLoginFailResponse;
+import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,7 +32,9 @@ public class AdminLoginFailureHandler implements AuthenticationFailureHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         AdminLoginFailResponse errorResponse =
-                new AdminLoginFailResponse("E401005", "아이디 또는 비밀번호가 일치하지 않습니다.");
+                new AdminLoginFailResponse(
+                        AuthErrorCode.LOGIN_FAILED.getCode(),
+                        AuthErrorCode.LOGIN_FAILED.getMessage());
 
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
