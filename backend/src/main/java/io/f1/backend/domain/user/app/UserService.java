@@ -30,10 +30,9 @@ public class UserService {
     @Transactional
     public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
         AuthenticationUser authenticationUser = extractSessionUser(session);
-
         String nickname = signupRequest.nickname();
-        validateNicknameFormat(nickname);
-        validateNicknameDuplicate(nickname);
+
+        checkNickname(nickname);
 
         User user = initNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
@@ -99,11 +98,16 @@ public class UserService {
 
     @Transactional
     public void updateNickname(Long userId, String newNickname, HttpSession session) {
-        validateNicknameFormat(newNickname);
-        validateNicknameDuplicate(newNickname);
+        checkNickname(newNickname);
 
         User user = initNickname(userId, newNickname);
         session.setAttribute(USER, AuthenticationUser.from(user));
         SecurityUtils.setAuthentication(user);
+    }
+
+    @Transactional(readOnly = true)
+    public void checkNickname(String nickname) {
+        validateNicknameFormat(nickname);
+        validateNicknameDuplicate(nickname);
     }
 }
