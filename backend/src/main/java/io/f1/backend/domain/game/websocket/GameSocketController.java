@@ -8,7 +8,6 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
-import io.f1.backend.domain.game.dto.request.AnswerMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,17 +31,17 @@ public class GameSocketController {
         String websocketSessionId = getSessionId(message);
 
         RoomInitialData roomInitialData =
-                roomService.initializeRoomSocket(roomId, websocketSessionId);
+            roomService.initializeRoomSocket(roomId, websocketSessionId);
         String destination = roomInitialData.destination();
 
         messageSender.send(
-                destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
+            destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
         messageSender.send(
-                destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
+            destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
         messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
+            destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
         messageSender.send(
-                destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
+            destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -56,9 +55,9 @@ public class GameSocketController {
 
         if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
-                    destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
+                destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
             messageSender.send(
-                    destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
+                destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
         }
     }
 
@@ -74,27 +73,22 @@ public class GameSocketController {
         messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
     }
 
-    @MessageMapping("room/chatInWaiting/{roomId}")
-    public void chatInWaiting(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<ChatMessage>> message) {
-        String destination = "/sub/room/" + roomId;
-
-        messageSender.send(destination,MessageType.CHAT,message.getPayload());
-    }
-
-    @MessageMapping("room/chatInPlaying/{roomId}")
-    public void chatInPlaying(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<AnswerMessage>> message) {
-
-        RoundResult roundResult = roomService.chatInPlaying(roomId, getSessionId(message),
+    @MessageMapping("room/chat/{roomId}")
+    public void chat(@DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        RoundResult roundResult = roomService.chat(roomId, getSessionId(message),
             message.getPayload().getMessage());
 
         String destination = roundResult.getDestination();
 
-        messageSender.send(destination,MessageType.CHAT, roundResult.getChat());
+        messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
 
-        if(!roundResult.hasOnlyChat()){
-            messageSender.send(destination,MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
-            messageSender.send(destination,MessageType.RANK_UPDATE, roundResult.getRankUpdate());
-            messageSender.send(destination,MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
+        if (!roundResult.hasOnlyChat()) {
+            messageSender.send(destination, MessageType.QUESTION_RESULT,
+                roundResult.getQuestionResult());
+            messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
+            messageSender.send(destination, MessageType.SYSTEM_NOTICE,
+                roundResult.getSystemNotice());
         }
     }
 

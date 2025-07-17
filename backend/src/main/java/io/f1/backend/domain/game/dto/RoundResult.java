@@ -22,6 +22,7 @@ public class RoundResult {
             RankUpdateResponse rankUpdate,
             SystemNoticeResponse systemNotice,
             ChatMessage chat) {
+        this.destination = destination;
         this.questionResult = questionResult;
         this.rankUpdate = rankUpdate;
         this.systemNotice = systemNotice;

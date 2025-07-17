@@ -31,6 +31,8 @@ public class Room {
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
+    private int currentRound = 0;
+
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
         this.roomSetting = roomSetting;
@@ -60,5 +62,17 @@ public class Room {
 
     public void increasePlayerCorrectCount(String sessionId) {
         this.playerSessionMap.get(sessionId).increaseCorrectCount();
+    }
+
+    public Long getCurrentQuestionId() {
+        return questions.get(currentRound-1).getId();
+    }
+
+    public Boolean isPlaying(){
+        return state == RoomState.PLAYING;
+    }
+
+    public void increaseCorrectCount() {
+        currentRound++;
     }
 }

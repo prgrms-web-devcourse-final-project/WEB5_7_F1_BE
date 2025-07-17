@@ -1,7 +1,6 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toChatMessage;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
@@ -18,7 +17,6 @@ import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
-import io.f1.backend.domain.game.dto.request.AnswerMessage;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
@@ -41,18 +39,15 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -207,34 +202,38 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
-    public RoundResult chatInPlaying(Long roomId, String sessionId, AnswerMessage chatMessage) {
+    public RoundResult chat(Long roomId, String sessionId, ChatMessage chatMessage) {
         Room room = findRoom(roomId);
 
         String destination = getDestination(roomId);
 
+        if(!room.isPlaying()) {
+            return buildResultOnlyChat(destination, chatMessage);
+        }
+
+        Long questionId = room.getCurrentQuestionId();
+
         Question question =
                 room.getQuestions().stream()
-                        .filter(q -> q.getId().equals(chatMessage.questionId()))
+                        .filter(q -> q.getId().equals(questionId))
                         .findFirst()
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
-        ChatMessage broadCastChat = toChatMessage(chatMessage);
-
         String answer = question.getAnswer();
 
         if (!answer.equals(chatMessage.message())) {
-            return RoundResult.builder().destination(destination).chat(broadCastChat).build();
+            return buildResultOnlyChat(destination, chatMessage);
         }
 
         room.increasePlayerCorrectCount(sessionId);
 
         return RoundResult.builder()
                 .destination(destination)
-                .questionResult(toQuestionResultResponse(chatMessage, answer))
+                .questionResult(toQuestionResultResponse(questionId,chatMessage, answer))
                 .rankUpdate(toRankUpdateResponse(room))
                 .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
-                .chat(broadCastChat)
+                .chat(chatMessage)
                 .build();
     }
 
@@ -294,5 +293,12 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
+    }
+
+    private RoundResult buildResultOnlyChat(String destination, ChatMessage chatMessage) {
+        return RoundResult.builder()
+            .destination(destination)
+            .chat(chatMessage)
+            .build();
     }
 }
