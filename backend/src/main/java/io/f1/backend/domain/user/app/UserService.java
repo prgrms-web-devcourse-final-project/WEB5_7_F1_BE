@@ -30,8 +30,11 @@ public class UserService {
     @Transactional
     public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
         AuthenticationUser authenticationUser = extractSessionUser(session);
+        String nickname = signupRequest.nickname();
 
-        User user = initNickname(authenticationUser.userId(), signupRequest.nickname());
+        checkNickname(nickname);
+
+        User user = initNickname(authenticationUser.userId(), nickname);
         updateSessionAfterSignup(session, user);
 
         SecurityUtils.setAuthentication(user);
