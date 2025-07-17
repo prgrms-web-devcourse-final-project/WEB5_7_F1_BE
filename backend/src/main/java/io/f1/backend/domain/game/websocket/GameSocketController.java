@@ -70,11 +70,12 @@ public class GameSocketController {
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(@DestinationVariable Long roomId, Message<GameStartRequest> message) {
+    public void gameStart(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<GameStartRequest>> message) {
 
-        Long quizId = message.getPayload().quizId();
-
-        GameStartData gameStartData = gameService.gameStart(roomId, quizId);
+        GameStartData gameStartData =
+                gameService.gameStart(roomId, message.getPayload().getMessage());
 
         String destination = gameStartData.destination();
 
