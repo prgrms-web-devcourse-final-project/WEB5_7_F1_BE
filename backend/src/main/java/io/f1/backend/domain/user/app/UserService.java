@@ -98,6 +98,8 @@ public class UserService {
 
     @Transactional
     public void updateNickname(Long userId, String newNickname, HttpSession session) {
+        checkNickname(newNickname);
+
         User user = initNickname(userId, newNickname);
         session.setAttribute(USER, AuthenticationUser.from(user));
         SecurityUtils.setAuthentication(user);
