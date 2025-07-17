@@ -5,6 +5,7 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
@@ -93,6 +94,16 @@ public class GameSocketController {
             messageSender.send(
                     destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
         }
+    }
+
+    @MessageMapping("/room/ready/{roomId}")
+    public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
+
+        PlayerReadyData playerReadyData =
+                roomService.handlePlayerReady(roomId, getSessionId(message));
+
+        messageSender.send(
+                playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
     }
 
     private static String getSessionId(Message<?> message) {

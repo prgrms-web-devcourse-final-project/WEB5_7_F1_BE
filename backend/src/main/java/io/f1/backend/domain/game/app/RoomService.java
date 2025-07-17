@@ -33,7 +33,6 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
-import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
@@ -187,6 +186,22 @@ public class RoomService {
 
             return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
         }
+    }
+
+    public PlayerReadyData handlePlayerReady(Long roomId, String sessionId) {
+        Player player =
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+
+        player.toggleReady();
+
+        String destination = getDestination(roomId);
+
+        Room room = findRoom(roomId);
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+        return new PlayerReadyData(destination, playerListResponse);
     }
 
     public RoomListResponse getAllRooms() {

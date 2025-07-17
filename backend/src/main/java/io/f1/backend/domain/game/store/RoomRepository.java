@@ -1,11 +1,13 @@
 package io.f1.backend.domain.game.store;
 
+import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface RoomRepository {
+
     void saveRoom(Room room);
 
     Optional<Room> findRoom(Long roomId);
@@ -13,4 +15,6 @@ public interface RoomRepository {
     List<Room> findAll();
 
     void removeRoom(Long roomId);
+
+    Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId);
 }

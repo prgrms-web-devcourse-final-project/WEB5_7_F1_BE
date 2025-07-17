@@ -17,6 +17,9 @@ import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.AuthErrorCode;
+import io.f1.backend.global.exception.errorcode.QuizErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +51,7 @@ public class QuizService {
     private String defaultThumbnailPath;
 
     private final String DEFAULT = "default";
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     // TODO : 시큐리티 구현 이후 삭제해도 되는 의존성 주입
     private final UserRepository userRepository;
@@ -55,8 +59,7 @@ public class QuizService {
     private final QuizRepository quizRepository;
 
     @Transactional
-    public QuizCreateResponse saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request)
-            throws IOException {
+    public QuizCreateResponse saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request) {
         String thumbnailPath = defaultThumbnailPath;
 
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
@@ -81,29 +84,38 @@ public class QuizService {
     private void validateImageFile(MultipartFile thumbnailFile) {
 
         if (!thumbnailFile.getContentType().startsWith("image")) {
-            // TODO : 이후 커스텀 예외로 변경
-            throw new IllegalArgumentException("이미지 파일을 업로드해주세요.");
+            throw new CustomException(QuizErrorCode.UNSUPPORTED_MEDIA_TYPE);
         }
 
         List<String> allowedExt = List.of("jpg", "jpeg", "png", "webp");
-        if (!allowedExt.contains(getExtension(thumbnailFile.getOriginalFilename()))) {
-            throw new IllegalArgumentException("지원하지 않는 확장자입니다.");
+        String ext = getExtension(thumbnailFile.getOriginalFilename());
+        if (!allowedExt.contains(ext)) {
+            throw new CustomException(QuizErrorCode.UNSUPPORTED_IMAGE_FORMAT);
+        }
+
+        if (thumbnailFile.getSize() > MAX_FILE_SIZE) {
+            throw new CustomException(QuizErrorCode.FILE_SIZE_TOO_LARGE);
         }
     }
 
-    private String convertToThumbnailPath(MultipartFile thumbnailFile) throws IOException {
+    private String convertToThumbnailPath(MultipartFile thumbnailFile) {
         String originalFilename = thumbnailFile.getOriginalFilename();
         String ext = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID().toString() + "." + ext;
 
-        Path savePath = Paths.get(uploadPath, savedFilename).toAbsolutePath();
-        thumbnailFile.transferTo(savePath.toFile());
+        try {
+            Path savePath = Paths.get(uploadPath, savedFilename).toAbsolutePath();
+            thumbnailFile.transferTo(savePath.toFile());
+        } catch (IOException e) {
+            log.error("썸네일 업로드 중 IOException 발생", e);
+            throw new CustomException(QuizErrorCode.THUMBNAIL_SAVE_FAILED);
+        }
 
         return "/images/thumbnail/" + savedFilename;
     }
 
     private String getExtension(String filename) {
-        return filename.substring(filename.lastIndexOf(".") + 1);
+        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
     }
 
     @Transactional
@@ -112,11 +124,11 @@ public class QuizService {
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         // TODO : util 메서드에서 사용자 ID 꺼내쓰는 식으로 수정하기
         if (1L != quiz.getCreator().getId()) {
-            throw new RuntimeException("권한이 없습니다.");
+            throw new CustomException(AuthErrorCode.FORBIDDEN);
         }
 
         deleteThumbnailFile(quiz.getThumbnailUrl());
@@ -128,7 +140,7 @@ public class QuizService {
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateTitle(title);
         quiz.changeTitle(title);
@@ -140,19 +152,19 @@ public class QuizService {
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateDesc(description);
         quiz.changeDescription(description);
     }
 
     @Transactional
-    public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) throws IOException {
+    public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) {
 
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateImageFile(thumbnailFile);
         String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
@@ -163,13 +175,13 @@ public class QuizService {
 
     private void validateDesc(String desc) {
         if (desc.trim().length() < 10 || desc.trim().length() > 50) {
-            throw new IllegalArgumentException("설명은 10자 이상 50자 이하로 입력해주세요.");
+            throw new CustomException(QuizErrorCode.INVALID_DESC_LENGTH);
         }
     }
 
     private void validateTitle(String title) {
         if (title.trim().length() < 2 || title.trim().length() > 30) {
-            throw new IllegalArgumentException("제목은 2자 이상 30자 이하로 입력해주세요.");
+            throw new CustomException(QuizErrorCode.INVALID_TITLE_LENGTH);
         }
     }
 
@@ -192,7 +204,7 @@ public class QuizService {
             }
         } catch (IOException e) {
             log.error("기존 썸네일 삭제 중 오류 : {}", filePath);
-            throw new RuntimeException(e);
+            throw new CustomException(QuizErrorCode.THUMBNAIL_DELETE_FAILED);
         }
     }
 
@@ -202,9 +214,9 @@ public class QuizService {
         Page<Quiz> quizzes;
 
         // 검색어가 있을 때
-        if (StringUtils.isBlank(title)) {
+        if (!StringUtils.isBlank(title)) {
             quizzes = quizRepository.findQuizzesByTitleContaining(title, pageable);
-        } else if (StringUtils.isBlank(creator)) {
+        } else if (!StringUtils.isBlank(creator)) {
             quizzes = quizRepository.findQuizzesByCreator_NicknameContaining(creator, pageable);
         } else { // 검색어가 없을 때 혹은 빈 문자열일 때
             quizzes = quizRepository.findAll(pageable);
@@ -220,7 +232,7 @@ public class QuizService {
         Quiz quiz =
                 quizRepository
                         .findQuizWithQuestionsById(quizId)
-                        .orElseThrow(() -> new RuntimeException("E404002: 존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
         return quiz;
     }
 
@@ -234,7 +246,7 @@ public class QuizService {
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
-                        .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         return quizToQuizQuestionListResponse(quiz);
     }
