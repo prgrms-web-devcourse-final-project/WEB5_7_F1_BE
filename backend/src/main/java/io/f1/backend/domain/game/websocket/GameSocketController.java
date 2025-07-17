@@ -11,7 +11,6 @@ import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.AnswerMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
-import io.f1.backend.domain.game.dto.response.DefaultWebSocketResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;

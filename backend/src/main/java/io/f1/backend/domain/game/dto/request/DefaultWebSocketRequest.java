@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.dto.request;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.WebSocketDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

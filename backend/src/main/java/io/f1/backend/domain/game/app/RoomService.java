@@ -41,15 +41,18 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -107,7 +110,7 @@ public class RoomService {
             }
 
             if (room.getRoomSetting().locked()
-                && !room.getRoomSetting().password().equals(request.password())) {
+                    && !room.getRoomSetting().password().equals(request.password())) {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
@@ -141,19 +144,19 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-            toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player.getNickname(),
-            RoomEventType.ENTER);
+        SystemNoticeResponse systemNoticeResponse =
+                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
-            getDestination(roomId),
-            roomSettingResponse,
-            gameSettingResponse,
-            playerListResponse,
-            systemNoticeResponse);
+                getDestination(roomId),
+                roomSettingResponse,
+                gameSettingResponse,
+                playerListResponse,
+                systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId) {
@@ -181,7 +184,7 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
+                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -192,15 +195,15 @@ public class RoomService {
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-            rooms.stream()
-                .map(
-                    room -> {
-                        Long quizId = room.getGameSetting().getQuizId();
-                        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
-                        return toRoomResponse(room, quiz);
-                    })
-                .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 
@@ -209,10 +212,12 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        Question question = room.getQuestions().stream()
-            .filter(q -> q.getId().equals(chatMessage.questionId()))
-            .findFirst().orElseThrow(() -> new CustomException(
-                QuestionErrorCode.QUESTION_NOT_FOUND));
+        Question question =
+                room.getQuestions().stream()
+                        .filter(q -> q.getId().equals(chatMessage.questionId()))
+                        .findFirst()
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
         ChatMessage broadCastChat = toChatMessage(chatMessage);
 
@@ -224,11 +229,13 @@ public class RoomService {
 
         room.increasePlayerCorrectCount(sessionId);
 
-        return RoundResult.builder().destination(destination)
-            .questionResult(toQuestionResultResponse(chatMessage, answer))
-            .rankUpdate(toRankUpdateResponse(room))
-            .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
-            .chat(broadCastChat).build();
+        return RoundResult.builder()
+                .destination(destination)
+                .questionResult(toQuestionResultResponse(chatMessage, answer))
+                .rankUpdate(toRankUpdateResponse(room))
+                .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
+                .chat(broadCastChat)
+                .build();
     }
 
     private Player getRemovePlayer(Room room, String sessionId) {
@@ -250,8 +257,8 @@ public class RoomService {
 
     private Room findRoom(Long roomId) {
         return roomRepository
-            .findRoom(roomId)
-            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private boolean isLastPlayer(Room room, String sessionId) {
@@ -271,14 +278,14 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         Optional<String> nextHostSessionId =
-            playerSessionMap.keySet().stream()
-                .filter(key -> !key.equals(hostSessionId))
-                .findFirst();
+                playerSessionMap.keySet().stream()
+                        .filter(key -> !key.equals(hostSessionId))
+                        .findFirst();
 
         Player nextHost =
-            playerSessionMap.get(
-                nextHostSessionId.orElseThrow(
-                    () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
+                playerSessionMap.get(
+                        nextHostSessionId.orElseThrow(
+                                () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
 
         room.updateHost(nextHost);
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
