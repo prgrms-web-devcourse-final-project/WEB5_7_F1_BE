@@ -13,6 +13,7 @@ import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
 import io.f1.backend.domain.game.dto.ChatMessage;
+import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
@@ -33,6 +34,7 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
