@@ -56,7 +56,7 @@ file:
   default-thumbnail-url: /images/thumbnail/default.png
 
 server:
-  port: 7080
+  port: 8080
   forward-headers-strategy: native
   servlet:
     session:
