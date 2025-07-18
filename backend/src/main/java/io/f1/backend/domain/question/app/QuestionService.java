@@ -10,8 +10,12 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 
+import io.f1.backend.global.security.enums.Role;
+import io.f1.backend.global.util.SecurityUtils;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -47,8 +51,23 @@ public class QuestionService {
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
+
+        verifyUserAuthority(question.getQuiz());
+
         TextQuestion textQuestion = question.getTextQuestion();
         textQuestion.changeContent(content);
+    }
+
+    private static void verifyUserAuthority(Quiz quiz) {
+        if(SecurityUtils.getCurrentUserRole() == Role.USER) {
+            validateOwner(quiz.getCreator().getId());
+        }
+    }
+
+    private static void validateOwner(Long creatorId) {
+        if (!Objects.equals(SecurityUtils.getCurrentUserId(), creatorId)) {
+            throw new CustomException(AuthErrorCode.FORBIDDEN);
+        }
     }
 
     @Transactional
@@ -62,6 +81,8 @@ public class QuestionService {
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
+        verifyUserAuthority(question.getQuiz());
+
         question.changeAnswer(answer);
     }
 
@@ -73,6 +94,8 @@ public class QuestionService {
                         .findById(questionId)
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+
+        verifyUserAuthority(question.getQuiz());
 
         questionRepository.delete(question);
     }
