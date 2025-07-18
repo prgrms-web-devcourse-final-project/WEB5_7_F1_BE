@@ -1,0 +1,22 @@
+name: slack-notify-pr-open
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: Github CI
+          SLACK_ICON: https://github.com/github.png
+          SLACK_COLOR: '#36a64f'
+          SLACK_TITLE: 'New Pull Request 🚀'
+          SLACK_MESSAGE: |
+            🚧 PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}
+            created by ${{ github.actor }}
+            🔗 ${{ github.event.pull_request.html_url }}
