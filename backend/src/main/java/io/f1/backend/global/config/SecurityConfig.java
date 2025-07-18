@@ -48,8 +48,9 @@ public class SecurityConfig {
                                                 "/js/**",
                                                 "/admin/login")
                                         .permitAll()
-                                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                    .requestMatchers("/ws/**")
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        .requestMatchers("/ws/**")
                                         .authenticated()
                                         .requestMatchers("/user/me")
                                         .hasRole("USER")
