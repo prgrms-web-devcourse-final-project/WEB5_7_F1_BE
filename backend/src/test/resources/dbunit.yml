@@ -1,0 +1,3 @@
+caseInsensitiveStrategy: LOWERCASE
+alwaysCleanBefore: true
+alwaysCleanAfter: true

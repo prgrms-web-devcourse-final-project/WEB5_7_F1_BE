@@ -42,6 +42,7 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.github.database-rider:rider-spring:1.44.0'
 
 	/* ETC */
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
