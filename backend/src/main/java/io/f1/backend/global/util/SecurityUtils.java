@@ -5,8 +5,8 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
-
 import io.f1.backend.global.security.enums.Role;
+
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

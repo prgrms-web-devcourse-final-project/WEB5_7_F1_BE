@@ -26,8 +26,7 @@ public class QuizMapper {
                 quizCreateRequest.getDescription(),
                 quizCreateRequest.getQuizType(),
                 imgUrl,
-                creator
-                );
+                creator);
     }
 
     public static QuizCreateResponse quizToQuizCreateResponse(Quiz quiz) {

@@ -19,11 +19,10 @@ import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuizErrorCode;
-
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.security.enums.Role;
 import io.f1.backend.global.util.SecurityUtils;
-import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -70,8 +70,10 @@ public class QuizService {
         }
 
         Long creatorId = SecurityUtils.getCurrentUserId();
-        User creator = userRepository.findById(creatorId)
-            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User creator =
+                userRepository
+                        .findById(creatorId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         Quiz quiz = quizCreateRequestToQuiz(request, thumbnailPath, creator);
 
@@ -136,7 +138,7 @@ public class QuizService {
     }
 
     private static void verifyUserAuthority(Quiz quiz) {
-        if(SecurityUtils.getCurrentUserRole() == Role.USER) {
+        if (SecurityUtils.getCurrentUserRole() == Role.USER) {
             validateOwner(quiz.getCreator().getId());
         }
     }
