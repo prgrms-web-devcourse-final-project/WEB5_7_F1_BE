@@ -20,6 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(
             "SELECT new io.f1.backend.domain.admin.dto.UserResponse(u.id, u.nickname, u.lastLogin,"
-                    + " u.createdAt)FROM User u ORDER BY u.lastLogin DESC")
+                    + " u.createdAt)FROM User u ORDER BY u.id")
     Page<UserResponse> findAllUsersWithPaging(Pageable pageable);
 }

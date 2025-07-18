@@ -34,7 +34,7 @@ public class AdminServiceTests extends BrowserTestTemplate {
 
     @Test
     @DataSet("datasets/admin/sorted-user.yml")
-    @DisplayName("유저 목록이 최근 로그인 순(내림차순)으로 정렬되어 반환된다")
+    @DisplayName("유저 목록이 id 순으로 정렬되어 반환된다")
     void getUsersSortedByLastLogin() throws Exception {
         // when
         ResultActions result = mockMvc.perform(get("/admin/users"));
@@ -43,10 +43,10 @@ public class AdminServiceTests extends BrowserTestTemplate {
                 status().isOk(),
                 jsonPath("$.totalElements").value(3),
                 // 가장 최근 로그인한 USER3이 첫 번째
-                jsonPath("$.users[0].nickname").value("USER3"),
+                jsonPath("$.users[0].id").value(1),
                 // 중간 로그인한 USER2가 두 번째
-                jsonPath("$.users[1].nickname").value("USER2"),
+                jsonPath("$.users[1].id").value(2),
                 // 가장 오래된 로그인한 USER1이 세 번째
-                jsonPath("$.users[2].nickname").value("USER1"));
+                jsonPath("$.users[2].id").value(3));
     }
 }
