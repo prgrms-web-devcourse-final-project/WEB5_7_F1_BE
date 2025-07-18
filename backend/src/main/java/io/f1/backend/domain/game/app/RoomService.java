@@ -151,10 +151,7 @@ public class RoomService {
                 ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
-                roomSettingResponse,
-                gameSettingResponse,
-                playerListResponse,
-                systemNoticeResponse);
+                roomSettingResponse, gameSettingResponse, playerListResponse, systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
@@ -252,8 +249,6 @@ public class RoomService {
         return removePlayer;
     }
 
-
-
     private Player createPlayer(UserPrincipal principal) {
         return new Player(principal.getUserId(), principal.getUserNickname());
     }
@@ -303,7 +298,7 @@ public class RoomService {
         room.removeSessionId(sessionId);
     }
 
-    private RoundResult buildResultOnlyChat( ChatMessage chatMessage) {
+    private RoundResult buildResultOnlyChat(ChatMessage chatMessage) {
         return RoundResult.builder().chat(chatMessage).build();
     }
 }
