@@ -59,5 +59,7 @@ server:
   servlet:
     session:
       cookie:
+        same-site: None
+        secure: true
         http-only: true
-      timeout: 1800
+      timeout: 60

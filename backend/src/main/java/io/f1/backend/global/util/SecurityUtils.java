@@ -27,7 +27,7 @@ public class SecurityUtils {
     }
 
     public static UserPrincipal getCurrentUserPrincipal() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return userPrincipal;
@@ -55,7 +55,7 @@ public class SecurityUtils {
     }
 
     public static AdminPrincipal getCurrentAdminPrincipal() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
             return adminPrincipal;
