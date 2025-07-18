@@ -59,13 +59,10 @@ public class QuestionService {
     }
 
     private static void verifyUserAuthority(Quiz quiz) {
-        if (SecurityUtils.getCurrentUserRole() == Role.USER) {
-            validateOwner(quiz.getCreator().getId());
+        if (SecurityUtils.getCurrentUserRole() == Role.ADMIN) {
+            return;
         }
-    }
-
-    private static void validateOwner(Long creatorId) {
-        if (!Objects.equals(SecurityUtils.getCurrentUserId(), creatorId)) {
+        if (!Objects.equals(SecurityUtils.getCurrentUserId(), quiz.getCreator().getId())) {
             throw new CustomException(AuthErrorCode.FORBIDDEN);
         }
     }
