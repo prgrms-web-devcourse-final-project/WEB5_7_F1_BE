@@ -10,7 +10,7 @@ INSERT INTO quiz (title,
 VALUES ('기본 상식 퀴즈',
         '일반 상식을 테스트하는 쉬운 퀴즈입니다.',
         'TEXT',
-        'https://example.com/thumbnail.png',
+        'https://picsum.photos/200/300',
         1);
 
 INSERT INTO question (quiz_id, answer, created_at, updated_at)
