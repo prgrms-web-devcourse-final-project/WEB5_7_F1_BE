@@ -56,6 +56,8 @@ file:
   default-thumbnail-url: /images/thumbnail/default.png
 
 server:
+  port: 8080
+  forward-headers-strategy: native
   servlet:
     session:
       cookie:
@@ -63,3 +65,4 @@ server:
         secure: true
         http-only: true
       timeout: 60
+

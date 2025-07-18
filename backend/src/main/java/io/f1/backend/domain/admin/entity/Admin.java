@@ -8,12 +8,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Admin extends BaseEntity {
 
     @Id
@@ -31,5 +34,13 @@ public class Admin extends BaseEntity {
 
     public void updateLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    @Builder
+    public Admin(Long id, String username, String password, LocalDateTime lastLogin) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.lastLogin = LocalDateTime.now();
     }
 }
