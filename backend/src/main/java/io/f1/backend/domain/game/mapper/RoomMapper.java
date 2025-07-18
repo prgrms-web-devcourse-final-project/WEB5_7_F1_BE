@@ -34,7 +34,10 @@ public class RoomMapper {
     }
 
     public static GameSetting toGameSetting(QuizMinData quizMinData) {
-        return new GameSetting(quizMinData.quizMinId(), quizMinData.questionCount().intValue(), DEFAULT_TIME_LIMIT);
+        return new GameSetting(
+                quizMinData.quizMinId(),
+                quizMinData.questionCount().intValue(),
+                DEFAULT_TIME_LIMIT);
     }
 
     public static RoomSettingResponse toRoomSettingResponse(Room room) {
