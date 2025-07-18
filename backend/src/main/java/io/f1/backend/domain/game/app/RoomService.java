@@ -4,15 +4,19 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
+import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
@@ -22,15 +26,17 @@ import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
-import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
+import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
@@ -60,10 +66,10 @@ public class RoomService {
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
-        Long quizMinId = quizService.getQuizMinId();
-        Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
+        QuizMinData quizMinData = quizService.getQuizMinData();
+        // Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
 
-        GameSetting gameSetting = toGameSetting(quiz);
+        GameSetting gameSetting = toGameSetting(quizMinData);
 
         Player host = createPlayer();
 
@@ -77,7 +83,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        // eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
@@ -110,11 +116,12 @@ public class RoomService {
         }
     }
 
-    public RoomInitialData initializeRoomSocket(Long roomId, String sessionId) {
+    public RoomInitialData initializeRoomSocket(
+            Long roomId, String sessionId, UserPrincipal principal) {
 
         Room room = findRoom(roomId);
 
-        Player player = createPlayer();
+        Player player = createPlayer(principal);
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
         Map<Long, String> userIdSessionMap = room.getUserIdSessionMap();
@@ -140,30 +147,25 @@ public class RoomService {
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-        SystemNoticeResponse systemNoticeResponse = ofPlayerEvent(player, RoomEventType.ENTER);
+        SystemNoticeResponse systemNoticeResponse =
+                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
-                getDestination(roomId),
-                roomSettingResponse,
-                gameSettingResponse,
-                playerListResponse,
-                systemNoticeResponse);
+                roomSettingResponse, gameSettingResponse, playerListResponse, systemNoticeResponse);
     }
 
-    public RoomExitData exitRoom(Long roomId, String sessionId) {
+    public RoomExitData exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
 
         Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
 
         synchronized (lock) {
             Room room = findRoom(roomId);
 
-            String destination = getDestination(roomId);
-
-            Player removePlayer = getRemovePlayer(room, sessionId);
+            Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
-                return removeRoom(room, destination);
+                return removeRoom(room);
             }
 
             /* 방장 변경 */
@@ -175,12 +177,25 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                    ofPlayerEvent(removePlayer, RoomEventType.EXIT);
+                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
+            return new RoomExitData(playerListResponse, systemNoticeResponse, false);
         }
+    }
+
+    public PlayerListResponse handlePlayerReady(Long roomId, String sessionId) {
+        Player player =
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+
+        player.toggleReady();
+
+        Room room = findRoom(roomId);
+
+        return toPlayerListResponse(room);
     }
 
     public RoomListResponse getAllRooms() {
@@ -198,17 +213,44 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
-    private Player getRemovePlayer(Room room, String sessionId) {
+    // todo 동시성적용
+    public RoundResult chat(Long roomId, String sessionId, ChatMessage chatMessage) {
+        Room room = findRoom(roomId);
+
+        if (!room.isPlaying()) {
+            return buildResultOnlyChat(chatMessage);
+        }
+
+        Question currentQuestion = room.getCurrentQuestion();
+
+        String answer = currentQuestion.getAnswer();
+
+        if (!answer.equals(chatMessage.message())) {
+            return buildResultOnlyChat(chatMessage);
+        }
+
+        room.increasePlayerCorrectCount(sessionId);
+
+        return RoundResult.builder()
+                .questionResult(
+                        toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
+                .rankUpdate(toRankUpdateResponse(room))
+                .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
+                .chat(chatMessage)
+                .build();
+    }
+
+    private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
-            room.removeUserId(getCurrentUserId());
+            room.removeUserId(principal.getUserId());
             throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
     }
 
-    private static String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
+    private Player createPlayer(UserPrincipal principal) {
+        return new Player(principal.getUserId(), principal.getUserNickname());
     }
 
     private Player createPlayer() {
@@ -226,12 +268,12 @@ public class RoomService {
         return playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId);
     }
 
-    private RoomExitData removeRoom(Room room, String destination) {
+    private RoomExitData removeRoom(Room room) {
         Long roomId = room.getId();
         roomRepository.removeRoom(roomId);
         roomLocks.remove(roomId);
         log.info("{}번 방 삭제", roomId);
-        return RoomExitData.builder().destination(destination).removedRoom(true).build();
+        return RoomExitData.builder().removedRoom(true).build();
     }
 
     private void changeHost(Room room, String hostSessionId) {
@@ -254,5 +296,9 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
+    }
+
+    private RoundResult buildResultOnlyChat(ChatMessage chatMessage) {
+        return RoundResult.builder().chat(chatMessage).build();
     }
 }

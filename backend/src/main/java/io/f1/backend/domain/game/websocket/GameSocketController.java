@@ -2,11 +2,16 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
-import io.f1.backend.domain.game.dto.GameStartData;
+import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
+import io.f1.backend.domain.game.dto.RoundResult;
+import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +19,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -29,9 +35,12 @@ public class GameSocketController {
 
         String websocketSessionId = getSessionId(message);
 
+        UserPrincipal principal = getSessionUser(message);
+
         RoomInitialData roomInitialData =
-                roomService.initializeRoomSocket(roomId, websocketSessionId);
-        String destination = roomInitialData.destination();
+                roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+
+        String destination = getDestination(roomId);
 
         messageSender.send(
                 destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
@@ -47,10 +56,11 @@ public class GameSocketController {
     public void exitRoom(@DestinationVariable Long roomId, Message<?> message) {
 
         String websocketSessionId = getSessionId(message);
+        UserPrincipal principal = getSessionUser(message);
 
-        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId);
+        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId, principal);
 
-        String destination = roomExitData.getDestination();
+        String destination = getDestination(roomId);
 
         if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
@@ -61,19 +71,59 @@ public class GameSocketController {
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(@DestinationVariable Long roomId, Message<GameStartRequest> message) {
+    public void gameStart(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<GameStartRequest>> message) {
 
-        Long quizId = message.getPayload().quizId();
+        GameStartResponse gameStartResponse =
+                gameService.gameStart(roomId, message.getPayload().getMessage());
 
-        GameStartData gameStartData = gameService.gameStart(roomId, quizId);
+        String destination = getDestination(roomId);
 
-        String destination = gameStartData.destination();
+        messageSender.send(destination, MessageType.GAME_START, gameStartResponse);
+    }
 
-        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
+    @MessageMapping("room/chat/{roomId}")
+    public void chat(
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        RoundResult roundResult =
+                roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
+
+        String destination = getDestination(roomId);
+
+        messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
+
+        if (!roundResult.hasOnlyChat()) {
+            messageSender.send(
+                    destination, MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
+            messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
+            messageSender.send(
+                    destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
+        }
+    }
+
+    @MessageMapping("/room/ready/{roomId}")
+    public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
+
+        PlayerListResponse playerListResponse =
+                roomService.handlePlayerReady(roomId, getSessionId(message));
+
+        messageSender.send(getDestination(roomId), MessageType.PLAYER_LIST, playerListResponse);
     }
 
     private static String getSessionId(Message<?> message) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         return accessor.getSessionId();
+    }
+
+    private static UserPrincipal getSessionUser(Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        Authentication auth = (Authentication) accessor.getUser();
+        return (UserPrincipal) auth.getPrincipal();
+    }
+
+    private String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
     }
 }

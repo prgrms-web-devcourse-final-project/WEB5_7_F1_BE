@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.store;
 
+import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 
 import org.springframework.stereotype.Repository;
@@ -33,6 +34,11 @@ public class RoomRepositoryImpl implements RoomRepository {
     @Override
     public void removeRoom(Long roomId) {
         roomMap.remove(roomId);
+    }
+
+    @Override
+    public Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId) {
+        return findRoom(roomId).map(room -> room.getPlayerSessionMap().get(sessionId));
     }
 
     // 테스트 전용 메소드

@@ -3,6 +3,8 @@ package io.f1.backend.global.util;
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -25,7 +27,7 @@ public class SecurityUtils {
     }
 
     public static UserPrincipal getCurrentUserPrincipal() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return userPrincipal;
@@ -53,12 +55,12 @@ public class SecurityUtils {
     }
 
     public static AdminPrincipal getCurrentAdminPrincipal() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
             return adminPrincipal;
         }
-        throw new RuntimeException("E401001: 로그인이 필요합니다.");
+        throw new CustomException(AuthErrorCode.UNAUTHORIZED);
     }
 
     public static Authentication getAuthentication() {
