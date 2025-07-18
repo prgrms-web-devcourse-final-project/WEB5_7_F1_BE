@@ -17,7 +17,6 @@ public interface StatRepository extends JpaRepository<Stat, Long> {
             				(u.nickname, s.totalGames, s.winningGames, s.score)
             FROM
             		Stat s JOIN s.user u
-            """
-	)
+            """)
     Page<StatWithNickname> findWithUser(Pageable pageable);
 }
