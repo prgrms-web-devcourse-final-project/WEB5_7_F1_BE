@@ -6,15 +6,15 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
 public class TestPhysicalNamingStrategy extends CamelCaseToUnderscoresNamingStrategy {
 
-	@Override
-	public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {
-		if (name == null) return null;
+    @Override
+    public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {
+        if (name == null) return null;
 
-		String tableName = name.getText();
-		if ("user".equalsIgnoreCase(tableName)) {
-			return Identifier.toIdentifier("user_test");
-		}
+        String tableName = name.getText();
+        if ("user".equalsIgnoreCase(tableName)) {
+            return Identifier.toIdentifier("user_test");
+        }
 
-		return super.toPhysicalTableName(name, context);
-	}
+        return super.toPhysicalTableName(name, context);
+    }
 }
