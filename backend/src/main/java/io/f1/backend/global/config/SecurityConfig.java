@@ -55,6 +55,10 @@ public class SecurityConfig {
                                         .hasRole("ADMIN")
                                         .requestMatchers("/auth/me")
                                         .hasAnyRole("USER", "ADMIN")
+                                        .requestMatchers("/quizzes/**")
+                                        .hasAnyRole("USER", "ADMIN")
+                                        .requestMatchers("/questions/**")
+                                        .hasAnyRole("USER", "ADMIN")
                                         .anyRequest()
                                         .authenticated())
                 .formLogin(
