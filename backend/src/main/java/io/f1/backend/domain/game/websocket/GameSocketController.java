@@ -8,7 +8,9 @@ import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -20,7 +22,7 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class GameSocketController {
 
-    //todo 삭제
+    // todo 삭제
     private final MessageSender messageSender;
     private final RoomService roomService;
     private final GameService gameService;
@@ -46,11 +48,11 @@ public class GameSocketController {
 
     @MessageMapping("/room/start/{roomId}")
     public void gameStart(
-        @DestinationVariable Long roomId,
-        Message<DefaultWebSocketRequest<GameStartRequest>> message) {
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<GameStartRequest>> message) {
 
         GameStartResponse gameStartResponse =
-            gameService.gameStart(roomId, message.getPayload().getMessage());
+                gameService.gameStart(roomId, message.getPayload().getMessage());
 
         String destination = getDestination(roomId);
 
@@ -59,8 +61,8 @@ public class GameSocketController {
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
-        @DestinationVariable Long roomId,
-        Message<DefaultWebSocketRequest<ChatMessage>> message) {
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<ChatMessage>> message) {
 
         roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }
@@ -82,7 +84,7 @@ public class GameSocketController {
         return (UserPrincipal) auth.getPrincipal();
     }
 
-    //todo 삭제
+    // todo 삭제
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }

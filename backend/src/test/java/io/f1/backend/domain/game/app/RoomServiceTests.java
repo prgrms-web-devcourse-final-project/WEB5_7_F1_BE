@@ -1,7 +1,6 @@
 package io.f1.backend.domain.game.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
@@ -52,7 +51,7 @@ class RoomServiceTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
-        roomService = new RoomService(quizService, roomRepository, eventPublisher,messageSender);
+        roomService = new RoomService(quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
