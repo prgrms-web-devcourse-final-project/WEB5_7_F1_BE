@@ -5,7 +5,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.database.rider.core.api.dataset.DataSet;
+
 import io.f1.backend.global.template.BrowserTestTemplate;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -23,11 +25,11 @@ public class AdminServiceTests extends BrowserTestTemplate {
 
         // then
         result.andExpectAll(
-            status().isOk(),
-            jsonPath("$.totalPages").value(1),
-            jsonPath("$.currentPage").value(1),
-            jsonPath("$.totalElements").value(3),
-            jsonPath("$.users.length()").value(3));
+                status().isOk(),
+                jsonPath("$.totalPages").value(1),
+                jsonPath("$.currentPage").value(1),
+                jsonPath("$.totalElements").value(3),
+                jsonPath("$.users.length()").value(3));
     }
 
     @Test
@@ -38,14 +40,13 @@ public class AdminServiceTests extends BrowserTestTemplate {
         ResultActions result = mockMvc.perform(get("/admin/users"));
         // then
         result.andExpectAll(
-            status().isOk(),
-            jsonPath("$.totalElements").value(3),
-            // 가장 최근 로그인한 USER3이 첫 번째
-            jsonPath("$.users[0].nickname").value("USER3"),
-            // 중간 로그인한 USER2가 두 번째
-            jsonPath("$.users[1].nickname").value("USER2"),
-            // 가장 오래된 로그인한 USER1이 세 번째
-            jsonPath("$.users[2].nickname").value("USER1")
-        );
+                status().isOk(),
+                jsonPath("$.totalElements").value(3),
+                // 가장 최근 로그인한 USER3이 첫 번째
+                jsonPath("$.users[0].nickname").value("USER3"),
+                // 중간 로그인한 USER2가 두 번째
+                jsonPath("$.users[1].nickname").value("USER2"),
+                // 가장 오래된 로그인한 USER1이 세 번째
+                jsonPath("$.users[2].nickname").value("USER1"));
     }
 }
