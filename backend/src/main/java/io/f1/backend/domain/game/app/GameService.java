@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
@@ -34,7 +33,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public GameStartData gameStart(Long roomId, GameStartRequest gameStartRequest) {
+    public GameStartResponse gameStart(Long roomId, GameStartRequest gameStartRequest) {
 
         Long quizId = gameStartRequest.quizId();
 
@@ -63,7 +62,7 @@ public class GameService {
 
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
 
-        return new GameStartData(getDestination(roomId), gameStartResponse);
+        return gameStartResponse;
     }
 
     private Integer checkGameSetting(Room room, Long quizId) {
@@ -82,9 +81,5 @@ public class GameService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         return playerSessionMap.values().stream().allMatch(Player::isReady);
-    }
-
-    private static String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 }

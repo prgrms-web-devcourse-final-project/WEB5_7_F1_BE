@@ -9,7 +9,6 @@ import lombok.Getter;
 
 @Getter
 public class RoundResult {
-    String destination;
     QuestionResultResponse questionResult;
     RankUpdateResponse rankUpdate;
     SystemNoticeResponse systemNotice;
@@ -17,12 +16,10 @@ public class RoundResult {
 
     @Builder
     public RoundResult(
-            String destination,
             QuestionResultResponse questionResult,
             RankUpdateResponse rankUpdate,
             SystemNoticeResponse systemNotice,
             ChatMessage chat) {
-        this.destination = destination;
         this.questionResult = questionResult;
         this.rankUpdate = rankUpdate;
         this.systemNotice = systemNotice;

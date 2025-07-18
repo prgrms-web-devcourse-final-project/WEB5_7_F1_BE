@@ -13,7 +13,6 @@ import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
 import io.f1.backend.domain.game.dto.ChatMessage;
-import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
@@ -152,11 +151,7 @@ public class RoomService {
                 ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
-                getDestination(roomId),
-                roomSettingResponse,
-                gameSettingResponse,
-                playerListResponse,
-                systemNoticeResponse);
+                roomSettingResponse, gameSettingResponse, playerListResponse, systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
@@ -166,13 +161,11 @@ public class RoomService {
         synchronized (lock) {
             Room room = findRoom(roomId);
 
-            String destination = getDestination(roomId);
-
             Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
-                return removeRoom(room, destination);
+                return removeRoom(room);
             }
 
             /* 방장 변경 */
@@ -188,11 +181,11 @@ public class RoomService {
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            return new RoomExitData(destination, playerListResponse, systemNoticeResponse, false);
+            return new RoomExitData(playerListResponse, systemNoticeResponse, false);
         }
     }
 
-    public PlayerReadyData handlePlayerReady(Long roomId, String sessionId) {
+    public PlayerListResponse handlePlayerReady(Long roomId, String sessionId) {
         Player player =
                 roomRepository
                         .findPlayerInRoomBySessionId(roomId, sessionId)
@@ -200,12 +193,9 @@ public class RoomService {
 
         player.toggleReady();
 
-        String destination = getDestination(roomId);
-
         Room room = findRoom(roomId);
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-        return new PlayerReadyData(destination, playerListResponse);
+        return toPlayerListResponse(room);
     }
 
     public RoomListResponse getAllRooms() {
@@ -227,10 +217,8 @@ public class RoomService {
     public RoundResult chat(Long roomId, String sessionId, ChatMessage chatMessage) {
         Room room = findRoom(roomId);
 
-        String destination = getDestination(roomId);
-
         if (!room.isPlaying()) {
-            return buildResultOnlyChat(destination, chatMessage);
+            return buildResultOnlyChat(chatMessage);
         }
 
         Question currentQuestion = room.getCurrentQuestion();
@@ -238,13 +226,12 @@ public class RoomService {
         String answer = currentQuestion.getAnswer();
 
         if (!answer.equals(chatMessage.message())) {
-            return buildResultOnlyChat(destination, chatMessage);
+            return buildResultOnlyChat(chatMessage);
         }
 
         room.increasePlayerCorrectCount(sessionId);
 
         return RoundResult.builder()
-                .destination(destination)
                 .questionResult(
                         toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
                 .rankUpdate(toRankUpdateResponse(room))
@@ -260,10 +247,6 @@ public class RoomService {
             throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
-    }
-
-    private static String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 
     private Player createPlayer(UserPrincipal principal) {
@@ -285,12 +268,12 @@ public class RoomService {
         return playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId);
     }
 
-    private RoomExitData removeRoom(Room room, String destination) {
+    private RoomExitData removeRoom(Room room) {
         Long roomId = room.getId();
         roomRepository.removeRoom(roomId);
         roomLocks.remove(roomId);
         log.info("{}번 방 삭제", roomId);
-        return RoomExitData.builder().destination(destination).removedRoom(true).build();
+        return RoomExitData.builder().removedRoom(true).build();
     }
 
     private void changeHost(Room room, String hostSessionId) {
@@ -315,7 +298,7 @@ public class RoomService {
         room.removeSessionId(sessionId);
     }
 
-    private RoundResult buildResultOnlyChat(String destination, ChatMessage chatMessage) {
-        return RoundResult.builder().destination(destination).chat(chatMessage).build();
+    private RoundResult buildResultOnlyChat(ChatMessage chatMessage) {
+        return RoundResult.builder().chat(chatMessage).build();
     }
 }

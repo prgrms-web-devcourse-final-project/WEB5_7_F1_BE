@@ -3,14 +3,14 @@ package io.f1.backend.domain.game.websocket;
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
-import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
-import io.f1.backend.domain.game.dto.PlayerReadyData;
 import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.GameStartRequest;
+import io.f1.backend.domain.game.dto.response.GameStartResponse;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,8 @@ public class GameSocketController {
 
         RoomInitialData roomInitialData =
                 roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
-        String destination = roomInitialData.destination();
+
+        String destination = getDestination(roomId);
 
         messageSender.send(
                 destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
@@ -59,7 +60,7 @@ public class GameSocketController {
 
         RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId, principal);
 
-        String destination = roomExitData.getDestination();
+        String destination = getDestination(roomId);
 
         if (!roomExitData.isRemovedRoom()) {
             messageSender.send(
@@ -74,12 +75,12 @@ public class GameSocketController {
             @DestinationVariable Long roomId,
             Message<DefaultWebSocketRequest<GameStartRequest>> message) {
 
-        GameStartData gameStartData =
+        GameStartResponse gameStartResponse =
                 gameService.gameStart(roomId, message.getPayload().getMessage());
 
-        String destination = gameStartData.destination();
+        String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
+        messageSender.send(destination, MessageType.GAME_START, gameStartResponse);
     }
 
     @MessageMapping("room/chat/{roomId}")
@@ -89,7 +90,7 @@ public class GameSocketController {
         RoundResult roundResult =
                 roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
 
-        String destination = roundResult.getDestination();
+        String destination = getDestination(roomId);
 
         messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
 
@@ -105,11 +106,10 @@ public class GameSocketController {
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
-        PlayerReadyData playerReadyData =
+        PlayerListResponse playerListResponse =
                 roomService.handlePlayerReady(roomId, getSessionId(message));
 
-        messageSender.send(
-                playerReadyData.destination(), MessageType.PLAYER_LIST, playerReadyData.response());
+        messageSender.send(getDestination(roomId), MessageType.PLAYER_LIST, playerListResponse);
     }
 
     private static String getSessionId(Message<?> message) {
@@ -121,5 +121,9 @@ public class GameSocketController {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         Authentication auth = (Authentication) accessor.getUser();
         return (UserPrincipal) auth.getPrincipal();
+    }
+
+    private String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
     }
 }
