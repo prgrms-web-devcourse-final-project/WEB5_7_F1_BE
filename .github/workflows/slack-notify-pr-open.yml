@@ -14,6 +14,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: Github CI
           SLACK_ICON: https://github.com/github.png
+          MSG_MINIMAL: ref,event
           SLACK_COLOR: '#36a64f'
           SLACK_TITLE: 'New Pull Request'
           SLACK_MESSAGE: |
