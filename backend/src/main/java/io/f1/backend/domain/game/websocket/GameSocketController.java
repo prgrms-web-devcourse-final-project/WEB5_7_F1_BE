@@ -1,5 +1,8 @@
 package io.f1.backend.domain.game.websocket;
 
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
+
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
@@ -18,9 +21,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 @Controller
 @RequiredArgsConstructor
@@ -71,8 +71,7 @@ public class GameSocketController {
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(
-            @DestinationVariable Long roomId, Message<?> message) {
+    public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
         UserPrincipal principal = getSessionUser(message);
 
