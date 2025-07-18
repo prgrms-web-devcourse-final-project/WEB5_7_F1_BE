@@ -21,8 +21,8 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping("/users")
     @LimitPageSize
+    @GetMapping("/users")
     public ResponseEntity<UserPageResponse> getUsers(
             @PageableDefault(sort = "lastLogin", direction = Direction.DESC) Pageable pageable) {
         UserPageResponse response = adminService.getAllUsers(pageable);
