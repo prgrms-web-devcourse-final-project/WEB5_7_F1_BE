@@ -12,6 +12,7 @@ import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
+import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
@@ -236,8 +237,8 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public Long getQuizMinId() {
-        return quizRepository.getQuizMinId();
+    public QuizMinData getQuizMinData() {
+        return quizRepository.getQuizMinData();
     }
 
     @Transactional(readOnly = true)
