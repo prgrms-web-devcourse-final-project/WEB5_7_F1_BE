@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 public enum RoomErrorCode implements ErrorCode {
     ROOM_USER_LIMIT_REACHED("E403002", HttpStatus.FORBIDDEN, "정원이 모두 찼습니다."),
     ROOM_GAME_IN_PROGRESS("E403003", HttpStatus.FORBIDDEN, "게임이 진행 중 입니다."),
-    PLAYER_NOT_READY("E403004", HttpStatus.FORBIDDEN, "게임 시작을 위한 준비 상태가 아닙니다."),
     ROOM_NOT_FOUND("E404005", HttpStatus.NOT_FOUND, "존재하지 않는 방입니다."),
     WRONG_PASSWORD("E401006", HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지않습니다."),
     PLAYER_NOT_FOUND("E404007", HttpStatus.NOT_FOUND, "존재하지 않는 플레이어입니다."),

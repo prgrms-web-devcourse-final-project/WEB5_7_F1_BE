@@ -13,6 +13,7 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
@@ -68,7 +69,7 @@ public class GameService {
         }
 
         if (!validateReadyStatus(room)) {
-            throw new CustomException(RoomErrorCode.PLAYER_NOT_READY);
+            throw new CustomException(GameErrorCode.PLAYER_NOT_READY);
         }
 
         if (room.getState() == RoomState.PLAYING) {
@@ -77,7 +78,7 @@ public class GameService {
     }
 
     // 라운드 수만큼 랜덤 Question 추출
-    public List<Question> prepareQuestions(Room room, Quiz quiz) {
+    private List<Question> prepareQuestions(Room room, Quiz quiz) {
         Long quizId = quiz.getId();
         Integer round = room.getGameSetting().getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
