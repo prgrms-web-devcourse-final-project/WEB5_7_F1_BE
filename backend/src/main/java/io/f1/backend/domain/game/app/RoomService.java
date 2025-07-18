@@ -36,6 +36,7 @@ import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
+import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
@@ -67,10 +68,10 @@ public class RoomService {
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
-        Long quizMinId = quizService.getQuizMinId();
-        Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
+        QuizMinData quizMinData = quizService.getQuizMinData();
+        //Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
 
-        GameSetting gameSetting = toGameSetting(quiz);
+        GameSetting gameSetting = toGameSetting(quizMinData);
 
         Player host = createPlayer();
 
@@ -84,7 +85,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        //eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }

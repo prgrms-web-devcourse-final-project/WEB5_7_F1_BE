@@ -17,6 +17,7 @@ import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
+import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import java.time.Instant;
@@ -32,8 +33,8 @@ public class RoomMapper {
                 request.roomName(), request.maxUserCount(), request.locked(), request.password());
     }
 
-    public static GameSetting toGameSetting(Quiz quiz) {
-        return new GameSetting(quiz.getId(), quiz.getQuestions().size(), DEFAULT_TIME_LIMIT);
+    public static GameSetting toGameSetting(QuizMinData quizMinData) {
+        return new GameSetting(quizMinData.quizMinId(), quizMinData.questionCount().intValue(), DEFAULT_TIME_LIMIT);
     }
 
     public static RoomSettingResponse toRoomSettingResponse(Room room) {
