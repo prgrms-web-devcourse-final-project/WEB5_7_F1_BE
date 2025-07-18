@@ -10,9 +10,9 @@ import jakarta.persistence.Id;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
