@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,4 +30,14 @@ public class StatController {
 
         return ResponseEntity.ok().body(response);
     }
+
+	@LimitPageSize
+	@GetMapping("/rankings/{nickname}")
+	public ResponseEntity<StatPageResponse> getRankingsByNickname(
+		@PathVariable String nickname,
+		@PageableDefault Pageable pageable
+	) {
+		StatPageResponse response = statService.getRanksByNickname(nickname, pageable.getPageSize());
+		return ResponseEntity.ok().body(response);
+	}
 }
