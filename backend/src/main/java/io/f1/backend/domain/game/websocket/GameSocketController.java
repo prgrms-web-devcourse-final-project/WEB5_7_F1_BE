@@ -1,5 +1,8 @@
 package io.f1.backend.domain.game.websocket;
 
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
+
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
@@ -8,7 +11,6 @@ import io.f1.backend.domain.game.dto.RoomExitData;
 import io.f1.backend.domain.game.dto.RoomInitialData;
 import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
-import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
@@ -18,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -71,12 +71,11 @@ public class GameSocketController {
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<GameStartRequest>> message) {
+    public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
-        GameStartResponse gameStartResponse =
-                gameService.gameStart(roomId, message.getPayload().getMessage());
+        UserPrincipal principal = getSessionUser(message);
+
+        GameStartResponse gameStartResponse = gameService.gameStart(roomId, principal);
 
         String destination = getDestination(roomId);
 
@@ -110,17 +109,6 @@ public class GameSocketController {
                 roomService.handlePlayerReady(roomId, getSessionId(message));
 
         messageSender.send(getDestination(roomId), MessageType.PLAYER_LIST, playerListResponse);
-    }
-
-    private static String getSessionId(Message<?> message) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        return accessor.getSessionId();
-    }
-
-    private static UserPrincipal getSessionUser(Message<?> message) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        Authentication auth = (Authentication) accessor.getUser();
-        return (UserPrincipal) auth.getPrincipal();
     }
 
     private String getDestination(Long roomId) {
