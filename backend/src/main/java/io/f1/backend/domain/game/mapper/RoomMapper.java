@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.mapper;
 
-import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -115,7 +114,8 @@ public class RoomMapper {
 
     public static QuestionStartResponse toQuestionStartResponse(Room room, int delay) {
         return new QuestionStartResponse(
-            room.getCurrentQuestion().getId(), room.getCurrentRound(), Instant.now().plusSeconds(delay));
+                room.getCurrentQuestion().getId(),
+                room.getCurrentRound(),
+                Instant.now().plusSeconds(delay));
     }
-
 }

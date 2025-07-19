@@ -3,10 +3,7 @@ package io.f1.backend.domain.game.app;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.MessageType;
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
-import io.f1.backend.domain.game.dto.response.QuestionStartResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -21,7 +18,6 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,7 +39,6 @@ public class GameService {
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
-
 
     public void gameStart(Long roomId, UserPrincipal principal) {
 
@@ -69,8 +64,10 @@ public class GameService {
         timerService.startTimer(room, START_DELAY);
 
         messageSender.send(destination, MessageType.GAME_START, toGameStartResponse(questions));
-        messageSender.send(destination, MessageType.QUESTION_START, toQuestionStartResponse(room, START_DELAY));
-
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, START_DELAY));
     }
 
     private boolean validateReadyStatus(Room room) {

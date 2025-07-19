@@ -2,9 +2,6 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -12,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 @Getter
 public class Room {
