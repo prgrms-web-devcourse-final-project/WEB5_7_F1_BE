@@ -3,11 +3,12 @@ package io.f1.backend.domain.stat.dao;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
 import io.f1.backend.domain.stat.entity.Stat;
 
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.Optional;
 
 public interface StatRepository extends JpaRepository<Stat, Long> {
 
@@ -21,8 +22,8 @@ public interface StatRepository extends JpaRepository<Stat, Long> {
             """)
     Page<StatWithNickname> findWithUser(Pageable pageable);
 
-	@Query("SELECT s.score FROM Stat s WHERE s.user.nickname = :nickname")
-	Optional<Long> findScoreByNickname(String nickname);
+    @Query("SELECT s.score FROM Stat s WHERE s.user.nickname = :nickname")
+    Optional<Long> findScoreByNickname(String nickname);
 
-	long countByScoreGreaterThan(Long score);
+    long countByScoreGreaterThan(Long score);
 }

@@ -31,13 +31,12 @@ public class StatController {
         return ResponseEntity.ok().body(response);
     }
 
-	@LimitPageSize
-	@GetMapping("/rankings/{nickname}")
-	public ResponseEntity<StatPageResponse> getRankingsByNickname(
-		@PathVariable String nickname,
-		@PageableDefault Pageable pageable
-	) {
-		StatPageResponse response = statService.getRanksByNickname(nickname, pageable.getPageSize());
-		return ResponseEntity.ok().body(response);
-	}
+    @LimitPageSize
+    @GetMapping("/rankings/{nickname}")
+    public ResponseEntity<StatPageResponse> getRankingsByNickname(
+            @PathVariable String nickname, @PageableDefault Pageable pageable) {
+        StatPageResponse response =
+                statService.getRanksByNickname(nickname, pageable.getPageSize());
+        return ResponseEntity.ok().body(response);
+    }
 }
