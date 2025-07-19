@@ -269,8 +269,10 @@ public class RoomService {
 
             // 타이머 추가하기
             timerService.startTimer(room, CONTINUE_DELAY);
-            messageSender.send(destination, MessageType.QUESTION_START,
-                toQuestionStartResponse(room, CONTINUE_DELAY));
+            messageSender.send(
+                    destination,
+                    MessageType.QUESTION_START,
+                    toQuestionStartResponse(room, CONTINUE_DELAY));
         }
     }
 
