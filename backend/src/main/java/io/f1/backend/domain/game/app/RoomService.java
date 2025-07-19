@@ -38,15 +38,18 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -113,8 +116,7 @@ public class RoomService {
         }
     }
 
-    public void initializeRoomSocket(
-        Long roomId, String sessionId, UserPrincipal principal) {
+    public void initializeRoomSocket(Long roomId, String sessionId, UserPrincipal principal) {
 
         Room room = findRoom(roomId);
 
@@ -149,14 +151,10 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        messageSender.send(
-            destination, MessageType.ROOM_SETTING, roomSettingResponse);
-        messageSender.send(
-            destination, MessageType.GAME_SETTING, gameSettingResponse);
-        messageSender.send(
-            destination, MessageType.PLAYER_LIST, playerListResponse);
-        messageSender.send(
-            destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        messageSender.send(destination, MessageType.ROOM_SETTING, roomSettingResponse);
+        messageSender.send(destination, MessageType.GAME_SETTING, gameSettingResponse);
+        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
     }
 
     public void exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
@@ -189,11 +187,8 @@ public class RoomService {
 
             String destination = getDestination(roomId);
 
-            messageSender.send(
-                destination, MessageType.PLAYER_LIST, playerListResponse);
-            messageSender.send(
-                destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-
+            messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+            messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
     }
 
@@ -210,7 +205,6 @@ public class RoomService {
         String destination = getDestination(roomId);
 
         messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-
     }
 
     public RoomListResponse getAllRooms() {
@@ -248,11 +242,13 @@ public class RoomService {
             room.increasePlayerCorrectCount(sessionId);
 
             messageSender.send(
-                destination, MessageType.QUESTION_RESULT,
+                destination,
+                MessageType.QUESTION_RESULT,
                 toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
             messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
             messageSender.send(
-                destination, MessageType.SYSTEM_NOTICE,
+                destination,
+                MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
         }
     }
@@ -313,7 +309,6 @@ public class RoomService {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
     }
-
 
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
