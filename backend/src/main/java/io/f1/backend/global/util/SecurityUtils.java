@@ -5,6 +5,7 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
+import io.f1.backend.global.security.enums.Role;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -41,6 +42,15 @@ public class SecurityUtils {
 
     public static String getCurrentUserNickname() {
         return getCurrentUserPrincipal().getUserNickname();
+    }
+
+    public static Role getCurrentUserRole() {
+        Authentication authentication = getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+            return Role.USER;
+        }
+        return Role.ADMIN;
     }
 
     public static void logout(HttpSession session) {

@@ -20,6 +20,9 @@ import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuizErrorCode;
+import io.f1.backend.global.exception.errorcode.UserErrorCode;
+import io.f1.backend.global.security.enums.Role;
+import io.f1.backend.global.util.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -53,7 +57,6 @@ public class QuizService {
     private final String DEFAULT = "default";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    // TODO : 시큐리티 구현 이후 삭제해도 되는 의존성 주입
     private final UserRepository userRepository;
     private final QuestionService questionService;
     private final QuizRepository quizRepository;
@@ -67,10 +70,13 @@ public class QuizService {
             thumbnailPath = convertToThumbnailPath(thumbnailFile);
         }
 
-        // TODO : 시큐리티 구현 이후 삭제 (data.sql로 초기 저장해둔 유저 get), 나중엔 현재 로그인한 유저의 아이디를 받아오도록 수정
-        User user = userRepository.findById(1L).orElseThrow(RuntimeException::new);
+        Long creatorId = SecurityUtils.getCurrentUserId();
+        User creator =
+                userRepository
+                        .findById(creatorId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        Quiz quiz = quizCreateRequestToQuiz(request, thumbnailPath, user);
+        Quiz quiz = quizCreateRequestToQuiz(request, thumbnailPath, creator);
 
         Quiz savedQuiz = quizRepository.save(quiz);
 
@@ -126,13 +132,19 @@ public class QuizService {
                         .findById(quizId)
                         .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
-        // TODO : util 메서드에서 사용자 ID 꺼내쓰는 식으로 수정하기
-        if (1L != quiz.getCreator().getId()) {
-            throw new CustomException(AuthErrorCode.FORBIDDEN);
-        }
+        verifyUserAuthority(quiz);
 
         deleteThumbnailFile(quiz.getThumbnailUrl());
         quizRepository.deleteById(quizId);
+    }
+
+    private static void verifyUserAuthority(Quiz quiz) {
+        if (SecurityUtils.getCurrentUserRole() == Role.ADMIN) {
+            return;
+        }
+        if (!Objects.equals(SecurityUtils.getCurrentUserId(), quiz.getCreator().getId())) {
+            throw new CustomException(AuthErrorCode.FORBIDDEN);
+        }
     }
 
     @Transactional
@@ -141,6 +153,8 @@ public class QuizService {
                 quizRepository
                         .findById(quizId)
                         .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+
+        verifyUserAuthority(quiz);
 
         validateTitle(title);
         quiz.changeTitle(title);
@@ -154,6 +168,8 @@ public class QuizService {
                         .findById(quizId)
                         .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
+        verifyUserAuthority(quiz);
+
         validateDesc(description);
         quiz.changeDescription(description);
     }
@@ -165,6 +181,8 @@ public class QuizService {
                 quizRepository
                         .findById(quizId)
                         .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+
+        verifyUserAuthority(quiz);
 
         validateImageFile(thumbnailFile);
         String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
@@ -257,8 +275,6 @@ public class QuizService {
                 .findById(quizId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
-        List<Question> randomQuestions = quizRepository.findRandQuestionsByQuizId(quizId, round);
-
-        return randomQuestions;
+        return quizRepository.findRandQuestionsByQuizId(quizId, round);
     }
 }

@@ -5,15 +5,12 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
-import io.f1.backend.domain.game.dto.request.GameStartRequest;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -48,9 +45,13 @@ public class GameSocketController {
     public void gameStart(
         @DestinationVariable Long roomId,
         Message<DefaultWebSocketRequest<GameStartRequest>> message) {
+    public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
         GameStartResponse gameStartResponse =
             gameService.gameStart(roomId, message.getPayload().getMessage());
+        UserPrincipal principal = getSessionUser(message);
+
+        GameStartResponse gameStartResponse = gameService.gameStart(roomId, principal);
 
         String destination = getDestination(roomId);
 
