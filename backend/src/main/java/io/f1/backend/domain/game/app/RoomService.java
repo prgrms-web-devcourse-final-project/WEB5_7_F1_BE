@@ -24,6 +24,7 @@ import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
+import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -67,7 +68,8 @@ public class RoomService {
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
-        // Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
+
+        Quiz quiz = quizService.findQuizById(quizMinData.quizMinId());
 
         GameSetting gameSetting = toGameSetting(quizMinData);
 
@@ -83,7 +85,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-        // eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
