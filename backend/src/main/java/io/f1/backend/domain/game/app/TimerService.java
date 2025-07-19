@@ -27,19 +27,15 @@ public class TimerService {
 
     public void startTimer(Room room, int delaySec) {
         cancelTimer(room);
-        ScheduledFuture<?> timer = room.getTimer();
-        timer =
-                room.getScheduler()
-                        .schedule(
-                                () -> {
-                                    handleTimeout(room);
-                                },
-                                delaySec + room.getGameSetting().getTimeLimit(),
-                                TimeUnit.SECONDS);
+
+        ScheduledFuture<?> timer = room.getScheduler().schedule(() -> {
+            handleTimeout(room);
+        }, delaySec + room.getGameSetting().getTimeLimit(), TimeUnit.SECONDS);
+
+        room.updateTimer(timer);
     }
 
     private void handleTimeout(Room room) {
-
         String destination = getDestination(room.getId());
 
         messageSender.send(

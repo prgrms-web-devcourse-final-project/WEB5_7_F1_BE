@@ -63,6 +63,10 @@ public class Room {
         this.state = newState;
     }
 
+    public void updateTimer(ScheduledFuture<?> timer) {
+        this.timer = timer;
+    }
+
     public void removeUserId(Long id) {
         this.userIdSessionMap.remove(id);
     }
