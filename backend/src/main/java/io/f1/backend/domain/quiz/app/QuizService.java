@@ -122,9 +122,9 @@ public class QuizService {
     public void deleteQuiz(Long quizId) {
 
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         // TODO : util 메서드에서 사용자 ID 꺼내쓰는 식으로 수정하기
         if (1L != quiz.getCreator().getId()) {
@@ -138,9 +138,9 @@ public class QuizService {
     @Transactional
     public void updateQuizTitle(Long quizId, String title) {
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateTitle(title);
         quiz.changeTitle(title);
@@ -150,9 +150,9 @@ public class QuizService {
     public void updateQuizDesc(Long quizId, String description) {
 
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateDesc(description);
         quiz.changeDescription(description);
@@ -162,9 +162,9 @@ public class QuizService {
     public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) {
 
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         validateImageFile(thumbnailFile);
         String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
@@ -230,9 +230,9 @@ public class QuizService {
     @Transactional(readOnly = true)
     public Quiz getQuizWithQuestionsById(Long quizId) {
         Quiz quiz =
-            quizRepository
-                .findQuizWithQuestionsById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findQuizWithQuestionsById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
         return quiz;
     }
 
@@ -244,9 +244,9 @@ public class QuizService {
     @Transactional(readOnly = true)
     public QuizQuestionListResponse getQuizWithQuestions(Long quizId) {
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         return quizToQuizQuestionListResponse(quiz);
     }
@@ -254,8 +254,8 @@ public class QuizService {
     @Transactional(readOnly = true)
     public List<Question> getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
         quizRepository
-            .findById(quizId)
-            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+                .findById(quizId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
 
         List<Question> randomQuestions = quizRepository.findRandQuestionsByQuizId(quizId, round);
 
@@ -264,7 +264,8 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz findQuizById(Long quizId) {
-        return quizRepository.findById(quizId)
-            .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+        return quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
     }
 }
