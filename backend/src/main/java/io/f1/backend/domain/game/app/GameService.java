@@ -32,7 +32,6 @@ import java.util.Objects;
 public class GameService {
 
     private static final int START_DELAY = 5;
-    private static final int CONTINUE_DELAY = 3;
 
     private final MessageSender messageSender;
     private final TimerService timerService;
