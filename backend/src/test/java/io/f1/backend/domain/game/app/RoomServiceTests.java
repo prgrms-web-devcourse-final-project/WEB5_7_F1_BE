@@ -1,7 +1,6 @@
 package io.f1.backend.domain.game.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
@@ -10,6 +9,7 @@ import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
@@ -46,11 +46,12 @@ class RoomServiceTests {
     @Mock private RoomRepository roomRepository;
     @Mock private QuizService quizService;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private MessageSender messageSender;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
-        roomService = new RoomService(quizService, roomRepository, eventPublisher);
+        roomService = new RoomService(quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
@@ -133,7 +134,6 @@ class RoomServiceTests {
         log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerSessionMap().size());
 
         when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-        doNothing().when(roomRepository).removeRoom(roomId);
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
