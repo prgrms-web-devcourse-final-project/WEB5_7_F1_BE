@@ -252,18 +252,22 @@ public class RoomService {
             messageSender.send(
                     destination,
                     MessageType.QUESTION_RESULT,
-                    toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
+                    toQuestionResultResponse(chatMessage.nickname(), answer));
             messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
             messageSender.send(
                     destination,
                     MessageType.SYSTEM_NOTICE,
-                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
+                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
         }
-
 
         timerService.cancelTimer(room);
 
-        room.increasePlayerCorrectCount(sessionId);
+        // TODO : 게임 종료 로직 추가
+        if(!timerService.validateCurrentRound(room)) {
+            // 게임 종료 로직
+            return;
+        }
+
         room.increaseCurrentRound();
 
         // 타이머 추가하기

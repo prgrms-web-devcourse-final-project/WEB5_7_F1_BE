@@ -28,7 +28,6 @@ import java.util.List;
 public class RoomMapper {
 
     private static final int DEFAULT_TIME_LIMIT = 60;
-    private static final int CONTINUE_DELAY = 3;
 
     public static RoomSetting toRoomSetting(RoomCreateRequest request) {
         return new RoomSetting(
@@ -102,8 +101,8 @@ public class RoomMapper {
     }
 
     public static QuestionResultResponse toQuestionResultResponse(
-            Long questionId, ChatMessage chatMessage, String answer) {
-        return new QuestionResultResponse(questionId, chatMessage.nickname(), answer);
+            String correctUser, String answer) {
+        return new QuestionResultResponse(correctUser, answer);
     }
 
     public static RankUpdateResponse toRankUpdateResponse(Room room) {
@@ -114,8 +113,9 @@ public class RoomMapper {
                         .toList());
     }
 
-    public static QuestionStartResponse toQuestionStartResponse(Long questionId, int currentRound) {
+    public static QuestionStartResponse toQuestionStartResponse(Room room, int delay) {
         return new QuestionStartResponse(
-            questionId, currentRound, Instant.now().plusSeconds(CONTINUE_DELAY));
+            room.getCurrentQuestion().getId(), room.getCurrentRound(), Instant.now().plusSeconds(delay));
     }
+
 }

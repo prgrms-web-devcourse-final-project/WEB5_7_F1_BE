@@ -21,8 +21,6 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class GameSocketController {
 
-    // todo 삭제
-    private final MessageSender messageSender;
     private final RoomService roomService;
     private final GameService gameService;
 
@@ -48,15 +46,9 @@ public class GameSocketController {
     @MessageMapping("/room/start/{roomId}")
     public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
-
         UserPrincipal principal = getSessionUser(message);
 
         gameService.gameStart(roomId, principal);
-
-        String destination = getDestination(roomId);
-
-//        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
-//        messageSender.send(destination, MessageType.QUESTION_START, gameStartData.questionStartResponse());
 
     }
 
@@ -73,10 +65,5 @@ public class GameSocketController {
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
         roomService.handlePlayerReady(roomId, getSessionId(message));
-    }
-
-    // todo 삭제
-    private String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 }

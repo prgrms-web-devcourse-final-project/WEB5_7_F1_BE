@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 
@@ -19,9 +20,11 @@ public class TimerService {
 
     private final MessageSender messageSender;
 
+    private static final String NONE_CORRECT_USER = "";
     private static final int CONTINUE_DELAY = 3;
 
     public void startTimer(Room room, int delaySec) {
+        cancelTimer(room);
         ScheduledFuture<?> timer = room.getTimer();
         timer = room.getScheduler().schedule(() -> {
             handleTimeout(room);
@@ -29,24 +32,39 @@ public class TimerService {
     }
 
     private void handleTimeout(Room room) {
-        // TIMEOUT 일 때 처리 !
+
         String destination = getDestination(room.getId());
 
+        messageSender.send(destination, MessageType.QUESTION_RESULT, toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
+        messageSender.send(destination, MessageType.SYSTEM_NOTICE, ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
+
+        // TODO : 게임 종료 로직
+        if(!validateCurrentRound(room)){
+            // 게임 종료 로직
+            // GAME_SETTING, PLAYER_LIST, GAME_RESULT, ROOM_SETTING
+            return;
+        }
+
+        // 다음 문제 출제
         room.increaseCurrentRound();
 
-        // QuestionResult는 ChatMessage 받지 않고 String 받도록
-        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-        messageSender.send(destination, MessageType.SYSTEM_NOTICE, ofPlayerEvent("", RoomEventType.TIMEOUT));
         startTimer(room, CONTINUE_DELAY);
-        messageSender.send(destination, MessageType.QUESTION_START, toQuestionStartResponse(room.getCurrentQuestion().getId(), room.getCurrentRound()));
+        messageSender.send(destination, MessageType.QUESTION_START, toQuestionStartResponse(room, CONTINUE_DELAY));
+    }
 
-        // TIMEOUT 처리 해주고 또 타이머 시작 !
+    public boolean validateCurrentRound(Room room) {
+        if(room.getGameSetting().getRound() != room.getCurrentRound()) {
+            return true;
+        }
+        cancelTimer(room);
+        room.getScheduler().shutdown();
+        return false;
     }
 
     public void cancelTimer(Room room) {
         // 정답 맞혔어요 ~ 타이머 캔슬 부탁
         ScheduledFuture<?> timer = room.getTimer();
-        if(timer != null) {
+        if(timer != null && !timer.isDone()) {
             timer.cancel(false);
         }
     }
