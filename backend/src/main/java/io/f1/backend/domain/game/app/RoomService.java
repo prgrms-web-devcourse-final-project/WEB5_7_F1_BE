@@ -333,5 +333,4 @@ public class RoomService {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
     }
-
 }
