@@ -26,6 +26,7 @@ import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
+import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -67,7 +68,8 @@ public class RoomService {
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
-        // Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
+
+        Quiz quiz = quizService.findQuizById(quizMinData.quizMinId());
 
         GameSetting gameSetting = toGameSetting(quizMinData);
 
@@ -83,7 +85,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-        // eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
@@ -108,7 +110,7 @@ public class RoomService {
             }
 
             if (room.getRoomSetting().locked()
-                    && !room.getRoomSetting().password().equals(request.password())) {
+                && !room.getRoomSetting().password().equals(request.password())) {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
@@ -117,7 +119,7 @@ public class RoomService {
     }
 
     public RoomInitialData initializeRoomSocket(
-            Long roomId, String sessionId, UserPrincipal principal) {
+        Long roomId, String sessionId, UserPrincipal principal) {
 
         Room room = findRoom(roomId);
 
@@ -143,15 +145,15 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-                toGameSettingResponse(room.getGameSetting(), quiz);
+            toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
+            ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         return new RoomInitialData(
-                roomSettingResponse, gameSettingResponse, playerListResponse, systemNoticeResponse);
+            roomSettingResponse, gameSettingResponse, playerListResponse, systemNoticeResponse);
     }
 
     public RoomExitData exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
@@ -177,7 +179,7 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
+                ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -187,9 +189,9 @@ public class RoomService {
 
     public PlayerListResponse handlePlayerReady(Long roomId, String sessionId) {
         Player player =
-                roomRepository
-                        .findPlayerInRoomBySessionId(roomId, sessionId)
-                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+            roomRepository
+                .findPlayerInRoomBySessionId(roomId, sessionId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         player.toggleReady();
 
@@ -201,15 +203,15 @@ public class RoomService {
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-                rooms.stream()
-                        .map(
-                                room -> {
-                                    Long quizId = room.getGameSetting().getQuizId();
-                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+            rooms.stream()
+                .map(
+                    room -> {
+                        Long quizId = room.getGameSetting().getQuizId();
+                        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
-                                    return toRoomResponse(room, quiz);
-                                })
-                        .toList();
+                        return toRoomResponse(room, quiz);
+                    })
+                .toList();
         return new RoomListResponse(roomResponses);
     }
 
@@ -232,12 +234,12 @@ public class RoomService {
         room.increasePlayerCorrectCount(sessionId);
 
         return RoundResult.builder()
-                .questionResult(
-                        toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
-                .rankUpdate(toRankUpdateResponse(room))
-                .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
-                .chat(chatMessage)
-                .build();
+            .questionResult(
+                toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer))
+            .rankUpdate(toRankUpdateResponse(room))
+            .systemNotice(ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER))
+            .chat(chatMessage)
+            .build();
     }
 
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
@@ -259,8 +261,8 @@ public class RoomService {
 
     private Room findRoom(Long roomId) {
         return roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+            .findRoom(roomId)
+            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private boolean isLastPlayer(Room room, String sessionId) {
@@ -280,14 +282,14 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         Optional<String> nextHostSessionId =
-                playerSessionMap.keySet().stream()
-                        .filter(key -> !key.equals(hostSessionId))
-                        .findFirst();
+            playerSessionMap.keySet().stream()
+                .filter(key -> !key.equals(hostSessionId))
+                .findFirst();
 
         Player nextHost =
-                playerSessionMap.get(
-                        nextHostSessionId.orElseThrow(
-                                () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
+            playerSessionMap.get(
+                nextHostSessionId.orElseThrow(
+                    () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
 
         room.updateHost(nextHost);
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
