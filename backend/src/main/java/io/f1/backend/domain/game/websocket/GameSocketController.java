@@ -1,16 +1,12 @@
 package io.f1.backend.domain.game.websocket;
 
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
+
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
-import io.f1.backend.domain.game.dto.MessageType;
-import io.f1.backend.domain.game.dto.RoomExitData;
-import io.f1.backend.domain.game.dto.RoomInitialData;
-import io.f1.backend.domain.game.dto.RoundResult;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
-import io.f1.backend.domain.game.dto.request.GameStartRequest;
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
@@ -18,14 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
 public class GameSocketController {
 
+    // todo 삭제
     private final MessageSender messageSender;
     private final RoomService roomService;
     private final GameService gameService;
@@ -37,19 +32,7 @@ public class GameSocketController {
 
         UserPrincipal principal = getSessionUser(message);
 
-        RoomInitialData roomInitialData =
-                roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
-
-        String destination = getDestination(roomId);
-
-        messageSender.send(
-                destination, MessageType.ROOM_SETTING, roomInitialData.roomSettingResponse());
-        messageSender.send(
-                destination, MessageType.GAME_SETTING, roomInitialData.gameSettingResponse());
-        messageSender.send(
-                destination, MessageType.PLAYER_LIST, roomInitialData.playerListResponse());
-        messageSender.send(
-                destination, MessageType.SYSTEM_NOTICE, roomInitialData.systemNoticeResponse());
+        roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -58,71 +41,32 @@ public class GameSocketController {
         String websocketSessionId = getSessionId(message);
         UserPrincipal principal = getSessionUser(message);
 
-        RoomExitData roomExitData = roomService.exitRoom(roomId, websocketSessionId, principal);
-
-        String destination = getDestination(roomId);
-
-        if (!roomExitData.isRemovedRoom()) {
-            messageSender.send(
-                    destination, MessageType.PLAYER_LIST, roomExitData.getPlayerListResponses());
-            messageSender.send(
-                    destination, MessageType.SYSTEM_NOTICE, roomExitData.getSystemNoticeResponse());
-        }
+        roomService.exitRoom(roomId, websocketSessionId, principal);
     }
 
     @MessageMapping("/room/start/{roomId}")
-    public void gameStart(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<GameStartRequest>> message) {
+    public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
-        GameStartResponse gameStartResponse =
-                gameService.gameStart(roomId, message.getPayload().getMessage());
+        UserPrincipal principal = getSessionUser(message);
 
-        String destination = getDestination(roomId);
-
-        messageSender.send(destination, MessageType.GAME_START, gameStartResponse);
+        gameService.gameStart(roomId, principal);
     }
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
             @DestinationVariable Long roomId,
             Message<DefaultWebSocketRequest<ChatMessage>> message) {
-        RoundResult roundResult =
-                roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
 
-        String destination = getDestination(roomId);
-
-        messageSender.send(destination, MessageType.CHAT, roundResult.getChat());
-
-        if (!roundResult.hasOnlyChat()) {
-            messageSender.send(
-                    destination, MessageType.QUESTION_RESULT, roundResult.getQuestionResult());
-            messageSender.send(destination, MessageType.RANK_UPDATE, roundResult.getRankUpdate());
-            messageSender.send(
-                    destination, MessageType.SYSTEM_NOTICE, roundResult.getSystemNotice());
-        }
+        roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }
 
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
-        PlayerListResponse playerListResponse =
-                roomService.handlePlayerReady(roomId, getSessionId(message));
-
-        messageSender.send(getDestination(roomId), MessageType.PLAYER_LIST, playerListResponse);
+        roomService.handlePlayerReady(roomId, getSessionId(message));
     }
 
-    private static String getSessionId(Message<?> message) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        return accessor.getSessionId();
-    }
-
-    public static UserPrincipal getSessionUser(Message<?> message) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        Authentication auth = (Authentication) accessor.getUser();
-        return (UserPrincipal) auth.getPrincipal();
-    }
-
+    // todo 삭제
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
