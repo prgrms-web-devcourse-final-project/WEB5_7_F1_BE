@@ -264,7 +264,8 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz findQuizById(Long quizId) {
-        return quizRepository.findById(quizId)
-            .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+        return quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
     }
 }

@@ -85,7 +85,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-         eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
