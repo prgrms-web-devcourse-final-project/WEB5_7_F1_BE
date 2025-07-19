@@ -2,6 +2,9 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -32,6 +35,10 @@ public class Room {
     private final LocalDateTime createdAt = LocalDateTime.now();
 
     private int currentRound = 0;
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private ScheduledFuture<?> timer;
 
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
@@ -76,7 +83,7 @@ public class Room {
         return state == RoomState.PLAYING;
     }
 
-    public void increaseCorrectCount() {
+    public void increaseCurrentRound() {
         currentRound++;
     }
 }

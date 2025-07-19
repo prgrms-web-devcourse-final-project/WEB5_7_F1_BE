@@ -5,6 +5,7 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
@@ -56,12 +57,19 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RoomService {
 
+    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
     private final ApplicationEventPublisher eventPublisher;
     private final Map<Long, Object> roomLocks = new ConcurrentHashMap<>();
+
     private final MessageSender messageSender;
+
+
+    private static final int START_DELAY = 5;
+    private static final int CONTINUE_DELAY = 3;
+
     private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
@@ -251,6 +259,16 @@ public class RoomService {
                     MessageType.SYSTEM_NOTICE,
                     ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
         }
+
+
+        timerService.cancelTimer(room);
+
+        room.increasePlayerCorrectCount(sessionId);
+        room.increaseCurrentRound();
+
+        // 타이머 추가하기
+        timerService.startTimer(room, CONTINUE_DELAY);
+
     }
 
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {

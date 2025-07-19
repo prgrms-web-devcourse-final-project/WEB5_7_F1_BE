@@ -6,6 +6,7 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
+
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
@@ -47,15 +48,23 @@ public class GameSocketController {
     @MessageMapping("/room/start/{roomId}")
     public void gameStart(@DestinationVariable Long roomId, Message<?> message) {
 
+
         UserPrincipal principal = getSessionUser(message);
 
         gameService.gameStart(roomId, principal);
+
+        String destination = getDestination(roomId);
+
+//        messageSender.send(destination, MessageType.GAME_START, gameStartData.gameStartResponse());
+//        messageSender.send(destination, MessageType.QUESTION_START, gameStartData.questionStartResponse());
+
     }
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
             @DestinationVariable Long roomId,
             Message<DefaultWebSocketRequest<ChatMessage>> message) {
+
 
         roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }

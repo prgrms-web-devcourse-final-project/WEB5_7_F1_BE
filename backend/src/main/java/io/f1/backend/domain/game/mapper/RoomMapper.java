@@ -8,6 +8,7 @@ import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
 import io.f1.backend.domain.game.dto.response.QuestionResultResponse;
+import io.f1.backend.domain.game.dto.response.QuestionStartResponse;
 import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RankUpdateResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
@@ -27,6 +28,7 @@ import java.util.List;
 public class RoomMapper {
 
     private static final int DEFAULT_TIME_LIMIT = 60;
+    private static final int CONTINUE_DELAY = 3;
 
     public static RoomSetting toRoomSetting(RoomCreateRequest request) {
         return new RoomSetting(
@@ -91,6 +93,10 @@ public class RoomMapper {
             message = " 님이 입장하셨습니다";
         } else if (roomEventType == RoomEventType.EXIT) {
             message = " 님이 퇴장하셨습니다";
+        } else if (roomEventType == RoomEventType.CORRECT_ANSWER) {
+            message = " 님 정답입니다 !";
+        } else if (roomEventType == RoomEventType.TIMEOUT) {
+            message = "땡 ~ ⏰ 제한 시간 초과!";
         }
         return new SystemNoticeResponse(nickname + message, Instant.now());
     }
@@ -106,5 +112,10 @@ public class RoomMapper {
                         .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
                         .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
                         .toList());
+    }
+
+    public static QuestionStartResponse toQuestionStartResponse(Long questionId, int currentRound) {
+        return new QuestionStartResponse(
+            questionId, currentRound, Instant.now().plusSeconds(CONTINUE_DELAY));
     }
 }

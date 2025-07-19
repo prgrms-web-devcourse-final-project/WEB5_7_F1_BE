@@ -2,7 +2,9 @@ package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
+import io.f1.backend.domain.game.dto.GameStartData;
 import io.f1.backend.domain.game.dto.response.GameStartResponse;
+import io.f1.backend.domain.game.dto.response.QuestionStartResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -16,6 +18,7 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,11 +32,16 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class GameService {
 
+    private static final int START_DELAY = 5;
+    private static final int CONTINUE_DELAY = 3;
+
+    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public GameStartResponse gameStart(Long roomId, UserPrincipal principal) {
+
+    public void gameStart(Long roomId, UserPrincipal principal) {
 
         Room room =
                 roomRepository
@@ -53,8 +61,18 @@ public class GameService {
 
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
 
-        return toGameStartResponse(questions);
+        QuestionStartResponse questionStartResponse
+                = new QuestionStartResponse(
+                    questions.getFirst().getId()
+                    , room.getGameSetting().getRound()
+                    , Instant.now().plusSeconds(START_DELAY)
+                );
+
+        timerService.startTimer(room, START_DELAY);
+
+//        return new GameStartData(gameStartResponse, questionStartResponse);
     }
+
 
     private boolean validateReadyStatus(Room room) {
 

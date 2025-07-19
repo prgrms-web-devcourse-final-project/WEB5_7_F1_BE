@@ -9,4 +9,5 @@ public enum MessageType {
     CHAT,
     QUESTION_RESULT,
     RANK_UPDATE,
+    QUESTION_START
 }

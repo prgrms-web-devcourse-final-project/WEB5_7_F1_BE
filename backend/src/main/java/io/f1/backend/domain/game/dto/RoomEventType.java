@@ -5,4 +5,6 @@ public enum RoomEventType {
     EXIT,
     START,
     END,
+    CORRECT_ANSWER,
+    TIMEOUT
 }
