@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.MessageType;
@@ -95,9 +96,5 @@ public class GameService {
         Long quizId = quiz.getId();
         Integer round = room.getGameSetting().getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
-    }
-
-    private String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 }

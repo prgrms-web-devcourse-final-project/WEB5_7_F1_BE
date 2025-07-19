@@ -3,6 +3,7 @@ package io.f1.backend.domain.game.app;
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
@@ -84,9 +85,5 @@ public class TimerService {
         if (timer != null && !timer.isDone()) {
             timer.cancel(false);
         }
-    }
-
-    private String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 }
