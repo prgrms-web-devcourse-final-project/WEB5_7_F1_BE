@@ -174,7 +174,8 @@ public class RoomService {
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
                 removeRoom(room);
-                messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
+                messageSender.send(
+                        destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
                 return;
             }
 
@@ -193,9 +194,9 @@ public class RoomService {
 
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-            messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
+            messageSender.send(
+                    destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
         }
-
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
