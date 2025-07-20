@@ -20,7 +20,7 @@ public interface StatRepository extends JpaRepository<Stat, Long> {
             FROM
             		Stat s JOIN s.user u
             """)
-    Page<StatWithNickname> findWithUser(Pageable pageable);
+    Page<StatWithNickname> findAllStatsWithUser(Pageable pageable);
 
     @Query("SELECT s.score FROM Stat s WHERE s.user.nickname = :nickname")
     Optional<Long> findScoreByNickname(String nickname);

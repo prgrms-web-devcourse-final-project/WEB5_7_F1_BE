@@ -26,7 +26,7 @@ public class StatService {
 
     @Transactional(readOnly = true)
     public StatPageResponse getRanks(Pageable pageable) {
-        Page<StatWithNickname> stats = statRepository.findWithUser(pageable);
+        Page<StatWithNickname> stats = statRepository.findAllStatsWithUser(pageable);
         return toStatListPageResponse(stats);
     }
 
@@ -34,7 +34,7 @@ public class StatService {
     public StatPageResponse getRanksByNickname(String nickname, int pageSize) {
 
         Page<StatWithNickname> stats =
-                statRepository.findWithUser(getPageableFromNickname(nickname, pageSize));
+                statRepository.findAllStatsWithUser(getPageableFromNickname(nickname, pageSize));
 
         return toStatListPageResponse(stats);
     }
