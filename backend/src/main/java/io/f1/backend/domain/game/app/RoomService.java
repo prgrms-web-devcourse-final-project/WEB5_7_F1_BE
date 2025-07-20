@@ -17,6 +17,7 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
+import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
@@ -168,9 +169,12 @@ public class RoomService {
 
             Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
+            String destination = getDestination(roomId);
+
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
                 removeRoom(room);
+                messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
                 return;
             }
 
@@ -180,18 +184,18 @@ public class RoomService {
             }
 
             /* 플레이어 삭제 */
-            removePlayer(room, sessionId, removePlayer);
+            boolean isRemoved = removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            String destination = getDestination(roomId);
-
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
         }
+
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -307,9 +311,8 @@ public class RoomService {
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
     }
 
-    private void removePlayer(Room room, String sessionId, Player removePlayer) {
-        room.removeUserId(removePlayer.getId());
-        room.removeSessionId(sessionId);
+    private boolean removePlayer(Room room, String sessionId, Player removePlayer) {
+        return room.removeUserId(removePlayer.getId()) && room.removeSessionId(sessionId);
     }
 
     private String getDestination(Long roomId) {

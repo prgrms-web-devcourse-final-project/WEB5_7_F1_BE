@@ -56,12 +56,12 @@ public class Room {
         this.state = newState;
     }
 
-    public void removeUserId(Long id) {
-        this.userIdSessionMap.remove(id);
+    public boolean removeUserId(Long id) {
+        return this.userIdSessionMap.remove(id) != null;
     }
 
-    public void removeSessionId(String sessionId) {
-        this.playerSessionMap.remove(sessionId);
+    public boolean removeSessionId(String sessionId) {
+        return this.playerSessionMap.remove(sessionId) != null;
     }
 
     public void increasePlayerCorrectCount(String sessionId) {
