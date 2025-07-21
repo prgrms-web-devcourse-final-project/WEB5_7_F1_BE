@@ -1,5 +1,6 @@
 package io.f1.backend.domain.admin.app;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,28 +26,46 @@ public class AdminServiceTests extends BrowserTestTemplate {
 
         // then
         result.andExpectAll(
-                status().isOk(),
-                jsonPath("$.totalPages").value(1),
-                jsonPath("$.currentPage").value(1),
-                jsonPath("$.totalElements").value(3),
-                jsonPath("$.users.length()").value(3));
+            status().isOk(),
+            jsonPath("$.totalPages").value(1),
+            jsonPath("$.currentPage").value(1),
+            jsonPath("$.totalElements").value(3),
+            jsonPath("$.users.length()").value(3));
     }
 
     @Test
     @DataSet("datasets/admin/sorted-user.yml")
     @DisplayName("유저 목록이 id 순으로 정렬되어 반환된다")
-    void getUsersSortedByLastLogin() throws Exception {
+    void getUsersSortedByUserId() throws Exception {
         // when
         ResultActions result = mockMvc.perform(get("/admin/users"));
         // then
         result.andExpectAll(
-                status().isOk(),
-                jsonPath("$.totalElements").value(3),
-                // 가장 최근 로그인한 USER3이 첫 번째
-                jsonPath("$.users[0].id").value(1),
-                // 중간 로그인한 USER2가 두 번째
-                jsonPath("$.users[1].id").value(2),
-                // 가장 오래된 로그인한 USER1이 세 번째
-                jsonPath("$.users[2].id").value(3));
+            status().isOk(),
+            jsonPath("$.totalElements").value(3),
+            jsonPath("$.users[0].id").value(1),
+            jsonPath("$.users[1].id").value(2),
+            jsonPath("$.users[2].id").value(3));
+    }
+
+    @Test
+    @DataSet("datasets/admin/search-user.yml")
+    @DisplayName("특정 닉네임이 포함된 유저들의 정보를 조회한다")
+    void searchUsersByNickname() throws Exception {
+        // given
+        String searchNickname = "us";
+        // when
+        ResultActions result = mockMvc.perform(
+            get("/admin/users")
+                .param("nickname", searchNickname)
+        );
+        // then
+        result.andExpectAll(
+            status().isOk(),
+            jsonPath("$.totalElements").value(3),
+            jsonPath("$.users", hasSize(3)),
+            jsonPath("$.users[0].id").value(1),
+            jsonPath("$.users[1].id").value(2),
+            jsonPath("$.users[2].id").value(3));
     }
 }
