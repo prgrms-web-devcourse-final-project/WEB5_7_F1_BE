@@ -75,6 +75,7 @@ public class RoomService {
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
+      
         Quiz quiz = quizService.findQuizById(quizMinData.quizMinId());
 
         GameSetting gameSetting = toGameSetting(quizMinData);
