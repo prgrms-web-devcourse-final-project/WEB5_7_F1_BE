@@ -3,7 +3,7 @@ package io.f1.backend.domain.game.websocket.eventlistener;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
-import io.f1.backend.domain.game.websocket.Service.SessionService;
+import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;

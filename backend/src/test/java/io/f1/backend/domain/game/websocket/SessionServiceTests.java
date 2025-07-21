@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
-import io.f1.backend.domain.game.websocket.Service.SessionService;
+import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 

@@ -1,4 +1,4 @@
-package io.f1.backend.domain.game.websocket.Service;
+package io.f1.backend.domain.game.websocket.service;
 
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
