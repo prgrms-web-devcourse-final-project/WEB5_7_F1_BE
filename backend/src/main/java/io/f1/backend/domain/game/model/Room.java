@@ -1,10 +1,14 @@
 package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 
@@ -27,7 +31,7 @@ public class Room {
 
     private Map<String, Player> playerSessionMap = new ConcurrentHashMap<>();
 
-    private Map<Long, String> userIdSessionMap = new ConcurrentHashMap<>();
+    private final Set<Long> validatedUserIds = new HashSet<>();
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
@@ -40,22 +44,24 @@ public class Room {
         this.host = host;
     }
 
-    public void addPlayer(String sessionId, Player player) {
+    public boolean  addValidatedUserIds (Long userId) {
+        return validatedUserIds.add(userId);
+    }
+
+    public int getCurrentUserCnt(){
+        return validatedUserIds.size();
+    }
+
+    public void addPlayer(Long userId,String sessionId, Player player) {
+
+        if(!validatedUserIds.contains(userId)){
+            throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
+        }
 
         if (isHost(player.getId())) {
             player.toggleReady();
         }
         playerSessionMap.put(sessionId, player);
-
-        String existingSession = userIdSessionMap.get(player.getId());
-        /* 정상 흐름 */
-        if (existingSession.equals(PENDING_SESSION_ID)) {
-            userIdSessionMap.put(player.getId(), sessionId);
-        }
-    }
-
-    public void addUserId(Long userId) {
-        userIdSessionMap.put(userId, PENDING_SESSION_ID);
     }
 
     public boolean isHost(Long id) {
@@ -74,12 +80,12 @@ public class Room {
         this.state = newState;
     }
 
-    public void removeUserId(Long id) {
-        this.userIdSessionMap.remove(id);
-    }
-
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
+    }
+
+    public void removeUserId(Long userId){
+        validatedUserIds.remove(userId);
     }
 
     public void increasePlayerCorrectCount(String sessionId) {
@@ -98,16 +104,22 @@ public class Room {
         currentRound++;
     }
 
-    public void reconnectSession(Long userId, String newSessionId) {
-        String oldSessionId = userIdSessionMap.get(userId);
+    public void reconnectSession(String oldSessionId ,String newSessionId) {
         Player player = playerSessionMap.get(oldSessionId);
         removeSessionId(oldSessionId);
-        userIdSessionMap.put(userId, newSessionId);
         playerSessionMap.put(newSessionId, player);
     }
 
-    public boolean isPendingSession(Long userId) {
-        return PENDING_SESSION_ID.equals(userIdSessionMap.get(userId));
+    public void updatePlayerConnectionState(String sessionId, ConnectionState newState) {
+        playerSessionMap.get(sessionId).updateState(newState);
+    }
+
+    public ConnectionState getPlayerConnectionState(String sessionId) {
+        return playerSessionMap.get(sessionId).getState();
+    }
+
+    public boolean isReconnectTarget(String sessionId) {
+        return playerSessionMap.get(sessionId) != null;
     }
 
 }

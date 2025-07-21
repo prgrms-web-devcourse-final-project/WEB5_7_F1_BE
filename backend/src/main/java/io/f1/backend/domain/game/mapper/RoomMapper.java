@@ -4,7 +4,6 @@ import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
-import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
@@ -20,7 +19,6 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
-
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -93,6 +91,8 @@ public class RoomMapper {
             message = " 님이 입장하셨습니다";
         } else if (roomEventType == RoomEventType.EXIT) {
             message = " 님이 퇴장하셨습니다";
+        }else if(roomEventType == RoomEventType.RECONNECT){
+            message = " 님이 재연결 되었습니다.";
         }
         return new SystemNoticeResponse(nickname + message, Instant.now());
     }
@@ -110,7 +110,4 @@ public class RoomMapper {
                         .toList());
     }
 
-    public static ExitSuccessResponse toExitSuccessResponse(long userId, boolean isRemoved) {
-        return new ExitSuccessResponse(userId, isRemoved);
-    }
 }

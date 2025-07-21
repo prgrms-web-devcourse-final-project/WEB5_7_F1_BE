@@ -17,7 +17,6 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
-import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
@@ -26,6 +25,7 @@ import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 import io.f1.backend.domain.game.event.RoomCreatedEvent;
+import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -40,18 +40,15 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -82,7 +79,7 @@ public class RoomService {
 
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
-        room.addUserId(newId);
+        room.addValidatedUserIds(getCurrentUserId());
 
         roomRepository.saveRoom(room);
 
@@ -105,7 +102,7 @@ public class RoomService {
             }
 
             int maxUserCnt = room.getRoomSetting().maxUserCount();
-            int currentCnt = room.getUserIdSessionMap().size();
+            int currentCnt = room.getCurrentUserCnt();
             if (maxUserCnt == currentCnt) {
                 throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
             }
@@ -115,7 +112,7 @@ public class RoomService {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
-            room.addUserId(getCurrentUserId());
+            room.addValidatedUserIds(getCurrentUserId());
         }
     }
 
@@ -125,7 +122,7 @@ public class RoomService {
 
         Player player = createPlayer(principal);
 
-        room.addPlayer(sessionId, player);
+        room.addPlayer(getCurrentUserId(),sessionId, player);
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -162,7 +159,6 @@ public class RoomService {
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
                 removeRoom(room);
-                messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
                 return;
             }
 
@@ -172,7 +168,7 @@ public class RoomService {
             }
 
             /* 플레이어 삭제 */
-            boolean isRemoved = removePlayer(room, sessionId, removePlayer);
+            removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
@@ -181,7 +177,7 @@ public class RoomService {
 
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-            messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
+
         }
 
     }
@@ -247,37 +243,36 @@ public class RoomService {
         }
     }
 
-    public void manageConnectSession(Long roomId, String newSessionId, Long userId) {
-
+    public boolean isReconnectTarget(Long roomId, String sessionId) {
         Room room = findRoom(roomId);
-
-        /* 정상 흐름 - 첫 연결 */
-        if (room.isPendingSession(userId)) {
-            return;
-        }
-
-        /* enter 로직을 실행 안한 경우 */
-        if (room.getUserIdSessionMap().get(userId) == null) {
-            throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
-        }
-
-        /* 비정상 흐름 - 재연결 */
-        room.reconnectSession(userId, newSessionId);
-
+        return room.isReconnectTarget(sessionId);
     }
 
-    public void manageDisconnectSession(Long roomId, String sessionId, Long userId) {
+    public void reconnectSession(Long roomId,String oldSessionId,String newSessionId) {
         Room room = findRoom(roomId);
+        room.reconnectSession(oldSessionId, newSessionId);
+    }
 
-        /* initializeRoomSocket 실행 안된 경우 */
-        if(room.isPendingSession(userId)) {
-            room.removeUserId(userId);
-            return;
+    public void changeConnectedStatus(Long roomId, String sessionId, ConnectionState newState) {
+        Room room = findRoom(roomId);
+        room.updatePlayerConnectionState(sessionId,newState);
+    }
+
+    public ConnectionState getPlayerConnectionState(Long roomId, String sessionId) {
+        Room room = findRoom(roomId);
+        return room.getPlayerConnectionState(sessionId);
+    }
+
+    public void exitIfNotPlaying(Long roomId, String sessionId,UserPrincipal principal) {
+        Room room = findRoom(roomId);
+        if(!room.isPlaying() && room.getPlayerSessionMap().containsKey(sessionId)) {
+            exitRoom(roomId,sessionId, principal);
         }
+    }
 
-
-
-
+    //todo 브로드캐스팅 말고 개인메세지
+    public void notifyIfReconnected(Long roomId, UserPrincipal principal) {
+        messageSender.send(getDestination(roomId),MessageType.SYSTEM_NOTICE ,ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
     }
 
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {

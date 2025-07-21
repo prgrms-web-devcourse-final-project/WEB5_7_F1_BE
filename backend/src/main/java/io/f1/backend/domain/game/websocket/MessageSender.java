@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.DefaultWebSocketResponse;
-import io.f1.backend.domain.user.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -13,13 +12,8 @@ public class MessageSender {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public <T> void sendBroadcast(String destination, MessageType type, T message) {
+    public <T> void send(String destination, MessageType type, T message) {
         messagingTemplate.convertAndSend(
                 destination, new DefaultWebSocketResponse<>(type, message));
-    }
-
-    public <T> void sendPersonal(String destination, MessageType type, T message, UserPrincipal principal) {
-        System.out.print("MessageSend userPrincipal.getName() :"+principal.getName() );
-        messagingTemplate.convertAndSendToUser("providerId", "/queue", new DefaultWebSocketResponse<>(type, message));
     }
 }

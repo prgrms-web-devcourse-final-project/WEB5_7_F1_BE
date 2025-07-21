@@ -1,11 +1,6 @@
 package io.f1.backend.domain.game.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
@@ -18,14 +13,11 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
-import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.util.SecurityUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -101,7 +93,7 @@ class RoomServiceTests {
                     });
         }
         countDownLatch.await();
-        assertThat(room.getUserIdSessionMap()).hasSize(room.getRoomSetting().maxUserCount());
+        assertThat(room.getCurrentUserCnt()).isEqualTo(room.getRoomSetting().maxUserCount());
     }
 
     @Test
@@ -133,7 +125,6 @@ class RoomServiceTests {
             String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
             room.getPlayerSessionMap().put(sessionId, player);
-            room.getUserIdSessionMap().put(player.getId(), sessionId);
         }
 
         log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerSessionMap().size());
@@ -163,70 +154,9 @@ class RoomServiceTests {
                     });
         }
         countDownLatch.await();
-        assertThat(room.getUserIdSessionMap()).hasSize(1);
+        assertThat(room.getCurrentUserCnt()).isEqualTo(1);
     }
 
-    @Test
-    @DisplayName("정상연결이라면_아무것도 안함")
-    void shouldDoNothing_whenUserIsPendingSession() throws Exception {
-
-        Long roomId = 1L;
-        Long playerId = 1L;
-
-        String sessionId = "abc";
-
-        when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-        when(room.isPendingSession(playerId)).thenReturn(true);
-
-        // when
-        roomService.manageSession(roomId, sessionId, playerId);
-
-        // then
-        verify(room, never()).reconnectSession(any(), any());
-
-    }
-
-    @Test
-    @DisplayName("manageSession_enter안된유저라면_예외발생")
-    void shouldThrowException_whenUserHasNotEnteredRoom() throws Exception {
-        // given
-        Long roomId = 1L;
-        Long userId = 1L;
-        String sessionId = "abc";
-
-        when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-        when(room.isPendingSession(userId)).thenReturn(false);
-        Map<Long, String> userIdSessionMap = new HashMap<>();
-        when(room.getUserIdSessionMap()).thenReturn(userIdSessionMap);
-
-        // when & then
-        assertThrows(CustomException.class,
-            () -> roomService.manageSession(roomId, sessionId, userId));
-    }
-
-
-    @Test
-    @DisplayName("manageSession_재연결이면_reconnectSession_호출됨")
-    void shouldReconnectSession_whenUserReentersWithNewSession() {
-        // given
-        Long roomId = 1L;
-        Long userId = 1L;
-        String sessionId = "newSessionId";
-
-        when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-        when(room.isPendingSession(userId)).thenReturn(false);
-
-        Map<Long, String> userIdSessionMap = new HashMap<>();
-        userIdSessionMap.put(userId, "oldSession");
-
-        when(room.getUserIdSessionMap()).thenReturn(userIdSessionMap);
-
-        // when
-        roomService.manageSession(roomId, sessionId, userId);
-
-        // then
-        verify(room).reconnectSession(userId, sessionId);
-    }
 
     private Room createRoom(
             Long roomId,

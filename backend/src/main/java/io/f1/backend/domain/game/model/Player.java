@@ -29,6 +29,6 @@ public class Player {
     }
 
     public void updateState(ConnectionState newState) {
-
+        state = newState;
     }
 }

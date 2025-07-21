@@ -5,4 +5,5 @@ public enum RoomEventType {
     EXIT,
     START,
     END,
+    RECONNECT,
 }

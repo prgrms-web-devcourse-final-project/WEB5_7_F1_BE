@@ -5,6 +5,7 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
+import io.f1.backend.global.security.enums.Role;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -21,34 +22,32 @@ public class SecurityUtils {
     public static void setAuthentication(User user) {
         UserPrincipal userPrincipal = new UserPrincipal(user, Collections.emptyMap());
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        userPrincipal, null, userPrincipal.getAuthorities());
+            new UsernamePasswordAuthenticationToken(
+                userPrincipal, null, userPrincipal.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     public static UserPrincipal getCurrentUserPrincipal() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+            && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return userPrincipal;
         }
         throw new RuntimeException("E401001: 로그인이 필요합니다.");
     }
 
     public static Long getCurrentUserId() {
-        return 1L;
-        //return getCurrentUserPrincipal().getUserId();
+        return getCurrentUserPrincipal().getUserId();
     }
 
     public static String getCurrentUserNickname() {
-        return "ddd";
-        //return getCurrentUserPrincipal().getUserNickname();
+        return getCurrentUserPrincipal().getUserNickname();
     }
 
     public static Role getCurrentUserRole() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+            && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return Role.USER;
         }
         return Role.ADMIN;
@@ -68,7 +67,7 @@ public class SecurityUtils {
     public static AdminPrincipal getCurrentAdminPrincipal() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-                && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
+            && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
             return adminPrincipal;
         }
         throw new CustomException(AuthErrorCode.UNAUTHORIZED);
