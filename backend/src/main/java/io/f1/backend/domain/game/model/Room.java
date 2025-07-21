@@ -91,7 +91,6 @@ public class Room {
         this.timer = timer;
     }
 
-
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
     }

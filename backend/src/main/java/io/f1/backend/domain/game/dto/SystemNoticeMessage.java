@@ -7,7 +7,6 @@ public enum SystemNoticeMessage {
     TIMEOUT("땡 ~ ⏰ 제한 시간 초과!"),
     RECONNECT(" 님이 재연결 되었습니다.");
 
-
     private final String message;
 
     SystemNoticeMessage(String message) {
