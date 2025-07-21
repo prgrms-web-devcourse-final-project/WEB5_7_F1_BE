@@ -49,14 +49,14 @@ public class SessionService {
     public void handleUserDisconnect(String sessionId, UserPrincipal principal) {
 
         Long roomId = sessionIdRoom.get(sessionId);
+        Long userId = sessionIdUser.get(sessionId);
 
         /* 정상 동작*/
         if (roomService.isExit(sessionId, roomId)) {
-            removeSession(sessionId, roomId);
+            removeSession(sessionId, userId);
             return;
         }
 
-        Long userId = principal.getUserId();
 
         roomService.changeConnectedStatus(roomId, sessionId, ConnectionState.DISCONNECTED);
 
@@ -69,7 +69,7 @@ public class SessionService {
                         roomService.notifyIfReconnected(roomId, principal);
                     }
                     userIdLatestSession.remove(principal.getUserId());
-                    removeSession(sessionId, roomId);
+                    removeSession(sessionId, userId);
                 },
                 5,
                 TimeUnit.SECONDS);

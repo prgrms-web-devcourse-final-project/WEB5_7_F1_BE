@@ -271,7 +271,7 @@ public class RoomService {
 
     public boolean isReconnectTarget(Long roomId, String sessionId) {
         Room room = findRoom(roomId);
-        return room.isReconnectTarget(sessionId);
+        return !room.isExit(sessionId);
     }
 
     public void reconnectSession(Long roomId, String oldSessionId, String newSessionId) {
