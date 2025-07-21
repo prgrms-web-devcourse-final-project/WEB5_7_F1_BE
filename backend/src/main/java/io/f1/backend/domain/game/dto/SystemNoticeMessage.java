@@ -8,7 +8,6 @@ public enum SystemNoticeMessage {
 
     private final String message;
 
-
     SystemNoticeMessage(String message) {
         this.message = message;
     }
