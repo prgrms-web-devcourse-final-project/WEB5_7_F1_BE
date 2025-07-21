@@ -36,11 +36,14 @@ public class SessionService {
 
     public void handleUserReconnect(Long roomId, String newSessionId, Long userId) {
 
-        String oldSessionId = userIdLatestSession.get(userId);
-        /* room 재연결 대상인지 아닌지 판별 */
-        if (roomService.isReconnectTarget(roomId, oldSessionId)) {
-            roomService.reconnectSession(roomId, oldSessionId, newSessionId);
+        if(userIdLatestSession.get(userId) != null) {
+            String oldSessionId = userIdLatestSession.get(userId);
+            /* room 재연결 대상인지 아닌지 판별 */
+            if (roomService.isReconnectTarget(roomId, oldSessionId)) {
+                roomService.reconnectSession(roomId, oldSessionId, newSessionId);
+            }
         }
+
     }
 
     public void handleUserDisconnect(String sessionId, UserPrincipal principal) {

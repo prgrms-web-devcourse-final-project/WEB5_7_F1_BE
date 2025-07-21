@@ -7,11 +7,8 @@ import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
-import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.user.dto.UserPrincipal;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
