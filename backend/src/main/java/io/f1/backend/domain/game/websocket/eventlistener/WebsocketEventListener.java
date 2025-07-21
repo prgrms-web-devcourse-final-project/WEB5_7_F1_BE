@@ -69,6 +69,5 @@ public class WebsocketEventListener {
         UserPrincipal principal = getSessionUser(message);
 
         sessionService.handleUserDisconnect(sessionId, principal);
-        sessionService.removeSession(sessionId, principal.getUserId());
     }
 }
