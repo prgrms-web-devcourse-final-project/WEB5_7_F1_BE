@@ -235,7 +235,6 @@ public class RoomService {
     public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
 
         Room room = findRoom(roomId);
-        timerService.cancelTimer(room);
 
         String destination = getDestination(roomId);
 
@@ -261,6 +260,8 @@ public class RoomService {
                     destination,
                     MessageType.SYSTEM_NOTICE,
                     ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
+
+            timerService.cancelTimer(room);
 
             // TODO : 게임 종료 로직 추가
             if (!timerService.validateCurrentRound(room)) {
