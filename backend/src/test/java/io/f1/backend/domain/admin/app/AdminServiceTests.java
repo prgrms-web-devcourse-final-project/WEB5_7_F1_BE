@@ -26,11 +26,11 @@ public class AdminServiceTests extends BrowserTestTemplate {
 
         // then
         result.andExpectAll(
-            status().isOk(),
-            jsonPath("$.totalPages").value(1),
-            jsonPath("$.currentPage").value(1),
-            jsonPath("$.totalElements").value(3),
-            jsonPath("$.users.length()").value(3));
+                status().isOk(),
+                jsonPath("$.totalPages").value(1),
+                jsonPath("$.currentPage").value(1),
+                jsonPath("$.totalElements").value(3),
+                jsonPath("$.users.length()").value(3));
     }
 
     @Test
@@ -41,11 +41,11 @@ public class AdminServiceTests extends BrowserTestTemplate {
         ResultActions result = mockMvc.perform(get("/admin/users"));
         // then
         result.andExpectAll(
-            status().isOk(),
-            jsonPath("$.totalElements").value(3),
-            jsonPath("$.users[0].id").value(1),
-            jsonPath("$.users[1].id").value(2),
-            jsonPath("$.users[2].id").value(3));
+                status().isOk(),
+                jsonPath("$.totalElements").value(3),
+                jsonPath("$.users[0].id").value(1),
+                jsonPath("$.users[1].id").value(2),
+                jsonPath("$.users[2].id").value(3));
     }
 
     @Test
@@ -55,17 +55,15 @@ public class AdminServiceTests extends BrowserTestTemplate {
         // given
         String searchNickname = "us";
         // when
-        ResultActions result = mockMvc.perform(
-            get("/admin/users")
-                .param("nickname", searchNickname)
-        );
+        ResultActions result =
+                mockMvc.perform(get("/admin/users").param("nickname", searchNickname));
         // then
         result.andExpectAll(
-            status().isOk(),
-            jsonPath("$.totalElements").value(3),
-            jsonPath("$.users", hasSize(3)),
-            jsonPath("$.users[0].id").value(1),
-            jsonPath("$.users[1].id").value(2),
-            jsonPath("$.users[2].id").value(3));
+                status().isOk(),
+                jsonPath("$.totalElements").value(3),
+                jsonPath("$.users", hasSize(3)),
+                jsonPath("$.users[0].id").value(1),
+                jsonPath("$.users[1].id").value(2),
+                jsonPath("$.users[2].id").value(3));
     }
 }

@@ -23,10 +23,11 @@ public class AdminController {
 
     @LimitPageSize
     @GetMapping("/users")
-    public ResponseEntity<UserPageResponse> getUsers(@RequestParam(required = false) String nickname, Pageable pageable) {
+    public ResponseEntity<UserPageResponse> getUsers(
+            @RequestParam(required = false) String nickname, Pageable pageable) {
         UserPageResponse response;
 
-        if(StringUtils.isBlank(nickname)){
+        if (StringUtils.isBlank(nickname)) {
             response = adminService.getAllUsers(pageable);
         } else {
             response = adminService.searchUsersByNickname(nickname, pageable);
