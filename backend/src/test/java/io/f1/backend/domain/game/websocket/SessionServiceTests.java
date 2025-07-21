@@ -94,14 +94,14 @@ class SessionServiceTests {
         ReflectionTestUtils.setField(
                 sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
 
-        // RoomService.isReconnectTarget이 true를 반환
-        when(roomService.isReconnectTarget(roomId1, sessionId1)).thenReturn(true);
-
         // 메서드 호출
-        sessionService.handleUserReconnect(roomId1, sessionId2, userId1);
+        User user = new User("provider", "providerId", LocalDateTime.now());
+        user.setId(userId1);
+        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
+        sessionService.handleUserReconnect(roomId1, sessionId2,principal);
 
         // RoomService.reconnectSession이 올바른 인자로 호출되었는지 검증
-        verify(roomService, times(1)).reconnectSession(roomId1, sessionId1, sessionId2);
+        verify(roomService, times(1)).reconnectSession(roomId1, sessionId1, sessionId2,principal);
         verify(roomService, never()).changeConnectedStatus(any(), any(), any()); // 다른 메서드 호출 안됨 확인
     }
 
@@ -113,14 +113,17 @@ class SessionServiceTests {
         ReflectionTestUtils.setField(
                 sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
 
-        // RoomService.isReconnectTarget이 false를 반환하도록 모의 설정
-        when(roomService.isReconnectTarget(roomId1, sessionId1)).thenReturn(false);
+        // RoomService.isExit -> true 반환하도록 모의 설정
+        when(roomService.isExit(sessionId1,roomId1)).thenReturn(true);
 
+        User user = new User("provider", "providerId", LocalDateTime.now());
+        user.setId(userId1);
+        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
         // 메서드 호출
-        sessionService.handleUserReconnect(roomId1, sessionId2, userId1);
+        sessionService.handleUserReconnect(roomId1, sessionId2,principal);
 
         // RoomService.reconnectSession이 호출되지 않았는지 검증
-        verify(roomService, never()).reconnectSession(anyLong(), anyString(), anyString());
+        verify(roomService, never()).reconnectSession(anyLong(), anyString(), anyString(),any(UserPrincipal.class));
     }
 
     @Test
@@ -146,50 +149,11 @@ class SessionServiceTests {
         // verify: roomService.exitIfNotPlaying이 호출되었는지 확인
         verify(roomService, times(1)).exitIfNotPlaying(eq(roomId1), eq(sessionId1), eq(principal));
 
-        // verify: roomService.notifyIfReconnected는 호출되지 않았는지 확인
-        verify(roomService, never()).notifyIfReconnected(anyLong(), any());
 
-        // userIdLatestSession에서 해당 userId가 제거되었는지 확인 (비동기 작업 후)
         Map<Long, String> userIdLatestSession =
                 (Map<Long, String>)
                         ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
-        assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
-    }
-
-    @Test
-    @DisplayName("handleUserDisconnect: 연결 끊김 상태였지만 재연결되었으면 notifyIfReconnected 호출")
-    void handleUserDisconnect_shouldNotifyIfReconnected() throws InterruptedException {
-
-        sessionService.addRoomId(roomId1, sessionId1);
-        sessionService.addSession(sessionId1, userId1);
-
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
-        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
-
-        // reconnect 전에 getPlayerConnectionState mock 세팅 (sessionId2 기준)
-        sessionService.handleUserDisconnect(sessionId1, principal);
-
-        // reconnect 됐다고 가정 (sessionId2)
-        sessionService.addSession(sessionId2, userId1);
-
-        Thread.sleep(5100); // 5초 대기
-
-        // verify: disconnect에 의해 DISCONNECTED 호출됨
-        verify(roomService, times(1))
-                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
-
-        // verify: reconnect 된 상태이니 notify 호출됨
-        verify(roomService, times(1)).notifyIfReconnected(eq(roomId1), eq(principal));
-
-        // verify: exitIfNotPlaying 은 호출되지 않음
-        verify(roomService, never()).exitIfNotPlaying(anyLong(), anyString(), any());
-
-        // userIdLatestSession 은 비어야 함
-        Map<Long, String> userIdLatestSession =
-                (Map<Long, String>)
-                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
-        assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
+        assertEquals(sessionId1, userIdLatestSession.get(principal.getUserId()));
     }
 
     @Test

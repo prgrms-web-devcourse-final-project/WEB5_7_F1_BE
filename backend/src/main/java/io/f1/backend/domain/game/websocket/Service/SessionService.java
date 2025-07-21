@@ -34,13 +34,15 @@ public class SessionService {
         sessionIdRoom.put(sessionId, roomId);
     }
 
-    public void handleUserReconnect(Long roomId, String newSessionId, Long userId) {
+    public void handleUserReconnect(Long roomId, String newSessionId, UserPrincipal principal) {
+
+        Long userId = principal.getUserId();
 
         if (userIdLatestSession.get(userId) != null) {
             String oldSessionId = userIdLatestSession.get(userId);
             /* room 재연결 대상인지 아닌지 판별 */
-            if (roomService.isReconnectTarget(roomId, oldSessionId)) {
-                roomService.reconnectSession(roomId, oldSessionId, newSessionId);
+            if (!roomService.isExit(oldSessionId,roomId)) {
+                roomService.reconnectSession(roomId, oldSessionId, newSessionId,principal);
             }
         }
     }
@@ -62,12 +64,10 @@ public class SessionService {
         // 5초 뒤 실행
         scheduler.schedule(
                 () -> {
+                    /* 재연결 실패  */
                     if (userIdSession.get(userId).equals(sessionId)) {
                         roomService.exitIfNotPlaying(roomId, sessionId, principal);
-                    } else {
-                        roomService.notifyIfReconnected(roomId, principal);
                     }
-                    userIdLatestSession.remove(principal.getUserId());
                     removeSession(sessionId, userId);
                 },
                 5,
@@ -75,9 +75,12 @@ public class SessionService {
     }
 
     public void removeSession(String sessionId, Long userId) {
+
+        if(userIdSession.get(userId).equals(sessionId)) {
+            userIdSession.remove(userId);
+        }
         sessionIdUser.remove(sessionId);
         sessionIdRoom.remove(sessionId);
-        userIdSession.remove(userId);
 
         userIdLatestSession.put(userId, sessionId);
     }

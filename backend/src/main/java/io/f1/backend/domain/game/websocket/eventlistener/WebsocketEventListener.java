@@ -25,7 +25,7 @@ public class WebsocketEventListener {
     private final SessionService sessionService;
 
     @EventListener
-    public void handleSessionConnect(SessionConnectEvent event) {
+    public void handleConnectListener(SessionConnectEvent event) {
         Message<?> message = event.getMessage();
 
         String sessionId = getSessionId(message);
@@ -35,15 +35,15 @@ public class WebsocketEventListener {
     }
 
     @EventListener
-    public void handleWebsocketSubscribeListener(SessionSubscribeEvent event) {
+    public void handleSubscribeListener(SessionSubscribeEvent event) {
 
         Message<?> message = event.getMessage();
 
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
 
         String sessionId = getSessionId(message);
-        UserPrincipal user = getSessionUser(message);
-        Long userId = user.getUserId();
+        UserPrincipal principal = getSessionUser(message);
+
         String destination = headerAccessor.getDestination();
 
         if (destination == null) {
@@ -56,12 +56,12 @@ public class WebsocketEventListener {
         if (subscribeType[2].equals("room")) {
             Long roomId = Long.parseLong(subscribeType[3]);
             sessionService.addRoomId(roomId, sessionId);
-            sessionService.handleUserReconnect(roomId, sessionId, userId);
+            sessionService.handleUserReconnect(roomId, sessionId,principal);
         }
     }
 
     @EventListener
-    public void handleWebsocketDisconnectedListener(SessionDisconnectEvent event) {
+    public void handleDisconnectedListener(SessionDisconnectEvent event) {
 
         Message<?> message = event.getMessage();
 
