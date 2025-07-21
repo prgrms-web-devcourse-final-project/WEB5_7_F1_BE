@@ -59,17 +59,17 @@ public class SessionService {
 
         // 5초 뒤 실행
         scheduler.schedule(
-            () -> {
-                if (userIdSession.get(userId).equals(sessionId)) {
-                    roomService.exitIfNotPlaying(roomId, sessionId, principal);
-                } else {
-                    roomService.notifyIfReconnected(roomId, principal);
-                }
-                userIdLatestSession.remove(principal.getUserId());
-                removeSession(sessionId, roomId);
-            },
-            5,
-            TimeUnit.SECONDS);
+                () -> {
+                    if (userIdSession.get(userId).equals(sessionId)) {
+                        roomService.exitIfNotPlaying(roomId, sessionId, principal);
+                    } else {
+                        roomService.notifyIfReconnected(roomId, principal);
+                    }
+                    userIdLatestSession.remove(principal.getUserId());
+                    removeSession(sessionId, roomId);
+                },
+                5,
+                TimeUnit.SECONDS);
     }
 
     public void removeSession(String sessionId, Long userId) {
