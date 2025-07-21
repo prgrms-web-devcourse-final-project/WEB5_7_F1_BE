@@ -79,11 +79,13 @@ public class TimerService {
         return false;
     }
 
-    public void cancelTimer(Room room) {
+    public boolean cancelTimer(Room room) {
         // 정답 맞혔어요 ~ 타이머 캔슬 부탁
         ScheduledFuture<?> timer = room.getTimer();
         if (timer != null && !timer.isDone()) {
             timer.cancel(false);
+            return true;
         }
+        return false;
     }
 }
