@@ -1,13 +1,16 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.response.GameStartResponse;
+import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -29,11 +32,17 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class GameService {
 
+    private static final int START_DELAY = 5;
+
+    private final MessageSender messageSender;
+    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public GameStartResponse gameStart(Long roomId, UserPrincipal principal) {
+    public void gameStart(Long roomId, UserPrincipal principal) {
+
+        String destination = getDestination(roomId);
 
         Room room =
                 roomRepository
@@ -47,13 +56,18 @@ public class GameService {
         List<Question> questions = prepareQuestions(room, quiz);
 
         room.updateQuestions(questions);
-
-        // 방 정보 게임 중으로 변경
+        room.increaseCurrentRound();
         room.updateRoomState(RoomState.PLAYING);
 
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
 
-        return toGameStartResponse(questions);
+        timerService.startTimer(room, START_DELAY);
+
+        messageSender.send(destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, START_DELAY));
     }
 
     private boolean validateReadyStatus(Room room) {

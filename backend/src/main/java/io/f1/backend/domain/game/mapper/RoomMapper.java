@@ -8,6 +8,7 @@ import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
 import io.f1.backend.domain.game.dto.response.QuestionResultResponse;
+import io.f1.backend.domain.game.dto.response.QuestionStartResponse;
 import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RankUpdateResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
@@ -87,15 +88,7 @@ public class RoomMapper {
     }
 
     public static SystemNoticeResponse ofPlayerEvent(String nickname, RoomEventType roomEventType) {
-        String message = "";
-        if (roomEventType == RoomEventType.ENTER) {
-            message = " 님이 입장하셨습니다";
-        } else if (roomEventType == RoomEventType.EXIT) {
-            message = " 님이 퇴장하셨습니다";
-        } else if (roomEventType == RoomEventType.RECONNECT) {
-            message = " 님이 재연결 되었습니다.";
-        }
-        return new SystemNoticeResponse(nickname + message, Instant.now());
+        return new SystemNoticeResponse(roomEventType.getMessage(nickname), Instant.now());
     }
 
     public static QuestionResultResponse toQuestionResultResponse(
@@ -109,5 +102,12 @@ public class RoomMapper {
                         .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
                         .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
                         .toList());
+    }
+
+    public static QuestionStartResponse toQuestionStartResponse(Room room, int delay) {
+        return new QuestionStartResponse(
+                room.getCurrentQuestion().getId(),
+                room.getCurrentRound(),
+                Instant.now().plusSeconds(delay));
     }
 }

@@ -13,11 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 @Getter
 public class Room {
-
-    private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     private final Long id;
 
@@ -38,6 +39,10 @@ public class Room {
     private final LocalDateTime createdAt = LocalDateTime.now();
 
     private int currentRound = 0;
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private ScheduledFuture<?> timer;
 
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
@@ -82,6 +87,11 @@ public class Room {
         this.state = newState;
     }
 
+    public void updateTimer(ScheduledFuture<?> timer) {
+        this.timer = timer;
+    }
+
+
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
     }
@@ -102,7 +112,7 @@ public class Room {
         return state == RoomState.PLAYING;
     }
 
-    public void increaseCorrectCount() {
+    public void increaseCurrentRound() {
         currentRound++;
     }
 

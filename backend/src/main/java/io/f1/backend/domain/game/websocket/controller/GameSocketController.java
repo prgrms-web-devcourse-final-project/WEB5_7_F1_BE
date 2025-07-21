@@ -21,7 +21,6 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class GameSocketController {
 
-    private final MessageSender messageSender;
     private final RoomService roomService;
     private final GameService gameService;
 
