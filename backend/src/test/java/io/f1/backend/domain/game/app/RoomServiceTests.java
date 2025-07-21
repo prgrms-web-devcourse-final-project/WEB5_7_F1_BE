@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
@@ -157,7 +158,7 @@ class RoomServiceTests {
                     });
         }
         countDownLatch.await();
-        assertThat(room.getCurrentUserCnt()).isEqualTo(1);
+        verify(roomRepository).removeRoom(roomId);
     }
 
     private Room createRoom(
