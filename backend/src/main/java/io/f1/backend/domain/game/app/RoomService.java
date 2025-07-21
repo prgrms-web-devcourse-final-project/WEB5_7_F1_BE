@@ -266,7 +266,7 @@ public class RoomService {
 
     public void exitIfNotPlaying(Long roomId, String sessionId, UserPrincipal principal) {
         Room room = findRoom(roomId);
-        if (!room.isPlaying() && room.getPlayerSessionMap().containsKey(sessionId)) {
+        if (!room.isPlaying()) {
             exitRoom(roomId, sessionId, principal);
         }
     }
