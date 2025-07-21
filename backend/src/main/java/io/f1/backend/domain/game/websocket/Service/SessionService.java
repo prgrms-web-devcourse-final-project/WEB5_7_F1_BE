@@ -48,7 +48,7 @@ public class SessionService {
         Long roomId = sessionIdRoom.get(sessionId);
 
         /* 정상 동작*/
-        if(roomService.isExit(sessionId, roomId)){
+        if (roomService.isExit(sessionId, roomId)) {
             return;
         }
 

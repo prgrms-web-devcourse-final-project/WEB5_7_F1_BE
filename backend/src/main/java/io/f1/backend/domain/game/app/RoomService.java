@@ -111,7 +111,7 @@ public class RoomService {
             }
 
             if (room.getRoomSetting().locked()
-                && !room.getRoomSetting().password().equals(request.password())) {
+                    && !room.getRoomSetting().password().equals(request.password())) {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
@@ -133,12 +133,12 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-            toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         SystemNoticeResponse systemNoticeResponse =
-            ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
+                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         String destination = getDestination(roomId);
 
@@ -174,7 +174,7 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
+                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -185,9 +185,9 @@ public class RoomService {
 
     public void handlePlayerReady(Long roomId, String sessionId) {
         Player player =
-            roomRepository
-                .findPlayerInRoomBySessionId(roomId, sessionId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         player.toggleReady();
 
@@ -201,15 +201,15 @@ public class RoomService {
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-            rooms.stream()
-                .map(
-                    room -> {
-                        Long quizId = room.getGameSetting().getQuizId();
-                        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
-                        return toRoomResponse(room, quiz);
-                    })
-                .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 
@@ -233,14 +233,14 @@ public class RoomService {
             room.increasePlayerCorrectCount(sessionId);
 
             messageSender.send(
-                destination,
-                MessageType.QUESTION_RESULT,
-                toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
+                    destination,
+                    MessageType.QUESTION_RESULT,
+                    toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
             messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
             messageSender.send(
-                destination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
+                    destination,
+                    MessageType.SYSTEM_NOTICE,
+                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
         }
     }
 
@@ -284,7 +284,7 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-            toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -293,9 +293,9 @@ public class RoomService {
         messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
 
         messageSender.send(
-            destination,
-            MessageType.SYSTEM_NOTICE,
-            ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
     }
 
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
@@ -317,8 +317,8 @@ public class RoomService {
 
     private Room findRoom(Long roomId) {
         return roomRepository
-            .findRoom(roomId)
-            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private boolean isLastPlayer(Room room, String sessionId) {
@@ -337,14 +337,14 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         Optional<String> nextHostSessionId =
-            playerSessionMap.keySet().stream()
-                .filter(key -> !key.equals(hostSessionId))
-                .findFirst();
+                playerSessionMap.keySet().stream()
+                        .filter(key -> !key.equals(hostSessionId))
+                        .findFirst();
 
         Player nextHost =
-            playerSessionMap.get(
-                nextHostSessionId.orElseThrow(
-                    () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
+                playerSessionMap.get(
+                        nextHostSessionId.orElseThrow(
+                                () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
 
         room.updateHost(nextHost);
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
