@@ -8,7 +8,6 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -16,11 +15,12 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompChannelInterceptor stompChannelInterceptor;
+    private final CustomHandshakeInterceptor customHandshakeInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/game-room")
-                .addInterceptors(new HttpSessionHandshakeInterceptor())
+                .addInterceptors(customHandshakeInterceptor)
                 .setAllowedOriginPatterns("*");
     }
 
