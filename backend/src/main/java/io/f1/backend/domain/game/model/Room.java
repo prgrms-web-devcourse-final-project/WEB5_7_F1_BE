@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 @Getter
 public class Room {
@@ -33,6 +36,10 @@ public class Room {
 
     private int currentRound = 0;
 
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private ScheduledFuture<?> timer;
+
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
         this.roomSetting = roomSetting;
@@ -56,6 +63,10 @@ public class Room {
         this.state = newState;
     }
 
+    public void updateTimer(ScheduledFuture<?> timer) {
+        this.timer = timer;
+    }
+
     public void removeUserId(Long id) {
         this.userIdSessionMap.remove(id);
     }
@@ -76,7 +87,7 @@ public class Room {
         return state == RoomState.PLAYING;
     }
 
-    public void increaseCorrectCount() {
+    public void increaseCurrentRound() {
         currentRound++;
     }
 }

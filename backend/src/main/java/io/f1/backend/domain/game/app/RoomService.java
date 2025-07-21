@@ -5,10 +5,12 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
@@ -57,12 +59,17 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RoomService {
 
+    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
     private final ApplicationEventPublisher eventPublisher;
     private final Map<Long, Object> roomLocks = new ConcurrentHashMap<>();
+
     private final MessageSender messageSender;
+
+    private static final int CONTINUE_DELAY = 3;
+
     private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
@@ -226,6 +233,7 @@ public class RoomService {
 
     // todo 동시성적용
     public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
+
         Room room = findRoom(roomId);
 
         String destination = getDestination(roomId);
@@ -246,12 +254,29 @@ public class RoomService {
             messageSender.send(
                     destination,
                     MessageType.QUESTION_RESULT,
-                    toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
+                    toQuestionResultResponse(chatMessage.nickname(), answer));
             messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
             messageSender.send(
                     destination,
                     MessageType.SYSTEM_NOTICE,
-                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
+                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
+
+            timerService.cancelTimer(room);
+
+            // TODO : 게임 종료 로직 추가
+            if (!timerService.validateCurrentRound(room)) {
+                // 게임 종료 로직
+                return;
+            }
+
+            room.increaseCurrentRound();
+
+            // 타이머 추가하기
+            timerService.startTimer(room, CONTINUE_DELAY);
+            messageSender.send(
+                    destination,
+                    MessageType.QUESTION_START,
+                    toQuestionStartResponse(room, CONTINUE_DELAY));
         }
     }
 
@@ -310,9 +335,5 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
-    }
-
-    private String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 }

@@ -18,4 +18,8 @@ public class WebSocketUtils {
         Authentication auth = (Authentication) accessor.getUser();
         return (UserPrincipal) auth.getPrincipal();
     }
+
+    public static String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
+    }
 }
