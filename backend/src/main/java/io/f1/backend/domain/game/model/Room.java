@@ -116,11 +116,11 @@ public class Room {
         playerSessionMap.get(sessionId).updateState(newState);
     }
 
-    public ConnectionState getPlayerConnectionState(String sessionId) {
-        return playerSessionMap.get(sessionId).getState();
-    }
-
     public boolean isReconnectTarget(String sessionId) {
         return playerSessionMap.get(sessionId) != null;
+    }
+
+    public boolean isExit(String sessionId) {
+        return playerSessionMap.get(sessionId) == null;
     }
 }

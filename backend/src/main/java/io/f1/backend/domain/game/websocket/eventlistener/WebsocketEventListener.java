@@ -58,8 +58,6 @@ public class WebsocketEventListener {
             sessionService.addRoomId(roomId, sessionId);
             sessionService.handleUserReconnect(roomId, sessionId, userId);
         }
-
-        sessionService.removeSession(sessionId, userId);
     }
 
     @EventListener
@@ -71,5 +69,6 @@ public class WebsocketEventListener {
         UserPrincipal principal = getSessionUser(message);
 
         sessionService.handleUserDisconnect(sessionId, principal);
+        sessionService.removeSession(sessionId, principal.getUserId());
     }
 }

@@ -46,15 +46,20 @@ public class SessionService {
     public void handleUserDisconnect(String sessionId, UserPrincipal principal) {
 
         Long roomId = sessionIdRoom.get(sessionId);
+
+        /* 정상 동작*/
+        if(roomService.isExit(sessionId, roomId)){
+            return;
+        }
+
+        Long userId = principal.getUserId();
+
         roomService.changeConnectedStatus(roomId, sessionId, ConnectionState.DISCONNECTED);
 
         // 5초 뒤 실행
         scheduler.schedule(
                 () -> {
-                    ConnectionState playerConnectionState =
-                            roomService.getPlayerConnectionState(roomId, sessionId);
-
-                    if (playerConnectionState == ConnectionState.DISCONNECTED) {
+                    if (userIdSession.get(userId).equals(sessionId)) {
                         roomService.exitIfNotPlaying(roomId, sessionId, principal);
                     } else {
                         roomService.notifyIfReconnected(roomId, principal);

@@ -128,14 +128,11 @@ class SessionServiceTests {
     void handleUserDisconnect_shouldExitIfNotPlayingIfDisconnected() throws InterruptedException {
         // 준비: 맵에 더미 데이터 추가
         sessionService.addRoomId(roomId1, sessionId1);
+        sessionService.addSession(sessionId1, userId1);  // ✅ 추가 필요
 
         User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(1L);
-        UserPrincipal principal = new UserPrincipal(user, new HashMap<String, Object>());
-
-        // RoomService의 메서드가 특정 값을 반환하도록 설정
-        when(roomService.getPlayerConnectionState(roomId1, sessionId1))
-                .thenReturn(ConnectionState.DISCONNECTED);
+        user.setId(userId1);
+        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
         // disconnect 호출
         sessionService.handleUserDisconnect(sessionId1, principal);
@@ -144,53 +141,60 @@ class SessionServiceTests {
 
         // verify: roomService.changeConnectedStatus가 호출되었는지 확인
         verify(roomService, times(1))
-                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
+            .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
 
         // verify: roomService.exitIfNotPlaying이 호출되었는지 확인
         verify(roomService, times(1)).exitIfNotPlaying(eq(roomId1), eq(sessionId1), eq(principal));
+
         // verify: roomService.notifyIfReconnected는 호출되지 않았는지 확인
         verify(roomService, never()).notifyIfReconnected(anyLong(), any());
 
         // userIdLatestSession에서 해당 userId가 제거되었는지 확인 (비동기 작업 후)
         Map<Long, String> userIdLatestSession =
-                (Map<Long, String>)
-                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
+            (Map<Long, String>)
+                ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
         assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
     }
 
     @Test
     @DisplayName("handleUserDisconnect: 연결 끊김 상태였지만 재연결되었으면 notifyIfReconnected 호출")
     void handleUserDisconnect_shouldNotifyIfReconnected() throws InterruptedException {
-        // 준비: 맵에 더미 데이터 추가
+
         sessionService.addRoomId(roomId1, sessionId1);
+        sessionService.addSession(sessionId1, userId1);
+
         User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(1L);
+        user.setId(userId1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
-        // RoomService의 메서드가 특정 값을 반환하도록 설정
-        when(roomService.getPlayerConnectionState(roomId1, sessionId1))
-                .thenReturn(ConnectionState.CONNECTED); // 다시 연결된 상태라고 가정
-
-        // disconnect 호출
+        // reconnect 전에 getPlayerConnectionState mock 세팅 (sessionId2 기준)
         sessionService.handleUserDisconnect(sessionId1, principal);
 
-        Thread.sleep(5100); // 5초 + 여유 시간
+        // reconnect 됐다고 가정 (sessionId2)
+        sessionService.addSession(sessionId2, userId1);
 
-        // verify: roomService.changeConnectedStatus가 호출되었는지 확인
+
+        Thread.sleep(5100); // 5초 대기
+
+        // verify: disconnect에 의해 DISCONNECTED 호출됨
         verify(roomService, times(1))
-                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
+            .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
 
-        // verify: roomService.notifyIfReconnected가 호출되었는지 확인
-        verify(roomService, times(1)).notifyIfReconnected(eq(roomId1), eq(principal));
-        // verify: roomService.exitIfNotPlaying는 호출되지 않았는지 확인
-        verify(roomService, never()).exitIfNotPlaying(anyLong(), anyString(), any());
+        // verify: reconnect 된 상태이니 notify 호출됨
+        verify(roomService, times(1))
+            .notifyIfReconnected(eq(roomId1), eq(principal));
 
-        // userIdLatestSession에서 해당 userId가 제거되었는지 확인 (비동기 작업 후)
+        // verify: exitIfNotPlaying 은 호출되지 않음
+        verify(roomService, never())
+            .exitIfNotPlaying(anyLong(), anyString(), any());
+
+        // userIdLatestSession 은 비어야 함
         Map<Long, String> userIdLatestSession =
-                (Map<Long, String>)
-                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
+            (Map<Long, String>)
+                ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
         assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
     }
+
 
     @Test
     @DisplayName("removeSession: 세션 관련 정보가 올바르게 제거되고 userIdLatestSession에 업데이트되는지 확인")
