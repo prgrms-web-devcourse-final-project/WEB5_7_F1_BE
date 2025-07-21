@@ -59,13 +59,13 @@ public class Room {
         return validatedUserIds.size();
     }
 
-    public void addPlayer(Long userId, String sessionId, Player player) {
-
+    public void addPlayer(String sessionId, Player player) {
+        Long userId = player.getId();
         if (!validatedUserIds.contains(userId)) {
             throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
         }
 
-        if (isHost(player.getId())) {
+        if (isHost(userId)) {
             player.toggleReady();
         }
         playerSessionMap.put(sessionId, player);

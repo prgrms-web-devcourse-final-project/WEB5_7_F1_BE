@@ -133,7 +133,7 @@ public class RoomService {
 
         Player player = createPlayer(principal);
 
-        room.addPlayer(getCurrentUserId(), sessionId, player);
+        room.addPlayer( sessionId, player);
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
