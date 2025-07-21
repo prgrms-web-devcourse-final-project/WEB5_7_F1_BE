@@ -7,9 +7,7 @@ import io.f1.backend.domain.user.app.handler.CustomAuthenticationEntryPoint;
 import io.f1.backend.domain.user.app.handler.OAuthSuccessHandler;
 import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
 import io.f1.backend.global.filter.DevTokenAuthFilter;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -50,6 +48,7 @@ public class SecurityConfig {
                                                 "/signup",
                                                 "/css/**",
                                                 "/js/**",
+                                                "/**",
                                                 "/admin/login")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS, "/**")

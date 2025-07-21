@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toExitSuccessResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
@@ -17,7 +18,6 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
-import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
@@ -40,18 +40,15 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -154,10 +151,10 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.ROOM_SETTING, roomSettingResponse);
-        messageSender.send(destination, MessageType.GAME_SETTING, gameSettingResponse);
-        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
-        messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, roomSettingResponse);
+        messageSender.sendBroadcast(destination, MessageType.GAME_SETTING, gameSettingResponse);
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
     }
 
     public void exitRoom(Long roomId, String sessionId, UserPrincipal principal) {
@@ -171,10 +168,14 @@ public class RoomService {
 
             String destination = getDestination(roomId);
 
+            long userId = principal.getUserId();
+
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
                 removeRoom(room);
-                messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
+                log.info("principal.getName() = {}", principal.getName());
+               // messageSender.sendBroadcast(destination, MessageType.EXIT_SUCCESS, toExitSuccessResponse(userId, true));
+                messageSender.sendPersonal(getUserDestination(), MessageType.EXIT_SUCCESS, toExitSuccessResponse(userId, true),principal);
                 return;
             }
 
@@ -191,9 +192,10 @@ public class RoomService {
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
-            messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-            messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
+            messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+            messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+
+            messageSender.sendPersonal(getUserDestination(), MessageType.EXIT_SUCCESS, toExitSuccessResponse(userId, isRemoved),principal);
         }
 
     }
@@ -210,7 +212,7 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public RoomListResponse getAllRooms() {
@@ -234,7 +236,7 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.CHAT, chatMessage);
+        messageSender.sendBroadcast(destination, MessageType.CHAT, chatMessage);
 
         if (!room.isPlaying()) {
             return;
@@ -247,12 +249,12 @@ public class RoomService {
         if (answer.equals(chatMessage.message())) {
             room.increasePlayerCorrectCount(sessionId);
 
-            messageSender.send(
+            messageSender.sendBroadcast(
                     destination,
                     MessageType.QUESTION_RESULT,
                     toQuestionResultResponse(currentQuestion.getId(), chatMessage, answer));
-            messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-            messageSender.send(
+            messageSender.sendBroadcast(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+            messageSender.sendBroadcast(
                     destination,
                     MessageType.SYSTEM_NOTICE,
                     ofPlayerEvent(chatMessage.nickname(), RoomEventType.ENTER));
@@ -317,5 +319,9 @@ public class RoomService {
 
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
+    }
+
+    private String getUserDestination() {
+        return "/queue";
     }
 }
