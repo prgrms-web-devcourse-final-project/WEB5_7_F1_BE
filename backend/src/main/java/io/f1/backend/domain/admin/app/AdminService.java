@@ -24,4 +24,10 @@ public class AdminService {
         Page<UserResponse> users = userRepository.findAllUsersWithPaging(pageable);
         return toUserListPageResponse(users);
     }
+
+    @Transactional(readOnly = true)
+    public UserPageResponse searchUsersByNickname(String nickname, Pageable pageable) {
+        Page<UserResponse> users = userRepository.findUsersByNicknameContaining(nickname, pageable);
+        return toUserListPageResponse(users);
+    }
 }
