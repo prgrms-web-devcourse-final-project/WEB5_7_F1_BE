@@ -14,15 +14,9 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +27,15 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -157,7 +160,6 @@ class RoomServiceTests {
         assertThat(room.getCurrentUserCnt()).isEqualTo(1);
     }
 
-
     private Room createRoom(
             Long roomId,
             Long playerId,
@@ -188,6 +190,4 @@ class RoomServiceTests {
 
         return user;
     }
-
-
 }

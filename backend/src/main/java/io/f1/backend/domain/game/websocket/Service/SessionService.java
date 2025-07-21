@@ -3,14 +3,16 @@ package io.f1.backend.domain.game.websocket.Service;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 
 @Service
 @RequiredArgsConstructor
@@ -47,25 +49,27 @@ public class SessionService {
         roomService.changeConnectedStatus(roomId, sessionId, ConnectionState.DISCONNECTED);
 
         // 5초 뒤 실행
-        scheduler.schedule(() -> {
-            ConnectionState playerConnectionState = roomService.getPlayerConnectionState(roomId,
-                sessionId);
+        scheduler.schedule(
+                () -> {
+                    ConnectionState playerConnectionState =
+                            roomService.getPlayerConnectionState(roomId, sessionId);
 
-            if (playerConnectionState == ConnectionState.DISCONNECTED) {
-                roomService.exitIfNotPlaying(roomId, sessionId, principal);
-            } else {
-                roomService.notifyIfReconnected(roomId, principal);
-            }
-            userIdLatestSession.remove(principal.getUserId());
-        }, 5, TimeUnit.SECONDS);
+                    if (playerConnectionState == ConnectionState.DISCONNECTED) {
+                        roomService.exitIfNotPlaying(roomId, sessionId, principal);
+                    } else {
+                        roomService.notifyIfReconnected(roomId, principal);
+                    }
+                    userIdLatestSession.remove(principal.getUserId());
+                },
+                5,
+                TimeUnit.SECONDS);
     }
 
-    public void removeSession(String sessionId,Long userId) {
+    public void removeSession(String sessionId, Long userId) {
         sessionIdUser.remove(sessionId);
         sessionIdRoom.remove(sessionId);
         userIdSession.remove(userId);
 
         userIdLatestSession.put(userId, sessionId);
     }
-
 }

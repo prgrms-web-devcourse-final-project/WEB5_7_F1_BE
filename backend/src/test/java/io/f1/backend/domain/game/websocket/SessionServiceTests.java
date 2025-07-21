@@ -15,10 +15,7 @@ import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.Service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,15 +25,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ExtendWith(MockitoExtension.class)
 class SessionServiceTests {
 
-    @Mock
-    private RoomService roomService;
+    @Mock private RoomService roomService;
 
-    @InjectMocks
-    private SessionService sessionService;
+    @InjectMocks private SessionService sessionService;
 
     // 테스트를 위한 더미 데이터
     private String sessionId1 = "session1";
@@ -52,8 +51,8 @@ class SessionServiceTests {
         ReflectionTestUtils.setField(sessionService, "sessionIdUser", new ConcurrentHashMap<>());
         ReflectionTestUtils.setField(sessionService, "sessionIdRoom", new ConcurrentHashMap<>());
         ReflectionTestUtils.setField(sessionService, "userIdSession", new ConcurrentHashMap<>());
-        ReflectionTestUtils.setField(sessionService, "userIdLatestSession",
-            new ConcurrentHashMap<>());
+        ReflectionTestUtils.setField(
+                sessionService, "userIdLatestSession", new ConcurrentHashMap<>());
     }
 
     @Test
@@ -61,10 +60,10 @@ class SessionServiceTests {
     void addSession_shouldAddSessionAndUser() {
         sessionService.addSession(sessionId1, userId1);
 
-        Map<String, Long> sessionIdUser = (Map<String, Long>) ReflectionTestUtils.getField(
-            sessionService, "sessionIdUser");
-        Map<Long, String> userIdSession = (Map<Long, String>) ReflectionTestUtils.getField(
-            sessionService, "userIdSession");
+        Map<String, Long> sessionIdUser =
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdUser");
+        Map<Long, String> userIdSession =
+                (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdSession");
 
         assertEquals(1, sessionIdUser.size());
         assertEquals(1, userIdSession.size());
@@ -79,8 +78,8 @@ class SessionServiceTests {
     void addRoomId_shouldAddSessionAndRoom() {
         sessionService.addRoomId(roomId1, sessionId1);
 
-        Map<String, Long> sessionIdRoom = (Map<String, Long>) ReflectionTestUtils.getField(
-            sessionService, "sessionIdRoom");
+        Map<String, Long> sessionIdRoom =
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdRoom");
 
         assertEquals(1, sessionIdRoom.size());
         assertEquals(roomId1, sessionIdRoom.get(sessionId1));
@@ -90,10 +89,10 @@ class SessionServiceTests {
     @DisplayName("handleUserReconnect: 재연결 대상일 경우 RoomService.reconnectSession이 호출되는지 확인")
     void handleUserReconnect_shouldReconnectIfTarget() {
         // 준비: 이전 세션 정보 설정
-        ReflectionTestUtils.invokeMethod(sessionService, "addSession", sessionId1,
-            userId1); // userIdLatestSession에 값이 들어가게
-        ReflectionTestUtils.setField(sessionService, "userIdLatestSession",
-            Map.of(userId1, sessionId1));
+        ReflectionTestUtils.invokeMethod(
+                sessionService, "addSession", sessionId1, userId1); // userIdLatestSession에 값이 들어가게
+        ReflectionTestUtils.setField(
+                sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
 
         // RoomService.isReconnectTarget이 true를 반환
         when(roomService.isReconnectTarget(roomId1, sessionId1)).thenReturn(true);
@@ -111,8 +110,8 @@ class SessionServiceTests {
     void handleUserReconnect_shouldNotReconnectIfNotTarget() {
         // 준비: 이전 세션 정보 설정
         ReflectionTestUtils.invokeMethod(sessionService, "addSession", sessionId1, userId1);
-        ReflectionTestUtils.setField(sessionService, "userIdLatestSession",
-            Map.of(userId1, sessionId1));
+        ReflectionTestUtils.setField(
+                sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
 
         // RoomService.isReconnectTarget이 false를 반환하도록 모의 설정
         when(roomService.isReconnectTarget(roomId1, sessionId1)).thenReturn(false);
@@ -130,23 +129,22 @@ class SessionServiceTests {
         // 준비: 맵에 더미 데이터 추가
         sessionService.addRoomId(roomId1, sessionId1);
 
-        User user = new User("provider","providerId", LocalDateTime.now());
+        User user = new User("provider", "providerId", LocalDateTime.now());
         user.setId(1L);
-        UserPrincipal principal = new UserPrincipal(user ,new HashMap<String,Object>());
+        UserPrincipal principal = new UserPrincipal(user, new HashMap<String, Object>());
 
         // RoomService의 메서드가 특정 값을 반환하도록 설정
-        when(roomService.getPlayerConnectionState(roomId1, sessionId1)).thenReturn(
-            ConnectionState.DISCONNECTED);
+        when(roomService.getPlayerConnectionState(roomId1, sessionId1))
+                .thenReturn(ConnectionState.DISCONNECTED);
 
         // disconnect 호출
         sessionService.handleUserDisconnect(sessionId1, principal);
 
-
         Thread.sleep(5100); // 5초 + 여유 시간
 
         // verify: roomService.changeConnectedStatus가 호출되었는지 확인
-        verify(roomService, times(1)).changeConnectedStatus(roomId1, sessionId1,
-            ConnectionState.DISCONNECTED);
+        verify(roomService, times(1))
+                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
 
         // verify: roomService.exitIfNotPlaying이 호출되었는지 확인
         verify(roomService, times(1)).exitIfNotPlaying(eq(roomId1), eq(sessionId1), eq(principal));
@@ -154,8 +152,9 @@ class SessionServiceTests {
         verify(roomService, never()).notifyIfReconnected(anyLong(), any());
 
         // userIdLatestSession에서 해당 userId가 제거되었는지 확인 (비동기 작업 후)
-        Map<Long, String> userIdLatestSession = (Map<Long, String>) ReflectionTestUtils.getField(
-            sessionService, "userIdLatestSession");
+        Map<Long, String> userIdLatestSession =
+                (Map<Long, String>)
+                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
         assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
     }
 
@@ -164,13 +163,13 @@ class SessionServiceTests {
     void handleUserDisconnect_shouldNotifyIfReconnected() throws InterruptedException {
         // 준비: 맵에 더미 데이터 추가
         sessionService.addRoomId(roomId1, sessionId1);
-        User user = new User("provider","providerId", LocalDateTime.now());
+        User user = new User("provider", "providerId", LocalDateTime.now());
         user.setId(1L);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
         // RoomService의 메서드가 특정 값을 반환하도록 설정
-        when(roomService.getPlayerConnectionState(roomId1, sessionId1)).thenReturn(
-            ConnectionState.CONNECTED); // 다시 연결된 상태라고 가정
+        when(roomService.getPlayerConnectionState(roomId1, sessionId1))
+                .thenReturn(ConnectionState.CONNECTED); // 다시 연결된 상태라고 가정
 
         // disconnect 호출
         sessionService.handleUserDisconnect(sessionId1, principal);
@@ -178,8 +177,8 @@ class SessionServiceTests {
         Thread.sleep(5100); // 5초 + 여유 시간
 
         // verify: roomService.changeConnectedStatus가 호출되었는지 확인
-        verify(roomService, times(1)).changeConnectedStatus(roomId1, sessionId1,
-            ConnectionState.DISCONNECTED);
+        verify(roomService, times(1))
+                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
 
         // verify: roomService.notifyIfReconnected가 호출되었는지 확인
         verify(roomService, times(1)).notifyIfReconnected(eq(roomId1), eq(principal));
@@ -187,11 +186,11 @@ class SessionServiceTests {
         verify(roomService, never()).exitIfNotPlaying(anyLong(), anyString(), any());
 
         // userIdLatestSession에서 해당 userId가 제거되었는지 확인 (비동기 작업 후)
-        Map<Long, String> userIdLatestSession = (Map<Long, String>) ReflectionTestUtils.getField(
-            sessionService, "userIdLatestSession");
+        Map<Long, String> userIdLatestSession =
+                (Map<Long, String>)
+                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
         assertFalse(userIdLatestSession.containsKey(principal.getUserId()));
     }
-
 
     @Test
     @DisplayName("removeSession: 세션 관련 정보가 올바르게 제거되고 userIdLatestSession에 업데이트되는지 확인")
@@ -204,14 +203,15 @@ class SessionServiceTests {
         sessionService.removeSession(sessionId1, userId1);
 
         // 맵의 크기 및 내용 확인
-        Map<String, Long> sessionIdUser = (Map<String, Long>) ReflectionTestUtils.getField(
-            sessionService, "sessionIdUser");
-        Map<String, Long> sessionIdRoom = (Map<String, Long>) ReflectionTestUtils.getField(
-            sessionService, "sessionIdRoom");
-        Map<Long, String> userIdSession = (Map<Long, String>) ReflectionTestUtils.getField(
-            sessionService, "userIdSession");
-        Map<Long, String> userIdLatestSession = (Map<Long, String>) ReflectionTestUtils.getField(
-            sessionService, "userIdLatestSession");
+        Map<String, Long> sessionIdUser =
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdUser");
+        Map<String, Long> sessionIdRoom =
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdRoom");
+        Map<Long, String> userIdSession =
+                (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdSession");
+        Map<Long, String> userIdLatestSession =
+                (Map<Long, String>)
+                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
 
         // 제거되었는지 확인
         assertFalse(sessionIdUser.containsKey(sessionId1));

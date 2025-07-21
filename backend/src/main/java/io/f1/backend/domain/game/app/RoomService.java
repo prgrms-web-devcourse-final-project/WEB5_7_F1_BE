@@ -40,15 +40,18 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -122,7 +125,7 @@ public class RoomService {
 
         Player player = createPlayer(principal);
 
-        room.addPlayer(getCurrentUserId(),sessionId, player);
+        room.addPlayer(getCurrentUserId(), sessionId, player);
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -177,9 +180,7 @@ public class RoomService {
 
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-
         }
-
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -248,14 +249,14 @@ public class RoomService {
         return room.isReconnectTarget(sessionId);
     }
 
-    public void reconnectSession(Long roomId,String oldSessionId,String newSessionId) {
+    public void reconnectSession(Long roomId, String oldSessionId, String newSessionId) {
         Room room = findRoom(roomId);
         room.reconnectSession(oldSessionId, newSessionId);
     }
 
     public void changeConnectedStatus(Long roomId, String sessionId, ConnectionState newState) {
         Room room = findRoom(roomId);
-        room.updatePlayerConnectionState(sessionId,newState);
+        room.updatePlayerConnectionState(sessionId, newState);
     }
 
     public ConnectionState getPlayerConnectionState(Long roomId, String sessionId) {
@@ -263,16 +264,19 @@ public class RoomService {
         return room.getPlayerConnectionState(sessionId);
     }
 
-    public void exitIfNotPlaying(Long roomId, String sessionId,UserPrincipal principal) {
+    public void exitIfNotPlaying(Long roomId, String sessionId, UserPrincipal principal) {
         Room room = findRoom(roomId);
-        if(!room.isPlaying() && room.getPlayerSessionMap().containsKey(sessionId)) {
-            exitRoom(roomId,sessionId, principal);
+        if (!room.isPlaying() && room.getPlayerSessionMap().containsKey(sessionId)) {
+            exitRoom(roomId, sessionId, principal);
         }
     }
 
-    //todo 브로드캐스팅 말고 개인메세지
+    // todo 브로드캐스팅 말고 개인메세지
     public void notifyIfReconnected(Long roomId, UserPrincipal principal) {
-        messageSender.send(getDestination(roomId),MessageType.SYSTEM_NOTICE ,ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
+        messageSender.send(
+                getDestination(roomId),
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
     }
 
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
@@ -335,6 +339,4 @@ public class RoomService {
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
-
-
 }

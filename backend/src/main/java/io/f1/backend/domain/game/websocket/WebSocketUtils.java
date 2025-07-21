@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.Authentication;

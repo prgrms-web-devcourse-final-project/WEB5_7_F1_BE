@@ -7,16 +7,17 @@ public record CurrentUserAndAdminResponse(Long id, String name, String role, Str
 
     public static CurrentUserAndAdminResponse from(UserPrincipal userPrincipal) {
         return new CurrentUserAndAdminResponse(
-            userPrincipal.getUserId(),
-            userPrincipal.getUserNickname(),
-            UserPrincipal.ROLE_USER,
-            userPrincipal.getName());
+                userPrincipal.getUserId(),
+                userPrincipal.getUserNickname(),
+                UserPrincipal.ROLE_USER,
+                userPrincipal.getName());
     }
 
     public static CurrentUserAndAdminResponse from(AdminPrincipal adminPrincipal) {
         return new CurrentUserAndAdminResponse(
-            adminPrincipal.getAuthenticationAdmin().adminId(),
-            adminPrincipal.getUsername(),
-            AdminPrincipal.ROLE_ADMIN, null);
+                adminPrincipal.getAuthenticationAdmin().adminId(),
+                adminPrincipal.getUsername(),
+                AdminPrincipal.ROLE_ADMIN,
+                null);
     }
 }

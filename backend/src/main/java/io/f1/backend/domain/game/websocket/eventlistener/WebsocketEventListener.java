@@ -5,8 +5,10 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.websocket.Service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -45,21 +47,19 @@ public class WebsocketEventListener {
         String destination = headerAccessor.getDestination();
 
         if (destination == null) {
-            //todo 에러처리: 잘못된 구독 주소입니다
+            // todo 에러처리: 잘못된 구독 주소입니다
             return;
         }
-
 
         String[] subscribeType = destination.split("/");
 
         if (subscribeType[2].equals("room")) {
             Long roomId = Long.parseLong(subscribeType[3]);
             sessionService.addRoomId(roomId, sessionId);
-            sessionService.handleUserReconnect(roomId,sessionId,userId);
+            sessionService.handleUserReconnect(roomId, sessionId, userId);
         }
 
         sessionService.removeSession(sessionId, userId);
-
     }
 
     @EventListener
@@ -72,5 +72,4 @@ public class WebsocketEventListener {
 
         sessionService.handleUserDisconnect(sessionId, principal);
     }
-
 }

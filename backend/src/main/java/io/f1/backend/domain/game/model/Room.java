@@ -3,6 +3,9 @@ package io.f1.backend.domain.game.model;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Getter;
 
 @Getter
 public class Room {
@@ -44,17 +46,17 @@ public class Room {
         this.host = host;
     }
 
-    public boolean  addValidatedUserIds (Long userId) {
+    public boolean addValidatedUserIds(Long userId) {
         return validatedUserIds.add(userId);
     }
 
-    public int getCurrentUserCnt(){
+    public int getCurrentUserCnt() {
         return validatedUserIds.size();
     }
 
-    public void addPlayer(Long userId,String sessionId, Player player) {
+    public void addPlayer(Long userId, String sessionId, Player player) {
 
-        if(!validatedUserIds.contains(userId)){
+        if (!validatedUserIds.contains(userId)) {
             throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
         }
 
@@ -84,7 +86,7 @@ public class Room {
         this.playerSessionMap.remove(sessionId);
     }
 
-    public void removeUserId(Long userId){
+    public void removeUserId(Long userId) {
         validatedUserIds.remove(userId);
     }
 
@@ -104,7 +106,7 @@ public class Room {
         currentRound++;
     }
 
-    public void reconnectSession(String oldSessionId ,String newSessionId) {
+    public void reconnectSession(String oldSessionId, String newSessionId) {
         Player player = playerSessionMap.get(oldSessionId);
         removeSessionId(oldSessionId);
         playerSessionMap.put(newSessionId, player);
@@ -121,6 +123,4 @@ public class Room {
     public boolean isReconnectTarget(String sessionId) {
         return playerSessionMap.get(sessionId) != null;
     }
-
 }
-

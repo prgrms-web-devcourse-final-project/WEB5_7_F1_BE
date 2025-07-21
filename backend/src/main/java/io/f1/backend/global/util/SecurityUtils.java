@@ -22,15 +22,15 @@ public class SecurityUtils {
     public static void setAuthentication(User user) {
         UserPrincipal userPrincipal = new UserPrincipal(user, Collections.emptyMap());
         UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(
-                userPrincipal, null, userPrincipal.getAuthorities());
+                new UsernamePasswordAuthenticationToken(
+                        userPrincipal, null, userPrincipal.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     public static UserPrincipal getCurrentUserPrincipal() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-            && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return userPrincipal;
         }
         throw new RuntimeException("E401001: 로그인이 필요합니다.");
@@ -47,7 +47,7 @@ public class SecurityUtils {
     public static Role getCurrentUserRole() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-            && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return Role.USER;
         }
         return Role.ADMIN;
@@ -67,7 +67,7 @@ public class SecurityUtils {
     public static AdminPrincipal getCurrentAdminPrincipal() {
         Authentication authentication = getAuthentication();
         if (authentication != null
-            && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
+                && authentication.getPrincipal() instanceof AdminPrincipal adminPrincipal) {
             return adminPrincipal;
         }
         throw new CustomException(AuthErrorCode.UNAUTHORIZED);
