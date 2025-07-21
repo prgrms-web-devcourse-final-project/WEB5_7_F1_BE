@@ -86,17 +86,7 @@ public class RoomMapper {
     }
 
     public static SystemNoticeResponse ofPlayerEvent(String nickname, RoomEventType roomEventType) {
-        String message = "";
-        if (roomEventType == RoomEventType.ENTER) {
-            message = " 님이 입장하셨습니다";
-        } else if (roomEventType == RoomEventType.EXIT) {
-            message = " 님이 퇴장하셨습니다";
-        } else if (roomEventType == RoomEventType.CORRECT_ANSWER) {
-            message = " 님 정답입니다 !";
-        } else if (roomEventType == RoomEventType.TIMEOUT) {
-            message = "땡 ~ ⏰ 제한 시간 초과!";
-        }
-        return new SystemNoticeResponse(nickname + message, Instant.now());
+        return new SystemNoticeResponse(roomEventType.getMessage(nickname), Instant.now());
     }
 
     public static QuestionResultResponse toQuestionResultResponse(
