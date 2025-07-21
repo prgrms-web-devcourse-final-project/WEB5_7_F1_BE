@@ -14,7 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByProviderAndProviderId(String provider, String providerId);
 
-    Boolean existsUserByNickname(String nickname);
+    Boolean existsUserByNicknameIgnoreCase(String nickname);
 
     @Query(
         "SELECT new io.f1.backend.domain.admin.dto.UserResponse(u.id, u.nickname, u.lastLogin,"
