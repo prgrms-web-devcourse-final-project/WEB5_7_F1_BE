@@ -50,6 +50,7 @@ public class SecurityConfig {
                                                 "/signup",
                                                 "/css/**",
                                                 "/js/**",
+                                                "/**",
                                                 "/admin/login")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS, "/**")

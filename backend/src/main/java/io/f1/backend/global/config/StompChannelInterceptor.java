@@ -8,6 +8,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -28,6 +29,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         }
 
         if (command.equals(StompCommand.CONNECT)) {
+            Authentication auth = (Authentication) accessor.getSessionAttributes().get("auth");
+            log.info("WebSocket CONNECT Principal name: {}", auth.getName());
             log.info("CONNECT : 세션 연결 - sessionId = {}", sessionId);
         } else if (command.equals(StompCommand.SUBSCRIBE)) {
             if (destination != null && sessionId != null) {

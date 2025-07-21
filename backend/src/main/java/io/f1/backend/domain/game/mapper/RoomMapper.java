@@ -4,6 +4,7 @@ import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
+import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
@@ -106,5 +107,9 @@ public class RoomMapper {
                         .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
                         .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
                         .toList());
+    }
+
+    public static ExitSuccessResponse toExitSuccessResponse(long userId, boolean isRemoved) {
+        return new ExitSuccessResponse(userId, isRemoved);
     }
 }

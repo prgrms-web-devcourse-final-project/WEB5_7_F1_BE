@@ -17,6 +17,7 @@ import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
+import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.RoomCreateResponse;
@@ -24,12 +25,14 @@ import io.f1.backend.domain.game.dto.response.RoomListResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
+import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
@@ -66,7 +69,8 @@ public class RoomService {
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
-        // Quiz quiz = quizService.getQuizWithQuestionsById(quizMinId);
+
+        Quiz quiz = quizService.findQuizById(quizMinData.quizMinId());
 
         GameSetting gameSetting = toGameSetting(quizMinData);
 
@@ -82,7 +86,7 @@ public class RoomService {
 
         roomRepository.saveRoom(room);
 
-        // eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
+        eventPublisher.publishEvent(new RoomCreatedEvent(room, quiz));
 
         return new RoomCreateResponse(newId);
     }
@@ -153,9 +157,12 @@ public class RoomService {
 
             Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
+            String destination = getDestination(roomId);
+
             /* 방 삭제 */
             if (isLastPlayer(room, sessionId)) {
                 removeRoom(room);
+                messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(true));
                 return;
             }
 
@@ -165,18 +172,18 @@ public class RoomService {
             }
 
             /* 플레이어 삭제 */
-            removePlayer(room, sessionId, removePlayer);
+            boolean isRemoved = removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            String destination = getDestination(roomId);
-
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.send(destination, MessageType.EXIT_SUCCESS, new ExitSuccessResponse(isRemoved));
         }
+
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -240,7 +247,7 @@ public class RoomService {
         }
     }
 
-    public void manageSession(Long roomId, String newSessionId, Long userId) {
+    public void manageConnectSession(Long roomId, String newSessionId, Long userId) {
 
         Room room = findRoom(roomId);
 
@@ -256,6 +263,20 @@ public class RoomService {
 
         /* 비정상 흐름 - 재연결 */
         room.reconnectSession(userId, newSessionId);
+
+    }
+
+    public void manageDisconnectSession(Long roomId, String sessionId, Long userId) {
+        Room room = findRoom(roomId);
+
+        /* initializeRoomSocket 실행 안된 경우 */
+        if(room.isPendingSession(userId)) {
+            room.removeUserId(userId);
+            return;
+        }
+
+
+
 
     }
 
@@ -319,4 +340,6 @@ public class RoomService {
     private String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
+
+
 }
