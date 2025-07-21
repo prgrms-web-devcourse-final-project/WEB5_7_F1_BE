@@ -56,7 +56,6 @@ public class SessionService {
             return;
         }
 
-
         roomService.changeConnectedStatus(roomId, sessionId, ConnectionState.DISCONNECTED);
 
         // 5초 뒤 실행
