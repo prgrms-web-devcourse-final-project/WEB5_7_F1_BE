@@ -98,10 +98,10 @@ class SessionServiceTests {
         User user = new User("provider", "providerId", LocalDateTime.now());
         user.setId(userId1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
-        sessionService.handleUserReconnect(roomId1, sessionId2,principal);
+        sessionService.handleUserReconnect(roomId1, sessionId2, principal);
 
         // RoomService.reconnectSession이 올바른 인자로 호출되었는지 검증
-        verify(roomService, times(1)).reconnectSession(roomId1, sessionId1, sessionId2,principal);
+        verify(roomService, times(1)).reconnectSession(roomId1, sessionId1, sessionId2, principal);
         verify(roomService, never()).changeConnectedStatus(any(), any(), any()); // 다른 메서드 호출 안됨 확인
     }
 
@@ -114,16 +114,17 @@ class SessionServiceTests {
                 sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
 
         // RoomService.isExit -> true 반환하도록 모의 설정
-        when(roomService.isExit(sessionId1,roomId1)).thenReturn(true);
+        when(roomService.isExit(sessionId1, roomId1)).thenReturn(true);
 
         User user = new User("provider", "providerId", LocalDateTime.now());
         user.setId(userId1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
         // 메서드 호출
-        sessionService.handleUserReconnect(roomId1, sessionId2,principal);
+        sessionService.handleUserReconnect(roomId1, sessionId2, principal);
 
         // RoomService.reconnectSession이 호출되지 않았는지 검증
-        verify(roomService, never()).reconnectSession(anyLong(), anyString(), anyString(),any(UserPrincipal.class));
+        verify(roomService, never())
+                .reconnectSession(anyLong(), anyString(), anyString(), any(UserPrincipal.class));
     }
 
     @Test
@@ -148,7 +149,6 @@ class SessionServiceTests {
 
         // verify: roomService.exitIfNotPlaying이 호출되었는지 확인
         verify(roomService, times(1)).exitIfNotPlaying(eq(roomId1), eq(sessionId1), eq(principal));
-
 
         Map<Long, String> userIdLatestSession =
                 (Map<Long, String>)

@@ -56,7 +56,7 @@ public class WebsocketEventListener {
         if (subscribeType[2].equals("room")) {
             Long roomId = Long.parseLong(subscribeType[3]);
             sessionService.addRoomId(roomId, sessionId);
-            sessionService.handleUserReconnect(roomId, sessionId,principal);
+            sessionService.handleUserReconnect(roomId, sessionId, principal);
         }
     }
 

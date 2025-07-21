@@ -41,8 +41,8 @@ public class SessionService {
         if (userIdLatestSession.get(userId) != null) {
             String oldSessionId = userIdLatestSession.get(userId);
             /* room 재연결 대상인지 아닌지 판별 */
-            if (!roomService.isExit(oldSessionId,roomId)) {
-                roomService.reconnectSession(roomId, oldSessionId, newSessionId,principal);
+            if (!roomService.isExit(oldSessionId, roomId)) {
+                roomService.reconnectSession(roomId, oldSessionId, newSessionId, principal);
             }
         }
     }
@@ -75,7 +75,7 @@ public class SessionService {
 
     public void removeSession(String sessionId, Long userId) {
 
-        if(userIdSession.get(userId).equals(sessionId)) {
+        if (userIdSession.get(userId).equals(sessionId)) {
             userIdSession.remove(userId);
         }
         sessionIdUser.remove(sessionId);
