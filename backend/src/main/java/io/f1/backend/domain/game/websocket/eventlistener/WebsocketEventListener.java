@@ -6,8 +6,10 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
@@ -47,9 +49,8 @@ public class WebsocketEventListener {
         if (subscribeType[2].equals("room")) {
             Long roomId = Long.parseLong(subscribeType[3]);
             sessionService.addRoomId(roomId, sessionId);
-          }
+        }
     }
-
 
     @EventListener
     public void handleDisconnectedListener(SessionDisconnectEvent event) {

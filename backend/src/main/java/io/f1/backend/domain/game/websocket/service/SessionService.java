@@ -34,11 +34,11 @@ public class SessionService {
         sessionIdRoom.put(sessionId, roomId);
     }
 
-    public boolean hasOldSessionId(Long userId){
+    public boolean hasOldSessionId(Long userId) {
         return userIdLatestSession.get(userId) != null;
     }
 
-    public String getOldSessionId(Long userId){
+    public String getOldSessionId(Long userId) {
         return userIdLatestSession.get(userId);
     }
 
@@ -59,15 +59,15 @@ public class SessionService {
 
         // 5초 뒤 실행
         scheduler.schedule(
-            () -> {
-                /* 재연결 실패  */
-                if (sessionId.equals(userIdSession.get(userId))) {
-                    roomService.exitIfNotPlaying(roomId, sessionId, principal);
-                }
-                removeSession(sessionId, userId);
-            },
-            5,
-            TimeUnit.SECONDS);
+                () -> {
+                    /* 재연결 실패  */
+                    if (sessionId.equals(userIdSession.get(userId))) {
+                        roomService.exitIfNotPlaying(roomId, sessionId, principal);
+                    }
+                    removeSession(sessionId, userId);
+                },
+                5,
+                TimeUnit.SECONDS);
     }
 
     public void removeSession(String sessionId, Long userId) {
@@ -80,5 +80,4 @@ public class SessionService {
 
         userIdLatestSession.remove(userId);
     }
-
 }

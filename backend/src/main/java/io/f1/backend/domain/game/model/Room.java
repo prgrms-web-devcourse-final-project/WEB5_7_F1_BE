@@ -134,9 +134,10 @@ public class Room {
     }
 
     public boolean isLastPlayer(String sessionId) {
-        long connectedCount = playerSessionMap.values().stream()
-            .filter(player -> player.getState() == ConnectionState.CONNECTED)
-            .count();
+        long connectedCount =
+                playerSessionMap.values().stream()
+                        .filter(player -> player.getState() == ConnectionState.CONNECTED)
+                        .count();
         return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 }
