@@ -336,4 +336,31 @@ public class RoomService {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
     }
+
+    public void exitRoomForDisconnectedPlayer(Long roomId, Player player, String sessionId) {
+
+        // 연결 끊긴 플레이어 exit 로직 타게 해주기
+        Room room = findRoom(roomId);
+
+        /* 방 삭제 */
+        if (isLastPlayer(room, sessionId)) {
+            removeRoom(room);
+            return;
+        }
+
+        /* 방장 변경 */
+        if (room.isHost(player.getId())) {
+            changeHost(room, sessionId);
+        }
+
+        /* 플레이어 삭제 */
+        removePlayer(room, sessionId, player);
+
+        SystemNoticeResponse systemNoticeResponse =
+            ofPlayerEvent(player.nickname, RoomEventType.EXIT);
+
+        String destination = getDestination(roomId);
+
+        messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+    }
 }

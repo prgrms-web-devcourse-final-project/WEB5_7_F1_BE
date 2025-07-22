@@ -10,6 +10,7 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
+import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomState;
@@ -38,9 +39,10 @@ public class GameService {
 
     private static final int START_DELAY = 5;
 
-    private final MessageSender messageSender;
-    private final TimerService timerService;
     private final QuizService quizService;
+    private final RoomService roomService;
+    private final TimerService timerService;
+    private final MessageSender messageSender;
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -82,23 +84,29 @@ public class GameService {
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
-        messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
-        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
-        messageSender.send(
-                destination,
-                MessageType.GAME_RESULT,
-                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+        messageSender.send(destination, MessageType.GAME_RESULT, toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+
+        List<Player> disconnectedPlayers = new ArrayList<>();
 
         room.initializeRound();
         for (Player player : playerSessionMap.values()) {
+            if(player.getState().equals(ConnectionState.DISCONNECTED)) {
+                disconnectedPlayers.add(player);
+            }
             player.initializeCorrectCount();
             player.toggleReady();
         }
+
+        for(Player player : disconnectedPlayers) {
+            String sessionId = room.getUserIdSessionMap().get(player.id);
+            roomService.exitRoomForDisconnectedPlayer(roomId, player, sessionId);
+        }
+
         room.updateRoomState(RoomState.WAITING);
+        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+        messageSender.send(destination, MessageType.GAME_SETTING, toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion()
+            .getQuiz()));
+        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
     private boolean validateReadyStatus(Room room) {
