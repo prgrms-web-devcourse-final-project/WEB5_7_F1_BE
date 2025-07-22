@@ -357,7 +357,7 @@ public class RoomService {
         removePlayer(room, sessionId, player);
 
         SystemNoticeResponse systemNoticeResponse =
-            ofPlayerEvent(player.nickname, RoomEventType.EXIT);
+                ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
         String destination = getDestination(roomId);
 

@@ -24,12 +24,12 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,28 +85,33 @@ public class GameService {
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
-        messageSender.send(destination, MessageType.GAME_RESULT, toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+        messageSender.send(
+                destination,
+                MessageType.GAME_RESULT,
+                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
 
         List<Player> disconnectedPlayers = new ArrayList<>();
 
         room.initializeRound();
         for (Player player : playerSessionMap.values()) {
-            if(player.getState().equals(ConnectionState.DISCONNECTED)) {
+            if (player.getState().equals(ConnectionState.DISCONNECTED)) {
                 disconnectedPlayers.add(player);
             }
             player.initializeCorrectCount();
             player.toggleReady();
         }
 
-        for(Player player : disconnectedPlayers) {
+        for (Player player : disconnectedPlayers) {
             String sessionId = room.getUserIdSessionMap().get(player.id);
             roomService.exitRoomForDisconnectedPlayer(roomId, player, sessionId);
         }
 
         room.updateRoomState(RoomState.WAITING);
         messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-        messageSender.send(destination, MessageType.GAME_SETTING, toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion()
-            .getQuiz()));
+        messageSender.send(
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
         messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
