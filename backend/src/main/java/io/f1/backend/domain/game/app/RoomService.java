@@ -72,8 +72,6 @@ public class RoomService {
 
     private static final int CONTINUE_DELAY = 3;
 
-    private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
-
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
@@ -375,6 +373,6 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
-        room.removeValidatedUserIds(removePlayer.getId());
+        room.removeValidatedUserId(removePlayer.getId());
     }
 }

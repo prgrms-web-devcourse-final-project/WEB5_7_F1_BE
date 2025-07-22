@@ -95,7 +95,7 @@ public class Room {
         this.playerSessionMap.remove(sessionId);
     }
 
-    public void removeValidatedUserIds(Long userId) {
+    public void removeValidatedUserId(Long userId) {
         validatedUserIds.remove(userId);
     }
 
@@ -111,7 +111,7 @@ public class Room {
         return questions.get(currentRound - 1);
     }
 
-    public Boolean isPlaying() {
+    public boolean isPlaying() {
         return state == RoomState.PLAYING;
     }
 

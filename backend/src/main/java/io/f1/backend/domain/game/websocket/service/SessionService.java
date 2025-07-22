@@ -63,6 +63,7 @@ public class SessionService {
                 /* 재연결 실패  */
                 if (sessionId.equals(userIdSession.get(userId))) {
                     roomService.exitIfNotPlaying(roomId, sessionId, principal);
+                    //메세지 응답 추가
                 }
                 removeSession(sessionId, userId);
             },
