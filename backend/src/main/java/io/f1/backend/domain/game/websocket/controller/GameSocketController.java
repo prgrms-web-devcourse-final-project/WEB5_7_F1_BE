@@ -73,8 +73,8 @@ public class GameSocketController {
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
-        @DestinationVariable Long roomId,
-        Message<DefaultWebSocketRequest<ChatMessage>> message) {
+            @DestinationVariable Long roomId,
+            Message<DefaultWebSocketRequest<ChatMessage>> message) {
 
         roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }

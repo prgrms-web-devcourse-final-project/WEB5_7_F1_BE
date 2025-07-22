@@ -4,7 +4,6 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
-import java.util.concurrent.ConcurrentMap;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class SessionService {
     private final Map<Long, String> userIdSession = new ConcurrentHashMap<>();
     private final Map<Long, String> userIdLatestSession = new ConcurrentHashMap<>();
 
-    //todo 부하테스트 후 스레드 풀 변경
+    // todo 부하테스트 후 스레드 풀 변경
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     public void addSession(String sessionId, Long userId) {
