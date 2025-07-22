@@ -7,6 +7,7 @@ import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
+import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class GameSocketController {
 
     private final RoomService roomService;
     private final GameService gameService;
+    private final SessionService sessionService;
 
     @MessageMapping("/room/initializeRoomSocket/{roomId}")
     public void initializeRoomSocket(@DestinationVariable Long roomId, Message<?> message) {
@@ -29,8 +31,18 @@ public class GameSocketController {
         String websocketSessionId = getSessionId(message);
 
         UserPrincipal principal = getSessionUser(message);
+        Long userId = principal.getUserId();
 
-        roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+        if (sessionService.hasOldSessionId(userId)) {
+            String oldSessionId = sessionService.getOldSessionId(userId);
+            /* room 재연결 대상인지 아닌지 판별 */
+            if (!roomService.isExit(oldSessionId, roomId)) {
+                roomService.reconnectSession(roomId, oldSessionId, websocketSessionId, principal);
+            }
+        }else{
+            roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+        }
+
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -52,8 +64,8 @@ public class GameSocketController {
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<ChatMessage>> message) {
 
         roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }

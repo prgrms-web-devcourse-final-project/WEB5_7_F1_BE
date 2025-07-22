@@ -34,17 +34,12 @@ public class SessionService {
         sessionIdRoom.put(sessionId, roomId);
     }
 
-    public void handleUserReconnect(Long roomId, String newSessionId, UserPrincipal principal) {
+    public boolean hasOldSessionId(Long userId){
+        return userIdLatestSession.get(userId) != null;
+    }
 
-        Long userId = principal.getUserId();
-
-        if (userIdLatestSession.get(userId) != null) {
-            String oldSessionId = userIdLatestSession.get(userId);
-            /* room 재연결 대상인지 아닌지 판별 */
-            if (!roomService.isExit(oldSessionId, roomId)) {
-                roomService.reconnectSession(roomId, oldSessionId, newSessionId, principal);
-            }
-        }
+    public String getOldSessionId(Long userId){
+        return userIdLatestSession.get(userId);
     }
 
     public void handleUserDisconnect(String sessionId, UserPrincipal principal) {
@@ -58,19 +53,21 @@ public class SessionService {
             return;
         }
 
+        userIdLatestSession.put(userId, sessionId);
+
         roomService.changeConnectedStatus(roomId, sessionId, ConnectionState.DISCONNECTED);
 
         // 5초 뒤 실행
         scheduler.schedule(
-                () -> {
-                    /* 재연결 실패  */
-                    if (sessionId.equals(userIdSession.get(userId))){
-                        roomService.exitIfNotPlaying(roomId, sessionId, principal);
-                    }
-                    removeSession(sessionId, userId);
-                },
-                5,
-                TimeUnit.SECONDS);
+            () -> {
+                /* 재연결 실패  */
+                if (sessionId.equals(userIdSession.get(userId))) {
+                    roomService.exitIfNotPlaying(roomId, sessionId, principal);
+                }
+                removeSession(sessionId, userId);
+            },
+            5,
+            TimeUnit.SECONDS);
     }
 
     public void removeSession(String sessionId, Long userId) {
@@ -81,6 +78,7 @@ public class SessionService {
         sessionIdUser.remove(sessionId);
         sessionIdRoom.remove(sessionId);
 
-        userIdLatestSession.put(userId, sessionId);
+        userIdLatestSession.remove(userId);
     }
+
 }

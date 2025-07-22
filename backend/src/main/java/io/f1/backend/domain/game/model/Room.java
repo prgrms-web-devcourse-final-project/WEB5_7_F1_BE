@@ -94,6 +94,10 @@ public class Room {
         this.playerSessionMap.remove(sessionId);
     }
 
+    public void removeValidatedUserIds(Long userId) {
+        validatedUserIds.remove(userId);
+    }
+
     public void removeUserId(Long userId) {
         validatedUserIds.remove(userId);
     }
@@ -126,5 +130,12 @@ public class Room {
 
     public boolean isExit(String sessionId) {
         return playerSessionMap.get(sessionId) == null;
+    }
+
+    public boolean isLastPlayer(String sessionId) {
+        long connectedCount = playerSessionMap.values().stream()
+            .filter(player -> player.getState() == ConnectionState.CONNECTED)
+            .count();
+        return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 }
