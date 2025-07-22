@@ -26,6 +26,8 @@ public class TimerService {
     private static final String NONE_CORRECT_USER = "";
     private static final int CONTINUE_DELAY = 3;
 
+    private final GameService gameService;
+
     public void startTimer(Room room, int delaySec) {
         cancelTimer(room);
 
@@ -53,14 +55,11 @@ public class TimerService {
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
 
-        // TODO : 게임 종료 로직
         if (!validateCurrentRound(room)) {
-            // 게임 종료 로직
-            // GAME_SETTING, PLAYER_LIST, GAME_RESULT, ROOM_SETTING
+            gameService.gameEnd(room);
             return;
         }
 
-        // 다음 문제 출제
         room.increaseCurrentRound();
 
         startTimer(room, CONTINUE_DELAY);

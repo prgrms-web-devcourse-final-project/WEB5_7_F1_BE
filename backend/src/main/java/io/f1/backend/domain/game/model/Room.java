@@ -90,4 +90,8 @@ public class Room {
     public void increaseCurrentRound() {
         currentRound++;
     }
+
+    public void initializeRound() {
+        currentRound = 0;
+    }
 }

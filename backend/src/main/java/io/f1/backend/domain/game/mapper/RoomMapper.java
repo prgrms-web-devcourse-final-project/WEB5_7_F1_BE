@@ -3,6 +3,8 @@ package io.f1.backend.domain.game.mapper;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
+import io.f1.backend.domain.game.dto.response.GameResultListResponse;
+import io.f1.backend.domain.game.dto.response.GameResultResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
@@ -21,8 +23,10 @@ import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class RoomMapper {
 
@@ -109,4 +113,40 @@ public class RoomMapper {
                 room.getCurrentRound(),
                 Instant.now().plusSeconds(delay));
     }
+
+    public static GameResultResponse toGameResultResponse(Player player, int round, int rank, int totalPlayers) {
+        double correctRate = (double) player.getCorrectCount() / round;
+        int score = (int) (correctRate * 100) + (totalPlayers - rank) * 5;
+
+        return new GameResultResponse(player.nickname, score, player.getCorrectCount(), rank);
+    }
+
+    public static GameResultListResponse toGameResultListResponse(Map<String, Player> playerSessionMap, int round) {
+
+        List<Player> rankedPlayers = playerSessionMap.values().stream()
+            .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
+            .toList();
+
+        int totalPlayers = rankedPlayers.size();
+
+        int prevCorrectCnt = -1;
+        int rank = 0;
+
+        List<GameResultResponse> gameResults = new ArrayList<>();
+        for(int i=0; i<totalPlayers; i++) {
+            Player player = rankedPlayers.get(i);
+
+            int correctCnt = player.getCorrectCount();
+
+            if(prevCorrectCnt != correctCnt) {
+                rank = i + 1;
+            }
+
+            gameResults.add(toGameResultResponse(player, round, rank, totalPlayers));
+            prevCorrectCnt = correctCnt;
+        }
+
+        return new GameResultListResponse(gameResults);
+    }
 }
+

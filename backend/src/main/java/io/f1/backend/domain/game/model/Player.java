@@ -27,4 +27,8 @@ public class Player {
     public void increaseCorrectCount() {
         correctCount++;
     }
+
+    public void initializeCorrectCount() {
+        correctCount = 0;
+    }
 }

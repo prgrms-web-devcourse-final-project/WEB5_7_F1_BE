@@ -59,6 +59,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RoomService {
 
+    private final GameService gameService;
     private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
@@ -263,9 +264,8 @@ public class RoomService {
 
             timerService.cancelTimer(room);
 
-            // TODO : 게임 종료 로직 추가
             if (!timerService.validateCurrentRound(room)) {
-                // 게임 종료 로직
+                gameService.gameEnd(room);
                 return;
             }
 
