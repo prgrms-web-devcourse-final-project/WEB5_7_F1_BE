@@ -5,9 +5,8 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -83,7 +82,6 @@ public class GameService {
         toggleReadyIfPossible(room, player);
 
         String destination = getDestination(roomId);
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
@@ -96,20 +94,14 @@ public class GameService {
         if (!request.change(room, quizService)) {
             return;
         }
+        request.afterChange(room, messageSender);
 
-        room.resetAllPlayerReadyStates();
+        broadcastGameSetting(room);
 
-        String destination = getDestination(roomId);
-        Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
+        RoomUpdatedEvent roomUpdatedEvent = new RoomUpdatedEvent(room,
+            quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), quiz));
-        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
-
-        eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
+        eventPublisher.publishEvent(roomUpdatedEvent);
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
@@ -159,5 +151,14 @@ public class GameService {
         if (!Objects.equals(player.getId(), room.getHost().getId())) {
             player.toggleReady();
         }
+    }
+
+    private void broadcastGameSetting(Room room) {
+        String destination = getDestination(room.getId());
+        Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
+        messageSender.send(
+            destination,
+            MessageType.GAME_SETTING,
+            toGameSettingResponse(room.getGameSetting(), quiz));
     }
 }

@@ -1,10 +1,15 @@
 package io.f1.backend.domain.game.dto.request;
 
+import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.model.Room;
+import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import java.util.Objects;
+
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 
 public record QuizChangeRequest(Long quizId) implements GameSettingChanger {
 
@@ -19,5 +24,15 @@ public record QuizChangeRequest(Long quizId) implements GameSettingChanger {
         // 퀴즈의 문제 갯수로 변경
         room.getGameSetting().changeRound(questionSize, questionSize);
         return true;
+    }
+
+    @Override
+    public void afterChange(Room room, MessageSender messageSender) {
+        room.resetAllPlayerReadyStates();
+
+        String destination = "/sub/room/" + room.getId();
+        PlayerListResponse response = toPlayerListResponse(room);
+
+        messageSender.send(destination, MessageType.PLAYER_LIST, response);
     }
 }

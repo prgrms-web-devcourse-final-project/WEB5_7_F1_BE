@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.dto.request;
 
 import io.f1.backend.domain.game.model.Room;
+import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
@@ -19,5 +20,10 @@ public record RoundChangeRequest(Integer round) implements GameSettingChanger {
 
         room.getGameSetting().changeRound(round, questionSize);
         return true;
+    }
+
+    @Override
+    public void afterChange(Room room, MessageSender messageSender) {
+        // 고유한 후처리 동작 없음
     }
 }
