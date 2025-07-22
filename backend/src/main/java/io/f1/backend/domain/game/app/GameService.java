@@ -24,6 +24,7 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
