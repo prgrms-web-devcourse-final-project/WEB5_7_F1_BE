@@ -4,6 +4,7 @@ import io.f1.backend.domain.game.dto.TimeLimit;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

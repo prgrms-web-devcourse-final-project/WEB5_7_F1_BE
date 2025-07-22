@@ -1,8 +1,8 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.GameSettingChanger;
@@ -47,9 +47,9 @@ public class GameService {
         String destination = getDestination(roomId);
 
         Room room =
-            roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                roomRepository
+                        .findRoom(roomId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
 
         validateRoomStart(room, principal);
 
@@ -74,9 +74,9 @@ public class GameService {
 
     public void handlePlayerReady(Long roomId, String sessionId) {
         Player player =
-            roomRepository
-                .findPlayerInRoomBySessionId(roomId, sessionId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         Room room = findRoom(roomId);
 
@@ -88,7 +88,8 @@ public class GameService {
         messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
-    public void changeGameSetting(Long roomId, UserPrincipal principal, GameSettingChanger request) {
+    public void changeGameSetting(
+            Long roomId, UserPrincipal principal, GameSettingChanger request) {
         Room room = findRoom(roomId);
         validateHostAndState(room, principal);
 
@@ -102,7 +103,10 @@ public class GameService {
         Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        messageSender.send(destination, MessageType.GAME_SETTING, toGameSettingResponse(room.getGameSetting(), quiz));
+        messageSender.send(
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(room.getGameSetting(), quiz));
         messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
 
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
@@ -131,8 +135,8 @@ public class GameService {
 
     private Room findRoom(Long roomId) {
         return roomRepository
-            .findRoom(roomId)
-            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private String getDestination(Long roomId) {
