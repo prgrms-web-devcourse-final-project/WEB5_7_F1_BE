@@ -4,6 +4,7 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toGameResultListRespon
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
@@ -71,6 +72,7 @@ public class GameService {
         timerService.startTimer(room, START_DELAY);
 
         messageSender.send(destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.send(
                 destination,
                 MessageType.QUESTION_START,
