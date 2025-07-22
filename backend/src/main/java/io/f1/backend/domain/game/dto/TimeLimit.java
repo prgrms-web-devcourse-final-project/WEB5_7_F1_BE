@@ -2,8 +2,10 @@ package io.f1.backend.domain.game.dto;
 
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
-import java.util.Arrays;
+
 import lombok.Getter;
+
+import java.util.Arrays;
 
 @Getter
 public enum TimeLimit {
@@ -20,9 +22,8 @@ public enum TimeLimit {
 
     public static TimeLimit from(int value) {
         return Arrays.stream(values())
-            .filter(t -> t.value == value)
-            .findFirst()
-            .orElseThrow(() -> new CustomException(GameErrorCode.GAME_SETTING_CONFLICT));
+                .filter(t -> t.value == value)
+                .findFirst()
+                .orElseThrow(() -> new CustomException(GameErrorCode.GAME_SETTING_CONFLICT));
     }
-
 }

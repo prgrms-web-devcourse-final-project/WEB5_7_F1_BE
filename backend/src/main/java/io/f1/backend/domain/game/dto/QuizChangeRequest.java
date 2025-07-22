@@ -3,6 +3,7 @@ package io.f1.backend.domain.game.dto;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+
 import java.util.Objects;
 
 public record QuizChangeRequest(Long quizId) implements GameSettingChanger {
