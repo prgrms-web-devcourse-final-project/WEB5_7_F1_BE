@@ -2,6 +2,7 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.question.entity.Question;
 
+import java.util.Objects;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -89,5 +90,17 @@ public class Room {
 
     public void increaseCurrentRound() {
         currentRound++;
+    }
+
+    public boolean validateReadyStatus() {
+
+        return playerSessionMap.values().stream().allMatch(Player::isReady);
+    }
+
+    public void resetAllPlayerReadyStates() {
+        for (Player player : playerSessionMap.values()) {
+            if (Objects.equals(player.getId(), getHost().getId())) continue;
+            player.setReadyFalse();
+        }
     }
 }

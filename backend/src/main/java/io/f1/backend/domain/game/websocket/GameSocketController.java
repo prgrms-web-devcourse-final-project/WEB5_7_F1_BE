@@ -6,6 +6,9 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
+import io.f1.backend.domain.game.dto.QuizChangeRequest;
+import io.f1.backend.domain.game.dto.RoundChangeRequest;
+import io.f1.backend.domain.game.dto.TimeLimitChangeRequest;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
@@ -61,6 +64,24 @@ public class GameSocketController {
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
-        roomService.handlePlayerReady(roomId, getSessionId(message));
+        gameService.handlePlayerReady(roomId, getSessionId(message));
+    }
+
+    @MessageMapping("/room/quiz/{roomId}")
+    public void quizChange(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<QuizChangeRequest>> message) {
+        UserPrincipal principal = getSessionUser(message);
+        gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
+    }
+
+    @MessageMapping("/room/time-limit/{roomId}")
+    public void timeLimitChange(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<TimeLimitChangeRequest>> message) {
+        UserPrincipal principal = getSessionUser(message);
+        gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
+    }
+
+    @MessageMapping("/room/round/{roomId}")
+    public void roundChange(@DestinationVariable Long roomId, Message<DefaultWebSocketRequest<RoundChangeRequest>> message) {
+        UserPrincipal principal = getSessionUser(message);
+        gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
     }
 }

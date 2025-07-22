@@ -1,10 +1,13 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
+import io.f1.backend.domain.game.dto.GameSettingChanger;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -25,7 +28,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -45,9 +47,9 @@ public class GameService {
         String destination = getDestination(roomId);
 
         Room room =
-                roomRepository
-                        .findRoom(roomId)
-                        .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+            roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
 
         validateRoomStart(room, principal);
 
@@ -70,11 +72,40 @@ public class GameService {
                 toQuestionStartResponse(room, START_DELAY));
     }
 
-    private boolean validateReadyStatus(Room room) {
+    public void handlePlayerReady(Long roomId, String sessionId) {
+        Player player =
+            roomRepository
+                .findPlayerInRoomBySessionId(roomId, sessionId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Room room = findRoom(roomId);
 
-        return playerSessionMap.values().stream().allMatch(Player::isReady);
+        toggleReadyIfPossible(room, player);
+
+        String destination = getDestination(roomId);
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+    }
+
+    public void changeGameSetting(Long roomId, UserPrincipal principal, GameSettingChanger request) {
+        Room room = findRoom(roomId);
+        validateHostAndState(room, principal);
+
+        if (!request.change(room, quizService)) {
+            return;
+        }
+
+        room.resetAllPlayerReadyStates();
+
+        String destination = getDestination(roomId);
+        Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
+
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+        messageSender.send(destination, MessageType.GAME_SETTING, toGameSettingResponse(room.getGameSetting(), quiz));
+        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+
+        eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
@@ -82,7 +113,7 @@ public class GameService {
             throw new CustomException(RoomErrorCode.NOT_ROOM_OWNER);
         }
 
-        if (!validateReadyStatus(room)) {
+        if (!room.validateReadyStatus()) {
             throw new CustomException(GameErrorCode.PLAYER_NOT_READY);
         }
 
@@ -96,5 +127,33 @@ public class GameService {
         Long quizId = quiz.getId();
         Integer round = room.getGameSetting().getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
+    }
+
+    private Room findRoom(Long roomId) {
+        return roomRepository
+            .findRoom(roomId)
+            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+    }
+
+    private String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
+    }
+
+    private void validateHostAndState(Room room, UserPrincipal principal) {
+        if (!Objects.equals(principal.getUserId(), room.getHost().getId())) {
+            throw new CustomException(RoomErrorCode.NOT_ROOM_OWNER);
+        }
+        if (room.isPlaying()) {
+            throw new CustomException(RoomErrorCode.GAME_ALREADY_PLAYING);
+        }
+    }
+
+    private void toggleReadyIfPossible(Room room, Player player) {
+        if (room.isPlaying()) {
+            throw new CustomException(RoomErrorCode.GAME_ALREADY_PLAYING);
+        }
+        if (!Objects.equals(player.getId(), room.getHost().getId())) {
+            player.toggleReady();
+        }
     }
 }
