@@ -90,7 +90,7 @@ public class RoomService {
 
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
-        room.addValidatedUserIds(getCurrentUserId());
+        room.addValidatedUserId(getCurrentUserId());
 
         roomRepository.saveRoom(room);
 
@@ -123,7 +123,7 @@ public class RoomService {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
-            room.addValidatedUserIds(getCurrentUserId());
+            room.addValidatedUserId(getCurrentUserId());
         }
     }
 

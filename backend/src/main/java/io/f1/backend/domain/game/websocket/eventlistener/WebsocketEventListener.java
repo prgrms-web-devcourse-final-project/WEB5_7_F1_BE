@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.websocket.eventlistener;
 
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getRoomSubscriptionDestination;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
@@ -39,18 +40,12 @@ public class WebsocketEventListener {
 
         Message<?> message = event.getMessage();
 
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
-
         String sessionId = getSessionId(message);
         UserPrincipal principal = getSessionUser(message);
 
-        String destination = headerAccessor.getDestination();
+        String destination =  getRoomSubscriptionDestination(message);
 
-        if (destination == null) {
-            // todo 에러처리: 잘못된 구독 주소입니다
-            return;
-        }
-
+        //todo 인덱스 길이 유효성 추가
         String[] subscribeType = destination.split("/");
 
         if (subscribeType[2].equals("room")) {

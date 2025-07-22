@@ -64,7 +64,7 @@ public class SessionService {
         scheduler.schedule(
                 () -> {
                     /* 재연결 실패  */
-                    if (userIdSession.get(userId).equals(sessionId)) {
+                    if (sessionId.equals(userIdSession.get(userId))){
                         roomService.exitIfNotPlaying(roomId, sessionId, principal);
                     }
                     removeSession(sessionId, userId);
@@ -75,7 +75,7 @@ public class SessionService {
 
     public void removeSession(String sessionId, Long userId) {
 
-        if (userIdSession.get(userId).equals(sessionId)) {
+        if (sessionId.equals(userIdSession.get(userId))) {
             userIdSession.remove(userId);
         }
         sessionIdUser.remove(sessionId);

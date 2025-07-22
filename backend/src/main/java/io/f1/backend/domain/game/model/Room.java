@@ -51,8 +51,7 @@ public class Room {
         this.host = host;
     }
 
-    public boolean addValidatedUserIds(Long userId) {
-        return validatedUserIds.add(userId);
+    public void addValidatedUserId(Long userId) {validatedUserIds.add(userId);
     }
 
     public int getCurrentUserCnt() {
