@@ -5,7 +5,7 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.GameSettingChanger;
+import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;

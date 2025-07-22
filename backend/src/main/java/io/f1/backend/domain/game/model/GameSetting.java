@@ -1,6 +1,6 @@
 package io.f1.backend.domain.game.model;
 
-import io.f1.backend.domain.game.dto.TimeLimit;
+import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
