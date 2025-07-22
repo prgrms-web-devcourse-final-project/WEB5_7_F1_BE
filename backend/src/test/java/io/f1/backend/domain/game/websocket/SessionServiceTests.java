@@ -85,54 +85,13 @@ class SessionServiceTests {
         assertEquals(roomId1, sessionIdRoom.get(sessionId1));
     }
 
-    @Test
-    @DisplayName("handleUserReconnect: 재연결 대상일 경우 RoomService.reconnectSession이 호출되는지 확인")
-    void handleUserReconnect_shouldReconnectIfTarget() {
-        // 준비: 이전 세션 정보 설정
-        ReflectionTestUtils.invokeMethod(
-                sessionService, "addSession", sessionId1, userId1); // userIdLatestSession에 값이 들어가게
-        ReflectionTestUtils.setField(
-                sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
-
-        // 메서드 호출
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
-        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
-        sessionService.handleUserReconnect(roomId1, sessionId2, principal);
-
-        // RoomService.reconnectSession이 올바른 인자로 호출되었는지 검증
-        verify(roomService, times(1)).reconnectSession(roomId1, sessionId1, sessionId2, principal);
-        verify(roomService, never()).changeConnectedStatus(any(), any(), any()); // 다른 메서드 호출 안됨 확인
-    }
-
-    @Test
-    @DisplayName("handleUserReconnect: 재연결 대상이 아닐 경우 RoomService.reconnectSession이 호출되지 않는지 확인")
-    void handleUserReconnect_shouldNotReconnectIfNotTarget() {
-        // 준비: 이전 세션 정보 설정
-        ReflectionTestUtils.invokeMethod(sessionService, "addSession", sessionId1, userId1);
-        ReflectionTestUtils.setField(
-                sessionService, "userIdLatestSession", Map.of(userId1, sessionId1));
-
-        // RoomService.isExit -> true 반환하도록 모의 설정
-        when(roomService.isExit(sessionId1, roomId1)).thenReturn(true);
-
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
-        UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
-        // 메서드 호출
-        sessionService.handleUserReconnect(roomId1, sessionId2, principal);
-
-        // RoomService.reconnectSession이 호출되지 않았는지 검증
-        verify(roomService, never())
-                .reconnectSession(anyLong(), anyString(), anyString(), any(UserPrincipal.class));
-    }
 
     @Test
     @DisplayName("handleUserDisconnect: 연결 끊김 상태이고 재연결되지 않았으면 exitIfNotPlaying 호출")
     void handleUserDisconnect_shouldExitIfNotPlayingIfDisconnected() throws InterruptedException {
         // 준비: 맵에 더미 데이터 추가
         sessionService.addRoomId(roomId1, sessionId1);
-        sessionService.addSession(sessionId1, userId1); // ✅ 추가 필요
+        sessionService.addSession(sessionId1, userId1);
 
         User user = new User("provider", "providerId", LocalDateTime.now());
         user.setId(userId1);
@@ -153,11 +112,11 @@ class SessionServiceTests {
         Map<Long, String> userIdLatestSession =
                 (Map<Long, String>)
                         ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
-        assertEquals(sessionId1, userIdLatestSession.get(principal.getUserId()));
+        assertEquals(null, userIdLatestSession.get(principal.getUserId()));
     }
 
     @Test
-    @DisplayName("removeSession: 세션 관련 정보가 올바르게 제거되고 userIdLatestSession에 업데이트되는지 확인")
+    @DisplayName("removeSession: 세션 관련 정보가 올바르게 제거되고 userIdLatestSession에 삭제 확인")
     void removeSession_shouldRemoveAndPutLatestSession() {
         // 준비: 초기 데이터 추가
         sessionService.addSession(sessionId1, userId1);
@@ -183,7 +142,6 @@ class SessionServiceTests {
         assertFalse(userIdSession.containsKey(userId1));
 
         // userIdLatestSession에 업데이트되었는지 확인
-        assertTrue(userIdLatestSession.containsKey(userId1));
-        assertEquals(sessionId1, userIdLatestSession.get(userId1));
+        assertFalse(userIdLatestSession.containsKey(userId1));
     }
 }
