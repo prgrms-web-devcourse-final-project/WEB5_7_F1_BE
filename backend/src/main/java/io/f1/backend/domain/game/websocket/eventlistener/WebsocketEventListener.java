@@ -39,9 +39,9 @@ public class WebsocketEventListener {
 
         String sessionId = getSessionId(message);
 
-        String destination =  getRoomSubscriptionDestination(message);
+        String destination = getRoomSubscriptionDestination(message);
 
-        //todo 인덱스 길이 유효성 추가
+        // todo 인덱스 길이 유효성 추가
         String[] subscribeType = destination.split("/");
 
         if (subscribeType[2].equals("room")) {
