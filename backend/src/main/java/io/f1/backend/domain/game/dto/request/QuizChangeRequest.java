@@ -1,5 +1,7 @@
 package io.f1.backend.domain.game.dto.request;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.model.Room;
@@ -8,8 +10,6 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
 import java.util.Objects;
-
-import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 
 public record QuizChangeRequest(Long quizId) implements GameSettingChanger {
 
