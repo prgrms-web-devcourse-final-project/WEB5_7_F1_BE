@@ -122,6 +122,7 @@ public class Room {
     public void reconnectSession(String oldSessionId, String newSessionId) {
         Player player = playerSessionMap.get(oldSessionId);
         removeSessionId(oldSessionId);
+        player.updateState(ConnectionState.CONNECTED);
         playerSessionMap.put(newSessionId, player);
     }
 

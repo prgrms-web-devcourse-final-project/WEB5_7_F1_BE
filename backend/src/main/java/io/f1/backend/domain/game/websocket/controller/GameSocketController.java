@@ -31,16 +31,26 @@ public class GameSocketController {
         String websocketSessionId = getSessionId(message);
 
         UserPrincipal principal = getSessionUser(message);
+
+        roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+    }
+
+    @MessageMapping("/room/reconnect/{roomId}")
+    public void reconnect(@DestinationVariable Long roomId, Message<?> message) {
+        String websocketSessionId = getSessionId(message);
+
+        UserPrincipal principal = getSessionUser(message);
         Long userId = principal.getUserId();
 
-        if (sessionService.hasOldSessionId(userId)) {
-            String oldSessionId = sessionService.getOldSessionId(userId);
-            /* room 재연결 대상인지 아닌지 판별 */
-            if (!roomService.isExit(oldSessionId, roomId)) {
-                roomService.reconnectSession(roomId, oldSessionId, websocketSessionId, principal);
-            }
-        } else {
-            roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+        if (!sessionService.hasOldSessionId(userId)) {
+            return;
+        }
+
+        String oldSessionId = sessionService.getOldSessionId(userId);
+
+        /* room 재연결 대상인지 아닌지 판별 */
+        if (!roomService.isExit(oldSessionId, roomId)) {
+            roomService.reconnectSession(roomId, oldSessionId, websocketSessionId, principal);
         }
     }
 
@@ -63,8 +73,8 @@ public class GameSocketController {
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<ChatMessage>> message) {
 
         roomService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
     }
