@@ -4,13 +4,11 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toGameResultListRespon
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.MessageType;
-import io.f1.backend.domain.game.dto.response.GameResultResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -25,7 +23,6 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -85,11 +82,16 @@ public class GameService {
 
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
-        messageSender.send(destination, MessageType.GAME_SETTING, toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion()
-            .getQuiz()));
+        messageSender.send(
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
         messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
         messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
-        messageSender.send(destination, MessageType.GAME_RESULT, toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+        messageSender.send(
+                destination,
+                MessageType.GAME_RESULT,
+                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
 
         room.initializeRound();
         for (Player player : playerSessionMap.values()) {

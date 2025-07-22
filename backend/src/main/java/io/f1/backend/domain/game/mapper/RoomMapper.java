@@ -114,18 +114,21 @@ public class RoomMapper {
                 Instant.now().plusSeconds(delay));
     }
 
-    public static GameResultResponse toGameResultResponse(Player player, int round, int rank, int totalPlayers) {
+    public static GameResultResponse toGameResultResponse(
+            Player player, int round, int rank, int totalPlayers) {
         double correctRate = (double) player.getCorrectCount() / round;
         int score = (int) (correctRate * 100) + (totalPlayers - rank) * 5;
 
         return new GameResultResponse(player.nickname, score, player.getCorrectCount(), rank);
     }
 
-    public static GameResultListResponse toGameResultListResponse(Map<String, Player> playerSessionMap, int round) {
+    public static GameResultListResponse toGameResultListResponse(
+            Map<String, Player> playerSessionMap, int round) {
 
-        List<Player> rankedPlayers = playerSessionMap.values().stream()
-            .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
-            .toList();
+        List<Player> rankedPlayers =
+                playerSessionMap.values().stream()
+                        .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
+                        .toList();
 
         int totalPlayers = rankedPlayers.size();
 
@@ -133,12 +136,12 @@ public class RoomMapper {
         int rank = 0;
 
         List<GameResultResponse> gameResults = new ArrayList<>();
-        for(int i=0; i<totalPlayers; i++) {
+        for (int i = 0; i < totalPlayers; i++) {
             Player player = rankedPlayers.get(i);
 
             int correctCnt = player.getCorrectCount();
 
-            if(prevCorrectCnt != correctCnt) {
+            if (prevCorrectCnt != correctCnt) {
                 rank = i + 1;
             }
 
@@ -149,4 +152,3 @@ public class RoomMapper {
         return new GameResultListResponse(gameResults);
     }
 }
-
