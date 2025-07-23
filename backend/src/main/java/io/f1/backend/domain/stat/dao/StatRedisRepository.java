@@ -7,7 +7,6 @@ import io.f1.backend.domain.stat.dto.StatResponse;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class StatRedisRepository {
