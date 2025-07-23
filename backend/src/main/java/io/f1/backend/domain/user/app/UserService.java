@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-	private final RedisPublisher redisPublisher;
+    private final RedisPublisher redisPublisher;
 
     @Transactional
     public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
@@ -46,7 +46,7 @@ public class UserService {
         SecurityUtils.setAuthentication(user);
         UserPrincipal userPrincipal = SecurityUtils.getCurrentUserPrincipal();
 
-		redisPublisher.publish(USER_NEW, new UserNickname(user.getId(), nickname));
+        redisPublisher.publish(USER_NEW, new UserNickname(user.getId(), nickname));
 
         return CurrentUserAndAdminResponse.from(userPrincipal);
     }
@@ -103,7 +103,7 @@ public class UserService {
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(user);
 
-		redisPublisher.publish(USER_DELETE, userId.toString());
+        redisPublisher.publish(USER_DELETE, userId.toString());
     }
 
     @Transactional
@@ -114,7 +114,7 @@ public class UserService {
         session.setAttribute(USER, AuthenticationUser.from(user));
         SecurityUtils.setAuthentication(user);
 
-		redisPublisher.publish(USER_UPDATE, new UserNickname(user.getId(), newNickname));
+        redisPublisher.publish(USER_UPDATE, new UserNickname(user.getId(), newNickname));
     }
 
     @Transactional(readOnly = true)
