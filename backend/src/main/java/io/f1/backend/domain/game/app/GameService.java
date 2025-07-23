@@ -32,7 +32,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class GameService {
 
-    private static final int START_DELAY = 5;
+    public static final int START_DELAY = 5;
 
     private final MessageSender messageSender;
     private final TimerService timerService;
