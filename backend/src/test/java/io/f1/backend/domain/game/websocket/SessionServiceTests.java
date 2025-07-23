@@ -15,7 +15,6 @@ import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 
-import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
 @ExtendWith(MockitoExtension.class)
 class SessionServiceTests {
@@ -54,8 +54,8 @@ class SessionServiceTests {
         ReflectionTestUtils.setField(
                 sessionService, "userIdLatestSession", new ConcurrentHashMap<>());
 
-        ReflectionTestUtils.setField(sessionService, "scheduler", Executors.newScheduledThreadPool(2));
-
+        ReflectionTestUtils.setField(
+                sessionService, "scheduler", Executors.newScheduledThreadPool(2));
     }
 
     @Test
@@ -163,19 +163,22 @@ class SessionServiceTests {
 
         // then
         Map<Long, String> userIdLatestSession =
-            (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
+                (Map<Long, String>)
+                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
 
         assertTrue(userIdLatestSession.containsKey(userId1));
         assertEquals(sessionId1, userIdLatestSession.get(userId1));
 
         // 재연결 상태 변경 검증
         verify(roomService, times(1))
-            .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
+                .changeConnectedStatus(roomId1, sessionId1, ConnectionState.DISCONNECTED);
     }
 
     @Test
-    @DisplayName("handleUserDisconnect 후 5초 내 재연결: userIdLatestSession이 정리되고 exitIfNotPlaying이 호출되지 않음")
-    void handleUserDisconnect_reconnectWithin5Seconds_shouldCleanLatestSession() throws InterruptedException {
+    @DisplayName(
+            "handleUserDisconnect 후 5초 내 재연결: userIdLatestSession이 정리되고 exitIfNotPlaying이 호출되지 않음")
+    void handleUserDisconnect_reconnectWithin5Seconds_shouldCleanLatestSession()
+            throws InterruptedException {
         // given
         sessionService.addSession(sessionId1, userId1); // 초기 세션
         sessionService.addRoomId(roomId1, sessionId1);
@@ -184,7 +187,8 @@ class SessionServiceTests {
         user.setId(userId1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
-        sessionService.handleUserDisconnect(sessionId1, principal); // 세션1 끊김, userIdLatestSession에 세션1 저장
+        sessionService.handleUserDisconnect(
+                sessionId1, principal); // 세션1 끊김, userIdLatestSession에 세션1 저장
 
         // 5초 타이머가 실행되기 전에 새로운 세션으로 재연결 시도 (userIdSession 업데이트)
         sessionService.addSession(sessionId2, userId1); // userId1의 새 세션은 sessionId2
@@ -195,21 +199,22 @@ class SessionServiceTests {
 
         // then
         Map<Long, String> userIdLatestSession =
-            (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
+                (Map<Long, String>)
+                        ReflectionTestUtils.getField(sessionService, "userIdLatestSession");
         Map<String, Long> sessionIdUser =
-            (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdUser");
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdUser");
         Map<String, Long> sessionIdRoom =
-            (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdRoom");
+                (Map<String, Long>) ReflectionTestUtils.getField(sessionService, "sessionIdRoom");
         Map<Long, String> userIdSession =
-            (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdSession");
-
+                (Map<Long, String>) ReflectionTestUtils.getField(sessionService, "userIdSession");
 
         // userIdLatestSession은 정리되어야 함
         assertFalse(userIdLatestSession.containsKey(userId1));
         assertNull(userIdLatestSession.get(userId1));
 
         // roomService.exitIfNotPlaying은 호출되지 않아야 함 (재연결 성공했으므로)
-        verify(roomService, never()).exitIfNotPlaying(anyLong(), anyString(), any(UserPrincipal.class));
+        verify(roomService, never())
+                .exitIfNotPlaying(anyLong(), anyString(), any(UserPrincipal.class));
 
         // 세션 관련 맵들이 올바르게 정리되었는지 확인
         // sessionId1에 대한 정보는 모두 삭제되어야 함
