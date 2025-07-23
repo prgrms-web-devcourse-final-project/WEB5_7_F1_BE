@@ -8,10 +8,10 @@ public record TimeLimitChangeRequest(int timeLimit) implements GameSettingChange
 
     @Override
     public boolean change(Room room, QuizService quizService) {
-        if (room.getGameSetting().getTimeLimit() == timeLimit) {
+        if (room.getTimeLimit() == timeLimit) {
             return false; // 동일하면 무시
         }
-        room.getGameSetting().changeTimeLimit(TimeLimit.from(timeLimit));
+        room.changeTimeLimit(TimeLimit.from(timeLimit));
         return true;
     }
 

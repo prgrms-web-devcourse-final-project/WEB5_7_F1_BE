@@ -5,8 +5,9 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
+import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -23,12 +24,14 @@ import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GameService {
@@ -72,18 +75,18 @@ public class GameService {
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
-        Player player =
-                roomRepository
-                        .findPlayerInRoomBySessionId(roomId, sessionId)
-                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         Room room = findRoom(roomId);
+
+        Player player = room.getPlayerSessionMap().get(sessionId);
 
         toggleReadyIfPossible(room, player);
 
         String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+        log.info(playerListResponse.toString());
+        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
     }
 
     public void changeGameSetting(
@@ -98,10 +101,8 @@ public class GameService {
 
         broadcastGameSetting(room);
 
-        RoomUpdatedEvent roomUpdatedEvent =
-                new RoomUpdatedEvent(
-                        room,
-                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
+        RoomUpdatedEvent roomUpdatedEvent = new RoomUpdatedEvent(room,
+            quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }
@@ -138,7 +139,7 @@ public class GameService {
     }
 
     private void validateHostAndState(Room room, UserPrincipal principal) {
-        if (!Objects.equals(principal.getUserId(), room.getHost().getId())) {
+        if (!room.isHost(principal.getUserId())) {
             throw new CustomException(RoomErrorCode.NOT_ROOM_OWNER);
         }
         if (room.isPlaying()) {
@@ -150,7 +151,7 @@ public class GameService {
         if (room.isPlaying()) {
             throw new CustomException(RoomErrorCode.GAME_ALREADY_PLAYING);
         }
-        if (!Objects.equals(player.getId(), room.getHost().getId())) {
+        if (!room.isHost(player.getId())) {
             player.toggleReady();
         }
     }
@@ -159,8 +160,8 @@ public class GameService {
         String destination = getDestination(room.getId());
         Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
         messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), quiz));
+            destination,
+            MessageType.GAME_SETTING,
+            toGameSettingResponse(room.getGameSetting(), quiz));
     }
 }

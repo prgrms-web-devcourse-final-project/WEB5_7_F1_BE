@@ -11,14 +11,14 @@ public record RoundChangeRequest(Integer round) implements GameSettingChanger {
 
     @Override
     public boolean change(Room room, QuizService quizService) {
-        if (Objects.equals(room.getGameSetting().getRound(), round)) {
+        if (Objects.equals(room.getRound(), round)) {
             return false; // 동일하면 무시
         }
 
-        Quiz quiz = quizService.findQuizById(room.getGameSetting().getQuizId());
+        Quiz quiz = quizService.findQuizById(room.getQuizId());
         int questionSize = quiz.getQuestions().size();
 
-        room.getGameSetting().changeRound(round, questionSize);
+        room.changeRound(round, questionSize);
         return true;
     }
 

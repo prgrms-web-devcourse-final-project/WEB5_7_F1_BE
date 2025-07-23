@@ -1,7 +1,9 @@
 package io.f1.backend.domain.game.model;
 
+import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
 
+import io.f1.backend.domain.quiz.entity.Quiz;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -49,7 +51,7 @@ public class Room {
     }
 
     public boolean isHost(Long id) {
-        return this.host.getId().equals(id);
+        return Objects.equals(host.id, id);
     }
 
     public void updateQuestions(List<Question> questions) {
@@ -103,4 +105,29 @@ public class Room {
             player.setReadyFalse();
         }
     }
+
+    public void changeQuiz(Quiz quiz) {
+        gameSetting.changeQuiz(quiz);
+    }
+
+    public void changeTimeLimit(TimeLimit timeLimit) {
+        gameSetting.changeTimeLimit(timeLimit);
+    }
+
+    public void changeRound(int round, int questionCount) {
+        gameSetting.changeRound(round, questionCount);
+    }
+
+    public Long getQuizId() {
+        return gameSetting.getQuizId();
+    }
+
+    public int getTimeLimit() {
+        return gameSetting.getTimeLimit();
+    }
+
+    public int getRound() {
+        return gameSetting.getRound();
+    }
+
 }
