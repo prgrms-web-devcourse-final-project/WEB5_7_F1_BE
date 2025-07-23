@@ -90,7 +90,7 @@ public class RedisStatBrowserTest extends BrowserTestTemplate {
                                 .content(om.writeValueAsString(signupRequest)))
                 .andExpect(status().isCreated());
 
-        sleep(100);
+        sleep(1000);
 
         ResultActions result = mockMvc.perform(get("/stats/rankings").param("nickname", nickname));
 
@@ -120,7 +120,7 @@ public class RedisStatBrowserTest extends BrowserTestTemplate {
                                 .content(om.writeValueAsString(signupRequest)))
                 .andExpect(status().isNoContent());
 
-        sleep(100);
+        sleep(1000);
 
         ResultActions result = mockMvc.perform(get("/stats/rankings").param("nickname", nickname));
 
@@ -146,7 +146,7 @@ public class RedisStatBrowserTest extends BrowserTestTemplate {
         // when
         mockMvc.perform(delete("/user/me").session(session)).andExpect(status().isNoContent());
 
-        sleep(100);
+        sleep(1000);
 
         ResultActions result = mockMvc.perform(get("/stats/rankings"));
 
