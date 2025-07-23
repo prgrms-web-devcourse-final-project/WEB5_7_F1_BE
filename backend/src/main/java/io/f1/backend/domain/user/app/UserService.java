@@ -2,16 +2,21 @@ package io.f1.backend.domain.user.app;
 
 import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
 import static io.f1.backend.domain.user.constants.SessionKeys.USER;
+import static io.f1.backend.global.util.RedisPublisher.USER_DELETE;
+import static io.f1.backend.global.util.RedisPublisher.USER_NEW;
+import static io.f1.backend.global.util.RedisPublisher.USER_UPDATE;
 
 import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
+import io.f1.backend.domain.user.dto.UserNickname;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
+import io.f1.backend.global.util.RedisPublisher;
 import io.f1.backend.global.util.SecurityUtils;
 
 import jakarta.servlet.http.HttpSession;
@@ -26,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+	private final RedisPublisher redisPublisher;
 
     @Transactional
     public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
@@ -39,6 +45,8 @@ public class UserService {
 
         SecurityUtils.setAuthentication(user);
         UserPrincipal userPrincipal = SecurityUtils.getCurrentUserPrincipal();
+
+		redisPublisher.publish(USER_NEW, new UserNickname(user.getId(), nickname));
 
         return CurrentUserAndAdminResponse.from(userPrincipal);
     }
@@ -94,6 +102,8 @@ public class UserService {
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(user);
+
+		redisPublisher.publish(USER_DELETE, userId.toString());
     }
 
     @Transactional
@@ -103,6 +113,8 @@ public class UserService {
         User user = initNickname(userId, newNickname);
         session.setAttribute(USER, AuthenticationUser.from(user));
         SecurityUtils.setAuthentication(user);
+
+		redisPublisher.publish(USER_UPDATE, new UserNickname(user.getId(), newNickname));
     }
 
     @Transactional(readOnly = true)

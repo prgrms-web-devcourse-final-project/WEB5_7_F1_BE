@@ -6,13 +6,16 @@ import io.f1.backend.global.validation.LimitPageSize;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,18 +28,8 @@ public class StatController {
     @LimitPageSize
     @GetMapping("/rankings")
     public ResponseEntity<StatPageResponse> getRankings(
+			@RequestParam(required = false) String nickname,
             @PageableDefault(sort = "score", direction = Direction.DESC) Pageable pageable) {
-        StatPageResponse response = statService.getRanks(pageable);
-
-        return ResponseEntity.ok().body(response);
-    }
-
-    @LimitPageSize
-    @GetMapping("/rankings/{nickname}")
-    public ResponseEntity<StatPageResponse> getRankingsByNickname(
-            @PathVariable String nickname, @PageableDefault Pageable pageable) {
-        StatPageResponse response =
-                statService.getRanksByNickname(nickname, pageable.getPageSize());
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().body(statService.getRanks(pageable, nickname));
     }
 }
