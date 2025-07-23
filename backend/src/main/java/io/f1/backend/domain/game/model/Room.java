@@ -3,13 +3,17 @@ package io.f1.backend.domain.game.model;
 import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.global.exception.CustomException;
+import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -33,7 +37,7 @@ public class Room {
 
     private Map<String, Player> playerSessionMap = new ConcurrentHashMap<>();
 
-    private Map<Long, String> userIdSessionMap = new ConcurrentHashMap<>();
+    private final Set<Long> validatedUserIds = new HashSet<>();
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
@@ -48,6 +52,26 @@ public class Room {
         this.roomSetting = roomSetting;
         this.gameSetting = gameSetting;
         this.host = host;
+    }
+
+    public void addValidatedUserId(Long userId) {
+        validatedUserIds.add(userId);
+    }
+
+    public int getCurrentUserCnt() {
+        return validatedUserIds.size();
+    }
+
+    public void addPlayer(String sessionId, Player player) {
+        Long userId = player.getId();
+        if (!validatedUserIds.contains(userId)) {
+            throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
+        }
+
+        if (isHost(userId)) {
+            player.toggleReady();
+        }
+        playerSessionMap.put(sessionId, player);
     }
 
     public boolean isHost(Long id) {
@@ -70,12 +94,12 @@ public class Room {
         this.timer = timer;
     }
 
-    public void removeUserId(Long id) {
-        this.userIdSessionMap.remove(id);
-    }
-
     public void removeSessionId(String sessionId) {
         this.playerSessionMap.remove(sessionId);
+    }
+
+    public void removeValidatedUserId(Long userId) {
+        validatedUserIds.remove(userId);
     }
 
     public void increasePlayerCorrectCount(String sessionId) {
@@ -86,12 +110,35 @@ public class Room {
         return questions.get(currentRound - 1);
     }
 
-    public Boolean isPlaying() {
+    public boolean isPlaying() {
         return state == RoomState.PLAYING;
     }
 
     public void increaseCurrentRound() {
         currentRound++;
+    }
+
+    public void reconnectSession(String oldSessionId, String newSessionId) {
+        Player player = playerSessionMap.get(oldSessionId);
+        removeSessionId(oldSessionId);
+        player.updateState(ConnectionState.CONNECTED);
+        playerSessionMap.put(newSessionId, player);
+    }
+
+    public void updatePlayerConnectionState(String sessionId, ConnectionState newState) {
+        playerSessionMap.get(sessionId).updateState(newState);
+    }
+
+    public boolean isExit(String sessionId) {
+        return playerSessionMap.get(sessionId) == null;
+    }
+
+    public boolean isLastPlayer(String sessionId) {
+        long connectedCount =
+                playerSessionMap.values().stream()
+                        .filter(player -> player.getState() == ConnectionState.CONNECTED)
+                        .count();
+        return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 
     public boolean validateReadyStatus() {

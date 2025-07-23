@@ -33,7 +33,7 @@ public class SecurityUtils {
                 && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return userPrincipal;
         }
-        throw new RuntimeException("E401001: 로그인이 필요합니다.");
+        throw new CustomException(AuthErrorCode.UNAUTHORIZED);
     }
 
     public static Long getCurrentUserId() {
