@@ -65,15 +65,3 @@ server:
         secure: true
         http-only: true
       timeout: ${SESSION_TIMEOUT}
-
-logging:
-  level:
-    org:
-      springframework:
-        web:
-          socket: DEBUG
-        messaging: DEBUG
-        security:
-          web:
-            authentication:
-              preauth: DEBUG
