@@ -8,6 +8,7 @@ import io.f1.backend.domain.game.sse.dto.LobbySseEvent;
 import io.f1.backend.domain.game.sse.dto.RoomUpdatedPayload;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
