@@ -36,11 +36,6 @@ public class RoomRepositoryImpl implements RoomRepository {
         roomMap.remove(roomId);
     }
 
-    @Override
-    public Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId) {
-        return findRoom(roomId).map(room -> room.getPlayerSessionMap().get(sessionId));
-    }
-
     // 테스트 전용 메소드
     public Room getRoomForTest(Long roomId) {
         return roomMap.get(roomId);

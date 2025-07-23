@@ -15,6 +15,4 @@ public interface RoomRepository {
     List<Room> findAll();
 
     void removeRoom(Long roomId);
-
-    Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId);
 }

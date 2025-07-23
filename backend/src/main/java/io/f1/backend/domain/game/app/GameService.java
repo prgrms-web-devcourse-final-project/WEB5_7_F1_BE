@@ -79,6 +79,9 @@ public class GameService {
         Room room = findRoom(roomId);
 
         Player player = room.getPlayerSessionMap().get(sessionId);
+        if (player == null) {
+            throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+        }
 
         toggleReadyIfPossible(room, player);
 
