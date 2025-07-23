@@ -45,15 +45,18 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -138,17 +141,17 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-            toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         SystemNoticeResponse systemNoticeResponse =
-            ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
+                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         String destination = getDestination(roomId);
 
-        messageSender.sendPersonal(getUserDestination(), MessageType.GAME_SETTING, gameSettingResponse,
-            principal);
+        messageSender.sendPersonal(
+                getUserDestination(), MessageType.GAME_SETTING, gameSettingResponse, principal);
 
         messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, roomSettingResponse);
         messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
@@ -166,8 +169,11 @@ public class RoomService {
 
             String destination = getDestination(roomId);
 
-            messageSender.sendPersonal(getUserDestination(), MessageType.EXIT_SUCCESS,
-                new ExitSuccessResponse(true), principal);
+            messageSender.sendPersonal(
+                    getUserDestination(),
+                    MessageType.EXIT_SUCCESS,
+                    new ExitSuccessResponse(true),
+                    principal);
 
             /* 방 삭제 */
             if (room.isLastPlayer(sessionId)) {
@@ -184,15 +190,14 @@ public class RoomService {
             removePlayer(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
+                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
             messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
-            messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE,
-                systemNoticeResponse);
+            messageSender.sendBroadcast(
+                    destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
-
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -207,22 +212,22 @@ public class RoomService {
 
         String destination = getDestination(roomId);
 
-        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST,
-            toPlayerListResponse(room));
+        messageSender.sendBroadcast(
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-            rooms.stream()
-                .map(
-                    room -> {
-                        Long quizId = room.getGameSetting().getQuizId();
-                        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+                rooms.stream()
+                        .map(
+                                room -> {
+                                    Long quizId = room.getGameSetting().getQuizId();
+                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
-                        return toRoomResponse(room, quiz);
-                    })
-                .toList();
+                                    return toRoomResponse(room, quiz);
+                                })
+                        .toList();
         return new RoomListResponse(roomResponses);
     }
 
@@ -246,15 +251,15 @@ public class RoomService {
             room.increasePlayerCorrectCount(sessionId);
 
             messageSender.sendBroadcast(
-                destination,
-                MessageType.QUESTION_RESULT,
-                toQuestionResultResponse(chatMessage.nickname(), answer));
-            messageSender.sendBroadcast(destination, MessageType.RANK_UPDATE,
-                toRankUpdateResponse(room));
+                    destination,
+                    MessageType.QUESTION_RESULT,
+                    toQuestionResultResponse(chatMessage.nickname(), answer));
             messageSender.sendBroadcast(
-                destination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
+                    destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+            messageSender.sendBroadcast(
+                    destination,
+                    MessageType.SYSTEM_NOTICE,
+                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
 
             timerService.cancelTimer(room);
 
@@ -269,14 +274,14 @@ public class RoomService {
             // 타이머 추가하기
             timerService.startTimer(room, CONTINUE_DELAY);
             messageSender.sendBroadcast(
-                destination,
-                MessageType.QUESTION_START,
-                toQuestionStartResponse(room, CONTINUE_DELAY));
+                    destination,
+                    MessageType.QUESTION_START,
+                    toQuestionStartResponse(room, CONTINUE_DELAY));
         }
     }
 
     public void reconnectSession(
-        Long roomId, String oldSessionId, String newSessionId, UserPrincipal principal) {
+            Long roomId, String oldSessionId, String newSessionId, UserPrincipal principal) {
         Room room = findRoom(roomId);
         room.reconnectSession(oldSessionId, newSessionId);
 
@@ -284,20 +289,26 @@ public class RoomService {
         String userDestination = getUserDestination();
 
         messageSender.sendBroadcast(
-            destination,
-            MessageType.SYSTEM_NOTICE,
-            ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
 
         if (room.isPlaying()) {
-            messageSender.sendPersonal(userDestination, MessageType.RANK_UPDATE,
-                toRankUpdateResponse(room), principal);
             messageSender.sendPersonal(
-                userDestination, MessageType.GAME_START, toGameStartResponse(room.getQuestions()),
-                principal);
+                    userDestination,
+                    MessageType.RANK_UPDATE,
+                    toRankUpdateResponse(room),
+                    principal);
             messageSender.sendPersonal(
-                userDestination,
-                MessageType.QUESTION_START,
-                toQuestionStartResponse(room, START_DELAY), principal);
+                    userDestination,
+                    MessageType.GAME_START,
+                    toGameStartResponse(room.getQuestions()),
+                    principal);
+            messageSender.sendPersonal(
+                    userDestination,
+                    MessageType.QUESTION_START,
+                    toQuestionStartResponse(room, START_DELAY),
+                    principal);
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -306,16 +317,16 @@ public class RoomService {
             Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
             GameSettingResponse gameSettingResponse =
-                toGameSettingResponse(room.getGameSetting(), quiz);
+                    toGameSettingResponse(room.getGameSetting(), quiz);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
-            messageSender.sendPersonal(userDestination, MessageType.ROOM_SETTING,
-                roomSettingResponse, principal);
-            messageSender.sendPersonal(userDestination, MessageType.PLAYER_LIST, playerListResponse,
-                principal);
-            messageSender.sendPersonal(userDestination, MessageType.GAME_SETTING,
-                gameSettingResponse, principal);
+            messageSender.sendPersonal(
+                    userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal);
+            messageSender.sendPersonal(
+                    userDestination, MessageType.PLAYER_LIST, playerListResponse, principal);
+            messageSender.sendPersonal(
+                    userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal);
         }
     }
 
@@ -370,11 +381,11 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         Optional<String> nextHostSessionId =
-            playerSessionMap.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(hostSessionId))
-                .filter(entry -> entry.getValue().getState() == ConnectionState.CONNECTED)
-                .map(Map.Entry::getKey)
-                .findFirst();
+                playerSessionMap.entrySet().stream()
+                        .filter(entry -> !entry.getKey().equals(hostSessionId))
+                        .filter(entry -> entry.getValue().getState() == ConnectionState.CONNECTED)
+                        .map(Map.Entry::getKey)
+                        .findFirst();
 
         Player nextHost =
                 playerSessionMap.get(

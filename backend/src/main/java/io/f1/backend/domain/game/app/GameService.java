@@ -63,7 +63,8 @@ public class GameService {
 
         timerService.startTimer(room, START_DELAY);
 
-        messageSender.sendBroadcast(destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.sendBroadcast(
+                destination, MessageType.GAME_START, toGameStartResponse(questions));
         messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_START,

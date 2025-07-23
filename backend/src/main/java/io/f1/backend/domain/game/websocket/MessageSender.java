@@ -3,7 +3,9 @@ package io.f1.backend.domain.game.websocket;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.DefaultWebSocketResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +17,12 @@ public class MessageSender {
 
     public <T> void sendBroadcast(String destination, MessageType type, T message) {
         messagingTemplate.convertAndSend(
-            destination, new DefaultWebSocketResponse<>(type, message));
+                destination, new DefaultWebSocketResponse<>(type, message));
     }
 
-    public <T> void sendPersonal(String destination, MessageType type, T message,
-        UserPrincipal principal) {
-        messagingTemplate.convertAndSendToUser(principal.getName(), destination,
-            new DefaultWebSocketResponse<>(type, message));
+    public <T> void sendPersonal(
+            String destination, MessageType type, T message, UserPrincipal principal) {
+        messagingTemplate.convertAndSendToUser(
+                principal.getName(), destination, new DefaultWebSocketResponse<>(type, message));
     }
 }
