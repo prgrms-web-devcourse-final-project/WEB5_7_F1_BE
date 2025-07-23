@@ -51,7 +51,7 @@ public class Room {
     }
 
     public boolean isHost(Long id) {
-        return Objects.equals(host.id, id);
+        return this.host.getId().equals(id);
     }
 
     public void updateQuestions(List<Question> questions) {
