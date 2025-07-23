@@ -3,10 +3,6 @@ package io.f1.backend.domain.game.model;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
-import java.util.concurrent.ScheduledFuture;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import lombok.Getter;
 
 @Getter
 public class Room {
@@ -137,9 +134,7 @@ public class Room {
 
     public boolean isLastPlayer(String sessionId) {
         long connectedCount =
-                playerSessionMap.values().stream()
-                        .filter(player -> player.getState() == ConnectionState.CONNECTED)
-                        .count();
+            playerSessionMap.size();
         return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 }
