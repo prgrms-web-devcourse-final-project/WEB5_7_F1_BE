@@ -27,16 +27,21 @@ public class StompChannelInterceptor implements ChannelInterceptor {
             throw new IllegalArgumentException("Stomp command required");
         }
 
+        String username = "알수없는 사용자";
+        if (accessor.getUser() != null) {
+            username = accessor.getUser().getName();
+        }
+
         if (command.equals(StompCommand.CONNECT)) {
-            log.info("CONNECT : 세션 연결 - sessionId = {}", sessionId);
+            log.info("user : {} | CONNECT : 세션 연결 - sessionId = {}", username, sessionId);
         } else if (command.equals(StompCommand.SUBSCRIBE)) {
             if (destination != null && sessionId != null) {
-                log.info("SUBSCRIBE : 구독 시작 destination = {}", destination);
+                log.info("user : {} | SUBSCRIBE : 구독 시작 destination = {}", username, destination);
             }
         } else if (command.equals(StompCommand.SEND)) {
-            log.info("SEND : 요청 destination = {}", destination);
+            log.info("user : {} | SEND : 요청 destination = {}", username, destination);
         } else if (command.equals(StompCommand.DISCONNECT)) {
-            log.info("DISCONNECT : 연결 해제 sessionId = {}", sessionId);
+            log.info("user : {} | DISCONNECT : 연결 해제 sessionId = {}", username, sessionId);
         }
 
         return message;

@@ -27,4 +27,8 @@ public class Player {
     public void increaseCorrectCount() {
         correctCount++;
     }
+
+    public void updateState(ConnectionState newState) {
+        state = newState;
+    }
 }

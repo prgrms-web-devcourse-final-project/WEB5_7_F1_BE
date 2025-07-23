@@ -66,7 +66,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public void validateNicknameDuplicate(String nickname) {
-        if (userRepository.existsUserByNickname(nickname)) {
+        if (userRepository.existsUserByNicknameIgnoreCase(nickname)) {
             throw new CustomException(UserErrorCode.NICKNAME_CONFLICT);
         }
     }

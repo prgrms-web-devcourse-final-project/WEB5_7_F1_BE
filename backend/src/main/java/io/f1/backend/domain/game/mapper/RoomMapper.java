@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.mapper;
 
-import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -8,6 +7,7 @@ import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
 import io.f1.backend.domain.game.dto.response.QuestionResultResponse;
+import io.f1.backend.domain.game.dto.response.QuestionStartResponse;
 import io.f1.backend.domain.game.dto.response.QuizResponse;
 import io.f1.backend.domain.game.dto.response.RankUpdateResponse;
 import io.f1.backend.domain.game.dto.response.RoomResponse;
@@ -44,7 +44,8 @@ public class RoomMapper {
         return new RoomSettingResponse(
                 room.getRoomSetting().roomName(),
                 room.getRoomSetting().maxUserCount(),
-                room.getPlayerSessionMap().size());
+                room.getPlayerSessionMap().size(),
+                room.getRoomSetting().locked());
     }
 
     public static GameSettingResponse toGameSettingResponse(GameSetting gameSetting, Quiz quiz) {
@@ -86,18 +87,11 @@ public class RoomMapper {
     }
 
     public static SystemNoticeResponse ofPlayerEvent(String nickname, RoomEventType roomEventType) {
-        String message = "";
-        if (roomEventType == RoomEventType.ENTER) {
-            message = " 님이 입장하셨습니다";
-        } else if (roomEventType == RoomEventType.EXIT) {
-            message = " 님이 퇴장하셨습니다";
-        }
-        return new SystemNoticeResponse(nickname + message, Instant.now());
+        return new SystemNoticeResponse(roomEventType.getMessage(nickname), Instant.now());
     }
 
-    public static QuestionResultResponse toQuestionResultResponse(
-            Long questionId, ChatMessage chatMessage, String answer) {
-        return new QuestionResultResponse(questionId, chatMessage.nickname(), answer);
+    public static QuestionResultResponse toQuestionResultResponse(String nickname, String answer) {
+        return new QuestionResultResponse(nickname, answer);
     }
 
     public static RankUpdateResponse toRankUpdateResponse(Room room) {
@@ -106,5 +100,12 @@ public class RoomMapper {
                         .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
                         .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
                         .toList());
+    }
+
+    public static QuestionStartResponse toQuestionStartResponse(Room room, int delay) {
+        return new QuestionStartResponse(
+                room.getCurrentQuestion().getId(),
+                room.getCurrentRound(),
+                Instant.now().plusSeconds(delay));
     }
 }
