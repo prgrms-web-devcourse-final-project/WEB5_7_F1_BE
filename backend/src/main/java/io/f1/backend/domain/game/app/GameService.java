@@ -5,8 +5,8 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
-import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
@@ -23,8 +23,8 @@ import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -101,8 +101,10 @@ public class GameService {
 
         broadcastGameSetting(room);
 
-        RoomUpdatedEvent roomUpdatedEvent = new RoomUpdatedEvent(room,
-            quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
+        RoomUpdatedEvent roomUpdatedEvent =
+                new RoomUpdatedEvent(
+                        room,
+                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }
@@ -160,8 +162,8 @@ public class GameService {
         String destination = getDestination(room.getId());
         Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
         messageSender.send(
-            destination,
-            MessageType.GAME_SETTING,
-            toGameSettingResponse(room.getGameSetting(), quiz));
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(room.getGameSetting(), quiz));
     }
 }

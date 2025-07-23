@@ -2,8 +2,8 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
-
 import io.f1.backend.domain.quiz.entity.Quiz;
+
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -129,5 +129,4 @@ public class Room {
     public int getRound() {
         return gameSetting.getRound();
     }
-
 }
