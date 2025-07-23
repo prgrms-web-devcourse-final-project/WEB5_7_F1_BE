@@ -44,11 +44,11 @@ public class TimerService {
     private void handleTimeout(Room room) {
         String destination = getDestination(room.getId());
 
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_RESULT,
                 toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
@@ -64,7 +64,7 @@ public class TimerService {
         room.increaseCurrentRound();
 
         startTimer(room, CONTINUE_DELAY);
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, CONTINUE_DELAY));

@@ -15,11 +15,12 @@ public class MessageSender {
 
     public <T> void sendBroadcast(String destination, MessageType type, T message) {
         messagingTemplate.convertAndSend(
-                destination, new DefaultWebSocketResponse<>(type, message));
+            destination, new DefaultWebSocketResponse<>(type, message));
     }
 
-    public <T> void sendPersonal(String destination, MessageType type, T message, UserPrincipal principal) {
-        System.out.println("MessageSend userPrincipal.getName() :"+principal.getName() );
-        messagingTemplate.convertAndSendToUser(principal.getName(), destination, new DefaultWebSocketResponse<>(type, message));
+    public <T> void sendPersonal(String destination, MessageType type, T message,
+        UserPrincipal principal) {
+        messagingTemplate.convertAndSendToUser(principal.getName(), destination,
+            new DefaultWebSocketResponse<>(type, message));
     }
 }

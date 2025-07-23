@@ -3,7 +3,6 @@ package io.f1.backend.domain.game.mapper;
 import io.f1.backend.domain.game.dto.Rank;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
-import io.f1.backend.domain.game.dto.response.ExitSuccessResponse;
 import io.f1.backend.domain.game.dto.response.GameSettingResponse;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.dto.response.PlayerResponse;
@@ -20,7 +19,6 @@ import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
-
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -108,9 +106,5 @@ public class RoomMapper {
                 room.getCurrentQuestion().getId(),
                 room.getCurrentRound(),
                 Instant.now().plusSeconds(delay));
-    }
-
-    public static ExitSuccessResponse toExitSuccessResponse(long userId, boolean isRemoved) {
-        return new ExitSuccessResponse(userId, isRemoved);
     }
 }
