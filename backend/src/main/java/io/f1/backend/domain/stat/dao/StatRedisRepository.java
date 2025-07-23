@@ -110,9 +110,9 @@ public class StatRedisRepository {
         String statUserKey = getStatUserKey(userId);
 
         zSetOps.incrementScore(STAT_RANK, getStatUserKey(userId), deltaScore);
-        hashOps.increment(statUserKey, "totalGame", 1);
+        hashOps.increment(statUserKey, "totalGames", 1);
         if (win) {
-            hashOps.increment(statUserKey, "winningGame", 1);
+            hashOps.increment(statUserKey, "winningGames", 1);
         }
     }
 
