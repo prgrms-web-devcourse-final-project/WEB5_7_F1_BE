@@ -12,14 +12,12 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
-
 @Slf4j
-public record QuizChangeRequest(Long quizId) implements GameSettingChanger {
+public record QuizChangeRequest(long quizId) implements GameSettingChanger {
 
     @Override
     public boolean change(Room room, QuizService quizService) {
-        if (Objects.equals(room.getQuizId(), quizId)) {
+        if (room.getQuizId() == quizId) {
             return false; // 동일하면 무시
         }
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);

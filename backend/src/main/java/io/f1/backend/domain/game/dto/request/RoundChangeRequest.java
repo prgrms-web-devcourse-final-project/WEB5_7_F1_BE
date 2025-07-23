@@ -5,13 +5,11 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
 
-import java.util.Objects;
-
-public record RoundChangeRequest(Integer round) implements GameSettingChanger {
+public record RoundChangeRequest(int round) implements GameSettingChanger {
 
     @Override
     public boolean change(Room room, QuizService quizService) {
-        if (Objects.equals(room.getRound(), round)) {
+        if (room.getRound() == round) {
             return false; // 동일하면 무시
         }
 
