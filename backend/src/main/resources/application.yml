@@ -64,7 +64,7 @@ server:
         same-site: None
         secure: true
         http-only: true
-      timeout: 60
+      timeout: ${SESSION_TIMEOUT}
 
 logging:
   level:

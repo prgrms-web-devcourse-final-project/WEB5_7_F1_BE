@@ -18,4 +18,13 @@ public class WebSocketUtils {
         Authentication auth = (Authentication) accessor.getUser();
         return (UserPrincipal) auth.getPrincipal();
     }
+
+    public static String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
+    }
+
+    public static String getRoomSubscriptionDestination(Message<?> message) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+        return headerAccessor.getDestination();
+    }
 }

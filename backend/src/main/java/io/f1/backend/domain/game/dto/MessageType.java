@@ -10,4 +10,5 @@ public enum MessageType {
     QUESTION_RESULT,
     RANK_UPDATE,
     EXIT_SUCCESS,
+    QUESTION_START
 }
