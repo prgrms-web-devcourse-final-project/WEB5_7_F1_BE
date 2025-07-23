@@ -116,7 +116,7 @@ public class RoomService {
             }
 
             if (room.getRoomSetting().locked()
-                && !room.getRoomSetting().password().equals(request.password())) {
+                    && !room.getRoomSetting().password().equals(request.password())) {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
@@ -192,13 +192,14 @@ public class RoomService {
             messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE,
                 systemNoticeResponse);
         }
+
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
         Player player =
-            roomRepository
-                .findPlayerInRoomBySessionId(roomId, sessionId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
+                roomRepository
+                        .findPlayerInRoomBySessionId(roomId, sessionId)
+                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
 
         player.toggleReady();
 
@@ -354,8 +355,8 @@ public class RoomService {
 
     private Room findRoom(Long roomId) {
         return roomRepository
-            .findRoom(roomId)
-            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private void removeRoom(Room room) {
@@ -376,9 +377,9 @@ public class RoomService {
                 .findFirst();
 
         Player nextHost =
-            playerSessionMap.get(
-                nextHostSessionId.orElseThrow(
-                    () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
+                playerSessionMap.get(
+                        nextHostSessionId.orElseThrow(
+                                () -> new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND)));
 
         room.updateHost(nextHost);
         log.info("user_id:{} 방장 변경 완료 ", nextHost.getId());
