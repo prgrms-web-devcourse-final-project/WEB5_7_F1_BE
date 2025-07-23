@@ -7,10 +7,10 @@ import io.f1.backend.domain.game.app.GameService;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
-import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.game.dto.request.QuizChangeRequest;
 import io.f1.backend.domain.game.dto.request.RoundChangeRequest;
 import io.f1.backend.domain.game.dto.request.TimeLimitChangeRequest;
+import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
