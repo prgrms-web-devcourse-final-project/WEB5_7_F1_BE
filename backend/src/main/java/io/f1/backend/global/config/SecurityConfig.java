@@ -10,6 +10,7 @@ import io.f1.backend.global.filter.DevTokenAuthFilter;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,6 +32,9 @@ public class SecurityConfig {
     private final UserAndAdminLogoutSuccessHandler userAndAdminLogoutSuccessHandler;
     private final AdminLoginSuccessHandler adminLoginSuccessHandler;
     private final AdminLoginFailureHandler adminLoginFailureHandler;
+
+	@Value("${management.endpoints.web.base-path:/actuator}")
+	private String actuatorBasePath;
 
     @Bean
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
@@ -66,6 +70,8 @@ public class SecurityConfig {
                                         .hasAnyRole("USER", "ADMIN")
                                         .requestMatchers("/questions/**")
                                         .hasAnyRole("USER", "ADMIN")
+										.requestMatchers(actuatorBasePath + "/**")
+										.hasRole("PROMETHEUS")
                                         .anyRequest()
                                         .authenticated())
                 .formLogin(
