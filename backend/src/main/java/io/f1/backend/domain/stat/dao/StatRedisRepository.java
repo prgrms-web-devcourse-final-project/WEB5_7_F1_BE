@@ -52,18 +52,18 @@ public class StatRedisRepository {
         hashOps.put(statUserKey, "winningGames", stat.winningGames());
 
         // stat:rank
-        zSetOps.add(STAT_RANK, statUserKey, stat.score());
+        zSetOps.add(STAT_RANK, stat.userId(), stat.score());
 
         // stat:{nickname}
-        valueOps.set(statNicknameKey, statUserKey);
+        valueOps.set(statNicknameKey, stat.userId());
     }
 
     public void removeUser(long userId) {
         String statUserKey = getStatUserKey(userId);
         String nickname = (String) hashOps.get(statUserKey, "nickname");
-        redisTemplate.delete(getStatUserKey(userId));
+        redisTemplate.delete(statUserKey);
         valueOps.getAndDelete(getStatNickname(nickname));
-        zSetOps.remove(STAT_RANK, statUserKey);
+        zSetOps.remove(STAT_RANK, userId);
     }
 
     public StatPageResponse findAllStatsWithUser(Pageable pageable) {
@@ -86,8 +86,8 @@ public class StatRedisRepository {
     }
 
     public Pageable getPageableFromNickname(String nickname, int pageSize) {
-        String statUserKey = getStatUserKeyFromNickname(nickname);
-        long rowNum = requireNonNull(zSetOps.reverseRank(STAT_RANK, statUserKey)) + 1;
+        long userId = getUserIdFromNickname(nickname);
+        long rowNum = requireNonNull(zSetOps.reverseRank(STAT_RANK, userId)) + 1;
         int pageNumber = rowNum > 0 ? (int) (rowNum / pageSize) : 0;
         return PageRequest.of(pageNumber, pageSize, Sort.by(Direction.DESC, "score"));
     }
@@ -109,7 +109,7 @@ public class StatRedisRepository {
     public void updateRank(long userId, boolean win, int deltaScore) {
         String statUserKey = getStatUserKey(userId);
 
-        zSetOps.incrementScore(STAT_RANK, getStatUserKey(userId), deltaScore);
+        zSetOps.incrementScore(STAT_RANK, userId, deltaScore);
         hashOps.increment(statUserKey, "totalGames", 1);
         if (win) {
             hashOps.increment(statUserKey, "winningGames", 1);
@@ -118,7 +118,7 @@ public class StatRedisRepository {
 
     public void updateNickname(long userId, String newNickname) {
         String statUserKey = getStatUserKey(userId);
-        valueOps.set(getStatNickname(newNickname), statUserKey);
+        valueOps.set(getStatNickname(newNickname), userId);
 
         String oldNickname = (String) hashOps.get(statUserKey, "nickname");
         valueOps.getAndDelete(getStatNickname(oldNickname));
@@ -127,8 +127,8 @@ public class StatRedisRepository {
     }
 
     private StatResponse convertToStatResponse(TypedTuple<Object> rank, int rankValue) {
-        String statUserKey = (String) requireNonNull(rank.getValue());
-        Map<Object, Object> statUserMap = hashOps.entries(statUserKey);
+        long userId = ((Number) requireNonNull(rank.getValue())).longValue();
+        Map<Object, Object> statUserMap = hashOps.entries(getStatUserKey(userId));
 
         return new StatResponse(
                 rankValue,
@@ -146,7 +146,7 @@ public class StatRedisRepository {
         return String.format(STAT_NICKNAME, nickname);
     }
 
-    private String getStatUserKeyFromNickname(String nickname) {
-        return (String) requireNonNull(valueOps.get(getStatNickname(nickname)));
+    private long getUserIdFromNickname(String nickname) {
+		return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
     }
 }
