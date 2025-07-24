@@ -60,7 +60,7 @@ public class RoomMapper {
     public static PlayerListResponse toPlayerListResponse(Room room) {
         List<PlayerResponse> playerResponseList =
                 room.getPlayerSessionMap().values().stream()
-                        .map(player -> new PlayerResponse(player.getNickname(), false))
+                        .map(player -> new PlayerResponse(player.getNickname(), player.isReady()))
                         .toList();
 
         return new PlayerListResponse(room.getHost().getNickname(), playerResponseList);

@@ -1,6 +1,8 @@
 package io.f1.backend.domain.game.model;
 
+import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
+import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -99,10 +102,6 @@ public class Room {
         validatedUserIds.remove(userId);
     }
 
-    public void removeUserId(Long userId) {
-        validatedUserIds.remove(userId);
-    }
-
     public void increasePlayerCorrectCount(String sessionId) {
         this.playerSessionMap.get(sessionId).increaseCorrectCount();
     }
@@ -174,5 +173,49 @@ public class Room {
                         .filter(player -> player.getState() == ConnectionState.CONNECTED)
                         .count();
         return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
+    }
+
+    public boolean validateReadyStatus() {
+
+        return playerSessionMap.values().stream().allMatch(Player::isReady);
+    }
+
+    public Player getPlayerBySessionId(String sessionId) {
+        Player player = playerSessionMap.get(sessionId);
+        if (player == null) {
+            throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+        }
+        return player;
+    }
+
+    public void resetAllPlayerReadyStates() {
+        for (Player player : playerSessionMap.values()) {
+            if (Objects.equals(player.getId(), getHost().getId())) continue;
+            player.setReadyFalse();
+        }
+    }
+
+    public void changeQuiz(Quiz quiz) {
+        gameSetting.changeQuiz(quiz);
+    }
+
+    public void changeTimeLimit(TimeLimit timeLimit) {
+        gameSetting.changeTimeLimit(timeLimit);
+    }
+
+    public void changeRound(int round, int questionCount) {
+        gameSetting.changeRound(round, questionCount);
+    }
+
+    public Long getQuizId() {
+        return gameSetting.getQuizId();
+    }
+
+    public int getTimeLimit() {
+        return gameSetting.getTimeLimit();
+    }
+
+    public int getRound() {
+        return gameSetting.getRound();
     }
 }
