@@ -33,8 +33,8 @@ public class SecurityConfig {
     private final AdminLoginSuccessHandler adminLoginSuccessHandler;
     private final AdminLoginFailureHandler adminLoginFailureHandler;
 
-	@Value("${management.endpoints.web.base-path:/actuator}")
-	private String actuatorBasePath;
+    @Value("${management.endpoints.web.base-path:/actuator}")
+    private String actuatorBasePath;
 
     @Bean
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
@@ -70,8 +70,8 @@ public class SecurityConfig {
                                         .hasAnyRole("USER", "ADMIN")
                                         .requestMatchers("/questions/**")
                                         .hasAnyRole("USER", "ADMIN")
-										.requestMatchers(actuatorBasePath + "/**")
-										.hasRole("PROMETHEUS")
+                                        .requestMatchers(actuatorBasePath + "/**")
+                                        .hasRole("PROMETHEUS")
                                         .anyRequest()
                                         .authenticated())
                 .formLogin(
