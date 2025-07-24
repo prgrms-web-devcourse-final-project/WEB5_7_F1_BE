@@ -13,7 +13,7 @@ public record RoundChangeRequest(int round) implements GameSettingChanger {
             return false; // 동일하면 무시
         }
 
-        Quiz quiz = quizService.findQuizById(room.getQuizId());
+        Quiz quiz = quizService.getQuizWithQuestionsById(room.getQuizId());
         int questionSize = quiz.getQuestions().size();
 
         room.changeRound(round, questionSize);
