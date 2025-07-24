@@ -15,7 +15,7 @@ public enum RoomErrorCode implements ErrorCode {
     PLAYER_NOT_FOUND("E404007", HttpStatus.NOT_FOUND, "플레이어가 존재하지 않습니다."),
     SOCKET_SESSION_NOT_FOUND("E404006", HttpStatus.NOT_FOUND, "존재하지 않는 소켓 세션입니다."),
     GAME_ALREADY_PLAYING("E400015", HttpStatus.BAD_REQUEST, "이미 게임이 진행 중 입니다."),
-    NOT_ROOM_OWNER("E403005", HttpStatus.FORBIDDEN, "방장만 게임 시작이 가능합니다."),
+    NOT_ROOM_OWNER("E403005", HttpStatus.FORBIDDEN, "방장의 권한입니다."),
     ROOM_ENTER_REQUIRED("E400014", HttpStatus.NOT_FOUND, "방 입장 후에 소켓 연결이 시도되어야합니다.");
 
     private final String code;
