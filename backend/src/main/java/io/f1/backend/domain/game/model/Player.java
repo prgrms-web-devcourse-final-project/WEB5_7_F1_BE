@@ -24,6 +24,10 @@ public class Player {
         this.isReady = !this.isReady;
     }
 
+    public void setReadyFalse() {
+        this.isReady = false;
+    }
+
     public void increaseCorrectCount() {
         correctCount++;
     }

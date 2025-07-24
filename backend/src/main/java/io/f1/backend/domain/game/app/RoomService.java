@@ -190,21 +190,6 @@ public class RoomService {
         }
     }
 
-    public void handlePlayerReady(Long roomId, String sessionId) {
-        Player player =
-                roomRepository
-                        .findPlayerInRoomBySessionId(roomId, sessionId)
-                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
-
-        player.toggleReady();
-
-        Room room = findRoom(roomId);
-
-        String destination = getDestination(roomId);
-
-        messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-    }
-
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
@@ -327,7 +312,7 @@ public class RoomService {
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
-            room.removeUserId(principal.getUserId());
+            room.removeValidatedUserId(principal.getUserId());
             throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
@@ -374,7 +359,6 @@ public class RoomService {
     }
 
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
-        room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
         room.removeValidatedUserId(removePlayer.getId());
     }

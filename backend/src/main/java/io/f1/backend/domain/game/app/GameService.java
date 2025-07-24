@@ -1,10 +1,13 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.request.GameSettingChanger;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -20,14 +23,15 @@ import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GameService {
@@ -70,11 +74,39 @@ public class GameService {
                 toQuestionStartResponse(room, START_DELAY));
     }
 
-    private boolean validateReadyStatus(Room room) {
+    public void handlePlayerReady(Long roomId, String sessionId) {
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Room room = findRoom(roomId);
 
-        return playerSessionMap.values().stream().allMatch(Player::isReady);
+        Player player = room.getPlayerBySessionId(sessionId);
+
+        toggleReadyIfPossible(room, player);
+
+        String destination = getDestination(roomId);
+
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+        log.info(playerListResponse.toString());
+        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+    }
+
+    public void changeGameSetting(
+            Long roomId, UserPrincipal principal, GameSettingChanger request) {
+        Room room = findRoom(roomId);
+        validateHostAndState(room, principal);
+
+        if (!request.change(room, quizService)) {
+            return;
+        }
+        request.afterChange(room, messageSender);
+
+        broadcastGameSetting(room);
+
+        RoomUpdatedEvent roomUpdatedEvent =
+                new RoomUpdatedEvent(
+                        room,
+                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
+
+        eventPublisher.publishEvent(roomUpdatedEvent);
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
@@ -82,7 +114,7 @@ public class GameService {
             throw new CustomException(RoomErrorCode.NOT_ROOM_OWNER);
         }
 
-        if (!validateReadyStatus(room)) {
+        if (!room.validateReadyStatus()) {
             throw new CustomException(GameErrorCode.PLAYER_NOT_READY);
         }
 
@@ -96,5 +128,42 @@ public class GameService {
         Long quizId = quiz.getId();
         Integer round = room.getGameSetting().getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
+    }
+
+    private Room findRoom(Long roomId) {
+        return roomRepository
+                .findRoom(roomId)
+                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+    }
+
+    private String getDestination(Long roomId) {
+        return "/sub/room/" + roomId;
+    }
+
+    private void validateHostAndState(Room room, UserPrincipal principal) {
+        if (!room.isHost(principal.getUserId())) {
+            throw new CustomException(RoomErrorCode.NOT_ROOM_OWNER);
+        }
+        if (room.isPlaying()) {
+            throw new CustomException(RoomErrorCode.GAME_ALREADY_PLAYING);
+        }
+    }
+
+    private void toggleReadyIfPossible(Room room, Player player) {
+        if (room.isPlaying()) {
+            throw new CustomException(RoomErrorCode.GAME_ALREADY_PLAYING);
+        }
+        if (!room.isHost(player.getId())) {
+            player.toggleReady();
+        }
+    }
+
+    private void broadcastGameSetting(Room room) {
+        String destination = getDestination(room.getId());
+        Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
+        messageSender.send(
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(room.getGameSetting(), quiz));
     }
 }
