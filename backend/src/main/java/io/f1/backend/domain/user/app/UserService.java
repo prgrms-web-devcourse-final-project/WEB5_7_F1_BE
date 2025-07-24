@@ -10,7 +10,7 @@ import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
-import io.f1.backend.domain.user.dto.UserNickname;
+import io.f1.backend.domain.user.dto.UserSummary;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
@@ -46,7 +46,7 @@ public class UserService {
         SecurityUtils.setAuthentication(user);
         UserPrincipal userPrincipal = SecurityUtils.getCurrentUserPrincipal();
 
-        redisPublisher.publish(USER_NEW, new UserNickname(user.getId(), nickname));
+        redisPublisher.publish(USER_NEW, new UserSummary(user.getId(), nickname));
 
         return CurrentUserAndAdminResponse.from(userPrincipal);
     }
@@ -114,7 +114,7 @@ public class UserService {
         session.setAttribute(USER, AuthenticationUser.from(user));
         SecurityUtils.setAuthentication(user);
 
-        redisPublisher.publish(USER_UPDATE, new UserNickname(user.getId(), newNickname));
+        redisPublisher.publish(USER_UPDATE, new UserSummary(user.getId(), newNickname));
     }
 
     @Transactional(readOnly = true)

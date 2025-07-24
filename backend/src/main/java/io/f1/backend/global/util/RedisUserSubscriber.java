@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.f1.backend.domain.stat.app.StatService;
-import io.f1.backend.domain.user.dto.UserNickname;
+import io.f1.backend.domain.user.dto.UserSummary;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +32,12 @@ public class RedisUserSubscriber implements MessageListener {
         try {
             switch (channel) {
                 case USER_NEW -> {
-                    UserNickname userNickname = om.readValue(json, UserNickname.class);
-                    statService.addUser(userNickname.userId(), userNickname.nickname());
+                    UserSummary userSummary = om.readValue(json, UserSummary.class);
+                    statService.addUser(userSummary.userId(), userSummary.nickname());
                 }
                 case USER_UPDATE -> {
-                    UserNickname userNickname = om.readValue(json, UserNickname.class);
-                    statService.updateNickname(userNickname.userId(), userNickname.nickname());
+                    UserSummary userSummary = om.readValue(json, UserSummary.class);
+                    statService.updateNickname(userSummary.userId(), userSummary.nickname());
                 }
                 case USER_DELETE -> {
                     long userId = Long.parseLong(om.readValue(json, String.class));
