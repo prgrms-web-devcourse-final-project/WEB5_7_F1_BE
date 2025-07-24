@@ -147,6 +147,6 @@ public class StatRedisRepository {
     }
 
     private long getUserIdFromNickname(String nickname) {
-		return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
+        return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
     }
 }
