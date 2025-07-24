@@ -146,6 +146,14 @@ public class Room {
         return playerSessionMap.values().stream().allMatch(Player::isReady);
     }
 
+    public Player getPlayerBySessionId(String sessionId) {
+        Player player = playerSessionMap.get(sessionId);
+        if (player == null) {
+            throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+        }
+        return player;
+    }
+
     public void resetAllPlayerReadyStates() {
         for (Player player : playerSessionMap.values()) {
             if (Objects.equals(player.getId(), getHost().getId())) continue;
