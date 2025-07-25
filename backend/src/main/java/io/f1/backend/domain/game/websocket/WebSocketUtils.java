@@ -22,4 +22,9 @@ public class WebSocketUtils {
     public static String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
     }
+
+    public static String getRoomSubscriptionDestination(Message<?> message) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+        return headerAccessor.getDestination();
+    }
 }

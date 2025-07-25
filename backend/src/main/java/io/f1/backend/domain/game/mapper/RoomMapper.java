@@ -94,9 +94,8 @@ public class RoomMapper {
         return new SystemNoticeResponse(roomEventType.getMessage(nickname), Instant.now());
     }
 
-    public static QuestionResultResponse toQuestionResultResponse(
-            String correctUser, String answer) {
-        return new QuestionResultResponse(correctUser, answer);
+    public static QuestionResultResponse toQuestionResultResponse(String nickname, String answer) {
+        return new QuestionResultResponse(nickname, answer);
     }
 
     public static RankUpdateResponse toRankUpdateResponse(Room room) {

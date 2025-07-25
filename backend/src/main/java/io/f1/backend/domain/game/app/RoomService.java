@@ -4,10 +4,12 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
+import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
@@ -23,6 +25,7 @@ import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 import io.f1.backend.domain.game.event.RoomCreatedEvent;
+import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -62,7 +65,7 @@ public class RoomService {
 
     private final MessageSender messageSender;
 
-    private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
+    private static final int CONTINUE_DELAY = 3;
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
@@ -80,7 +83,7 @@ public class RoomService {
 
         Room room = new Room(newId, roomSetting, gameSetting, host);
 
-        room.getUserIdSessionMap().put(host.id, PENDING_SESSION_ID);
+        room.addValidatedUserId(getCurrentUserId());
 
         roomRepository.saveRoom(room);
 
@@ -103,7 +106,7 @@ public class RoomService {
             }
 
             int maxUserCnt = room.getRoomSetting().maxUserCount();
-            int currentCnt = room.getUserIdSessionMap().size();
+            int currentCnt = room.getCurrentUserCnt();
             if (maxUserCnt == currentCnt) {
                 throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
             }
@@ -113,7 +116,7 @@ public class RoomService {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
-            room.getUserIdSessionMap().put(getCurrentUserId(), PENDING_SESSION_ID);
+            room.addValidatedUserId(getCurrentUserId());
         }
     }
 
@@ -123,19 +126,7 @@ public class RoomService {
 
         Player player = createPlayer(principal);
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
-        Map<Long, String> userIdSessionMap = room.getUserIdSessionMap();
-
-        if (room.isHost(player.getId())) {
-            player.toggleReady();
-        }
-
-        playerSessionMap.put(sessionId, player);
-        String existingSession = userIdSessionMap.get(player.getId());
-        /* 정상 흐름 or 재연결 */
-        if (existingSession.equals(PENDING_SESSION_ID) || !existingSession.equals(sessionId)) {
-            userIdSessionMap.put(player.getId(), sessionId);
-        }
+        room.addPlayer(sessionId, player);
 
         RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -167,14 +158,14 @@ public class RoomService {
 
             Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
+            String destination = getDestination(roomId);
+
             cleanRoom(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
-
-            String destination = getDestination(roomId);
 
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
@@ -211,6 +202,61 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
+    public void reconnectSession(
+            Long roomId, String oldSessionId, String newSessionId, UserPrincipal principal) {
+        Room room = findRoom(roomId);
+        room.reconnectSession(oldSessionId, newSessionId);
+
+        String destination = getDestination(roomId);
+
+        messageSender.send(
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
+
+        if (room.isPlaying()) {
+            // todo 랭킹 리스트 추가
+            messageSender.send(
+                    destination, MessageType.GAME_START, toGameStartResponse(room.getQuestions()));
+            messageSender.send(
+                    destination,
+                    MessageType.QUESTION_START,
+                    toQuestionStartResponse(room, CONTINUE_DELAY));
+        } else {
+            RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
+
+            Long quizId = room.getGameSetting().getQuizId();
+
+            Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+
+            GameSettingResponse gameSettingResponse =
+                    toGameSettingResponse(room.getGameSetting(), quiz);
+
+            PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+            messageSender.send(destination, MessageType.ROOM_SETTING, roomSettingResponse);
+            messageSender.send(destination, MessageType.GAME_SETTING, gameSettingResponse);
+            messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+        }
+    }
+
+    public void changeConnectedStatus(Long roomId, String sessionId, ConnectionState newState) {
+        Room room = findRoom(roomId);
+        room.updatePlayerConnectionState(sessionId, newState);
+    }
+
+    public boolean isExit(String sessionId, Long roomId) {
+        Room room = findRoom(roomId);
+        return room.isExit(sessionId);
+    }
+
+    public void exitIfNotPlaying(Long roomId, String sessionId, UserPrincipal principal) {
+        Room room = findRoom(roomId);
+        if (!room.isPlaying()) {
+            exitRoom(roomId, sessionId, principal);
+        }
+    }
+
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
@@ -234,11 +280,6 @@ public class RoomService {
                 .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
-    private boolean isLastPlayer(Room room, String sessionId) {
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
-        return playerSessionMap.size() == 1 && playerSessionMap.containsKey(sessionId);
-    }
-
     private void removeRoom(Room room) {
         Long roomId = room.getId();
         roomRepository.removeRoom(roomId);
@@ -250,8 +291,10 @@ public class RoomService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         Optional<String> nextHostSessionId =
-                playerSessionMap.keySet().stream()
-                        .filter(key -> !key.equals(hostSessionId))
+                playerSessionMap.entrySet().stream()
+                        .filter(entry -> !entry.getKey().equals(hostSessionId))
+                        .filter(entry -> entry.getValue().getState() == ConnectionState.CONNECTED)
+                        .map(Map.Entry::getKey)
                         .findFirst();
 
         Player nextHost =
@@ -266,6 +309,7 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
+        room.removeValidatedUserId(removePlayer.getId());
     }
 
     public void exitRoomForDisconnectedPlayer(Long roomId, Player player, String sessionId) {
@@ -290,7 +334,7 @@ public class RoomService {
 
     private void cleanRoom(Room room, String sessionId, Player player) {
         /* 방 삭제 */
-        if (isLastPlayer(room, sessionId)) {
+        if (room.isLastPlayer(sessionId)) {
             removeRoom(room);
             return;
         }

@@ -1,6 +1,7 @@
 package io.f1.backend.domain.game.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
@@ -55,8 +56,6 @@ class RoomServiceTests {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
         roomService =
                 new RoomService(
-                        gameService,
-                        timerService,
                         quizService,
                         roomRepository,
                         eventPublisher,
@@ -105,7 +104,7 @@ class RoomServiceTests {
                     });
         }
         countDownLatch.await();
-        assertThat(room.getUserIdSessionMap()).hasSize(room.getRoomSetting().maxUserCount());
+        assertThat(room.getCurrentUserCnt()).isEqualTo(room.getRoomSetting().maxUserCount());
     }
 
     @Test
@@ -137,7 +136,6 @@ class RoomServiceTests {
             String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
             room.getPlayerSessionMap().put(sessionId, player);
-            room.getUserIdSessionMap().put(player.getId(), sessionId);
         }
 
         log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerSessionMap().size());
@@ -167,7 +165,7 @@ class RoomServiceTests {
                     });
         }
         countDownLatch.await();
-        assertThat(room.getUserIdSessionMap()).hasSize(1);
+        verify(roomRepository).removeRoom(roomId);
     }
 
     private Room createRoom(
