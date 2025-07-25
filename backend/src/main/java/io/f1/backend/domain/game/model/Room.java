@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
-import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
@@ -161,8 +160,8 @@ public class Room {
         }
     }
 
-    public void changeQuiz(Quiz quiz) {
-        gameSetting.changeQuiz(quiz);
+    public void changeQuiz(Long quizId, int questionsCount) {
+        gameSetting.changeQuiz(quizId, questionsCount);
     }
 
     public void changeTimeLimit(TimeLimit timeLimit) {

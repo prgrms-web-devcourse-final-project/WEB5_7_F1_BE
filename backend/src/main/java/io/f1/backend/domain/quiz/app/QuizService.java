@@ -284,4 +284,9 @@ public class QuizService {
                 .findById(quizId)
                 .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
     }
+
+    @Transactional(readOnly = true)
+    public Long getQuestionsCount(Long quizId) {
+        return quizRepository.countQuestionsByQuizId(quizId);
+    }
 }

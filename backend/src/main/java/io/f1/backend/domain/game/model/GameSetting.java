@@ -1,7 +1,6 @@
 package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.game.dto.request.TimeLimit;
-import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 
@@ -16,9 +15,9 @@ public class GameSetting {
     private Integer round;
     private int timeLimit;
 
-    public void changeQuiz(Quiz quiz) {
-        quizId = quiz.getId();
-        round = quiz.getQuestions().size(); // 라운드를 바꾼 퀴즈의 문제 수로 동기화
+    public void changeQuiz(Long quizId, int questionsCount) {
+        this.quizId = quizId;
+        round = questionsCount;// 라운드를 바꾼 퀴즈의 문제 수로 동기화
     }
 
     public void changeTimeLimit(TimeLimit timeLimit) {
