@@ -295,6 +295,11 @@ public class RoomService {
 
         if (room.isPlaying()) {
             messageSender.sendPersonal(
+                userDestination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
+                principal);
+            messageSender.sendPersonal(
                     userDestination,
                     MessageType.RANK_UPDATE,
                     toRankUpdateResponse(room),
@@ -303,11 +308,6 @@ public class RoomService {
                     userDestination,
                     MessageType.GAME_START,
                     toGameStartResponse(room.getQuestions()),
-                    principal);
-            messageSender.sendPersonal(
-                    userDestination,
-                    MessageType.QUESTION_START,
-                    toQuestionStartResponse(room, START_DELAY),
                     principal);
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);

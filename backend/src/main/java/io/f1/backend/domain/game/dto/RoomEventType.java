@@ -7,7 +7,9 @@ public enum RoomEventType {
     END(null),
     CORRECT_ANSWER(SystemNoticeMessage.CORRECT_ANSWER),
     TIMEOUT(SystemNoticeMessage.TIMEOUT),
-    RECONNECT(SystemNoticeMessage.RECONNECT);
+    RECONNECT(SystemNoticeMessage.RECONNECT),
+    RECONNECT_PRIVATE_NOTICE(SystemNoticeMessage.RECONNECT_PRIVATE_NOTICE)
+    ;
 
     private final SystemNoticeMessage systemMessage;
 
@@ -17,7 +19,7 @@ public enum RoomEventType {
 
     public String getMessage(String nickname) {
 
-        if (this == TIMEOUT) {
+        if (this == TIMEOUT || this == RECONNECT_PRIVATE_NOTICE) {
             return systemMessage.getMessage();
         }
 
