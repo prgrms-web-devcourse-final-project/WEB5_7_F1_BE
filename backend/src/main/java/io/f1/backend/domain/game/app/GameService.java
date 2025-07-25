@@ -1,10 +1,6 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toGameResultListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.*;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
@@ -108,6 +104,7 @@ public class GameService {
         timerService.cancelTimer(room);
 
         if (!timerService.validateCurrentRound(room)) {
+            gameEnd(room);
             return;
         }
 
@@ -170,9 +167,9 @@ public class GameService {
         room.updateRoomState(RoomState.WAITING);
 
         messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
+            destination,
+            MessageType.GAME_SETTING,
+            toGameSettingResponse(room.getGameSetting(), quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
         messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
