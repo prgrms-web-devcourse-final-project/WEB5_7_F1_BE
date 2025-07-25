@@ -199,22 +199,6 @@ public class RoomService {
         }
     }
 
-    public void handlePlayerReady(Long roomId, String sessionId) {
-        Player player =
-                roomRepository
-                        .findPlayerInRoomBySessionId(roomId, sessionId)
-                        .orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND));
-
-        player.toggleReady();
-
-        Room room = findRoom(roomId);
-
-        String destination = getDestination(roomId);
-
-        messageSender.sendBroadcast(
-                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-    }
-
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
