@@ -1,19 +1,19 @@
 package io.f1.backend.domain.game.app;
 
 import static io.f1.backend.domain.game.mapper.RoomMapper.*;
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
-import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
-import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
+import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -28,7 +28,6 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +36,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j

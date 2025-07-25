@@ -35,6 +35,7 @@ public class Player {
     public void initializeCorrectCount() {
         correctCount = 0;
     }
+
     public void updateState(ConnectionState newState) {
         state = newState;
     }
