@@ -8,8 +8,7 @@ public enum RoomEventType {
     CORRECT_ANSWER(SystemNoticeMessage.CORRECT_ANSWER),
     TIMEOUT(SystemNoticeMessage.TIMEOUT),
     RECONNECT(SystemNoticeMessage.RECONNECT),
-    RECONNECT_PRIVATE_NOTICE(SystemNoticeMessage.RECONNECT_PRIVATE_NOTICE)
-    ;
+    RECONNECT_PRIVATE_NOTICE(SystemNoticeMessage.RECONNECT_PRIVATE_NOTICE);
 
     private final SystemNoticeMessage systemMessage;
 

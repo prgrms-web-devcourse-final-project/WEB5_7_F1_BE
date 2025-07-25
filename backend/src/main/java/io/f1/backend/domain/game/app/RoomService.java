@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.app.GameService.START_DELAY;
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
@@ -295,10 +294,11 @@ public class RoomService {
 
         if (room.isPlaying()) {
             messageSender.sendPersonal(
-                userDestination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
-                principal);
+                    userDestination,
+                    MessageType.SYSTEM_NOTICE,
+                    ofPlayerEvent(
+                            principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
+                    principal);
             messageSender.sendPersonal(
                     userDestination,
                     MessageType.RANK_UPDATE,
