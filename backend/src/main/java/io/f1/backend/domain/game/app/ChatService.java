@@ -30,7 +30,7 @@ public class ChatService {
 
         String destination = getDestination(roomId);
 
-        messageSender.send(destination, MessageType.CHAT, chatMessage);
+        messageSender.sendBroadcast(destination, MessageType.CHAT, chatMessage);
 
         if (!room.isPlaying()) {
             return;

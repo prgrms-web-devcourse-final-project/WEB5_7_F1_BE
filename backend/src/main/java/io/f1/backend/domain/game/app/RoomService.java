@@ -203,6 +203,7 @@ public class RoomService {
         room.reconnectSession(oldSessionId, newSessionId);
 
         String destination = getDestination(roomId);
+        String userDestination = getUserDestination();
 
         messageSender.sendBroadcast(
                 destination,
@@ -337,8 +338,8 @@ public class RoomService {
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
-            messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-            messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+            messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
     }
 

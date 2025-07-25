@@ -1,9 +1,14 @@
 package io.f1.backend.domain.game.app;
 
+import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameResultListResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
 import io.f1.backend.domain.game.dto.ChatMessage;
@@ -159,7 +164,7 @@ public class GameService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         // TODO : 랭킹 정보 업데이트
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_RESULT,
                 toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
@@ -172,13 +177,13 @@ public class GameService {
 
         room.updateRoomState(RoomState.WAITING);
 
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_SETTING,
                 toGameSettingResponse(
                         room.getGameSetting(),
                         quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
-        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
+        messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
