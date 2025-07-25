@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.app;
 
-
 import static io.f1.backend.domain.game.mapper.RoomMapper.*;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
@@ -12,10 +11,6 @@ import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
-
-import io.f1.backend.domain.game.dto.request.GameSettingChanger;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
-
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -48,7 +43,6 @@ public class GameService {
     private static final int START_DELAY = 5;
     private static final int CONTINUE_DELAY = 3;
     private static final String NONE_CORRECT_USER = "";
-
 
     private final QuizService quizService;
     private final RoomService roomService;
