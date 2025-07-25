@@ -87,7 +87,7 @@ public class GameService {
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
         log.info(playerListResponse.toString());
-        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
     }
 
     public void changeGameSetting(
@@ -162,7 +162,7 @@ public class GameService {
     private void broadcastGameSetting(Room room) {
         String destination = getDestination(room.getId());
         Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_SETTING,
                 toGameSettingResponse(room.getGameSetting(), quiz));
