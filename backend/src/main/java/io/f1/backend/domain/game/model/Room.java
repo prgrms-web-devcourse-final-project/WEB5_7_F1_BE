@@ -93,8 +93,8 @@ public class Room {
         this.timer = timer;
     }
 
-    public void removeSessionId(String sessionId) {
-        this.playerSessionMap.remove(sessionId);
+    public boolean removeSessionId(String sessionId) {
+        return this.playerSessionMap.remove(sessionId) != null;
     }
 
     public void removeValidatedUserId(Long userId) {
@@ -167,10 +167,7 @@ public class Room {
     }
 
     public boolean isLastPlayer(String sessionId) {
-        long connectedCount =
-                playerSessionMap.values().stream()
-                        .filter(player -> player.getState() == ConnectionState.CONNECTED)
-                        .count();
+        long connectedCount = playerSessionMap.size();
         return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 

@@ -1,6 +1,13 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.*;
+import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameResultListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
@@ -75,9 +82,11 @@ public class GameService {
 
         timerService.startTimer(room, START_DELAY);
 
-        messageSender.send(destination, MessageType.GAME_START, toGameStartResponse(questions));
-        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-        messageSender.send(
+        messageSender.sendBroadcast(
+                destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.sendBroadcast(
+                destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, START_DELAY));
@@ -95,12 +104,13 @@ public class GameService {
 
         room.increasePlayerCorrectCount(sessionId);
 
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_RESULT,
                 toQuestionResultResponse(chatMessage.nickname(), answer));
-        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-        messageSender.send(
+        messageSender.sendBroadcast(
+                destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
@@ -116,7 +126,7 @@ public class GameService {
 
         // 타이머 추가하기
         timerService.startTimer(room, CONTINUE_DELAY);
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, CONTINUE_DELAY));
@@ -127,11 +137,11 @@ public class GameService {
         Room room = event.room();
         String destination = getDestination(room.getId());
 
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_RESULT,
                 toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
@@ -144,7 +154,7 @@ public class GameService {
         room.increaseCurrentRound();
 
         timerService.startTimer(room, CONTINUE_DELAY);
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, CONTINUE_DELAY));
@@ -157,7 +167,7 @@ public class GameService {
         Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         // TODO : 랭킹 정보 업데이트
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_RESULT,
                 toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
@@ -170,13 +180,14 @@ public class GameService {
 
         room.updateRoomState(RoomState.WAITING);
 
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_SETTING,
                 toGameSettingResponse(
                         room.getGameSetting(),
                         quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
-        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
+        messageSender.sendBroadcast(
+                destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -191,7 +202,7 @@ public class GameService {
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
         log.info(playerListResponse.toString());
-        messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
     }
 
     public void changeGameSetting(
@@ -262,7 +273,7 @@ public class GameService {
     private void broadcastGameSetting(Room room) {
         String destination = getDestination(room.getId());
         Quiz quiz = quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId());
-        messageSender.send(
+        messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_SETTING,
                 toGameSettingResponse(room.getGameSetting(), quiz));
