@@ -34,5 +34,4 @@ public class RoomRepositoryImpl implements RoomRepository {
     public void removeRoom(Long roomId) {
         roomMap.remove(roomId);
     }
-
 }

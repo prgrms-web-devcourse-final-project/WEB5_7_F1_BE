@@ -17,12 +17,7 @@ import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
-import java.lang.reflect.Field;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +26,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
 @ExtendWith(MockitoExtension.class)
 class SessionServiceTests {
@@ -236,11 +238,11 @@ class SessionServiceTests {
         LocalDateTime lastLogin = LocalDateTime.now();
 
         User user =
-            User.builder()
-                .provider(provider)
-                .providerId(providerId)
-                .lastLogin(lastLogin)
-                .build();
+                User.builder()
+                        .provider(provider)
+                        .providerId(providerId)
+                        .lastLogin(lastLogin)
+                        .build();
 
         try {
             Field idField = User.class.getDeclaredField("id");
