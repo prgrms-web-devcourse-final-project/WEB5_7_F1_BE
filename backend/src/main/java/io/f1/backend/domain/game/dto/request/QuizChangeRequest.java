@@ -36,6 +36,6 @@ public record QuizChangeRequest(long quizId) implements GameSettingChanger {
         PlayerListResponse response = toPlayerListResponse(room);
 
         log.info(response.toString());
-        messageSender.send(destination, MessageType.PLAYER_LIST, response);
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, response);
     }
 }
