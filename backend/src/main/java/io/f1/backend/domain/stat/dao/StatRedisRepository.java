@@ -5,9 +5,12 @@ import static java.util.Objects.requireNonNull;
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatResponse;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
-
+import io.f1.backend.domain.user.dto.MyPage;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,14 +22,10 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Repository
 @RequiredArgsConstructor
 public class StatRedisRepository {
+
     private static final String STAT_RANK = "stat:rank";
     private static final String STAT_USER = "stat:user:%d";
     private static final String STAT_NICKNAME = "stat:%s";
@@ -148,5 +147,25 @@ public class StatRedisRepository {
 
     private long getUserIdFromNickname(String nickname) {
         return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
+    }
+
+    public MyPage getStatByUserId(long userId) {
+        String statUserKey = getStatUserKey(userId);
+
+        Long rank = zSetOps.reverseRank(STAT_RANK, userId);
+        Double score = zSetOps.score(STAT_RANK, userId);
+        Map<Object, Object> statMap = hashOps.entries(statUserKey);
+
+        if (rank == null || score == null || statMap.isEmpty()) {
+            throw new IllegalStateException("User not found in Redis: " + userId);
+        }
+
+        return new MyPage(
+            (String) statMap.get("nickname"),
+            rank + 1,
+            (long) statMap.get("totalGames"),
+            (long) statMap.get("winningGames"),
+            score.longValue()
+        );
     }
 }

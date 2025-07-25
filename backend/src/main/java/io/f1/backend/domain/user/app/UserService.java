@@ -7,8 +7,10 @@ import static io.f1.backend.global.util.RedisPublisher.USER_NEW;
 import static io.f1.backend.global.util.RedisPublisher.USER_UPDATE;
 
 import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
+import io.f1.backend.domain.stat.dao.StatRepository;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
+import io.f1.backend.domain.user.dto.MyPage;
 import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.dto.UserSummary;
@@ -18,11 +20,8 @@ import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.util.RedisPublisher;
 import io.f1.backend.global.util.SecurityUtils;
-
 import jakarta.servlet.http.HttpSession;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RedisPublisher redisPublisher;
+    private final StatRepository statRepository;
 
     @Transactional
     public CurrentUserAndAdminResponse signup(HttpSession session, SignupRequest signupRequest) {
@@ -121,5 +121,11 @@ public class UserService {
     public void checkNickname(String nickname) {
         validateNicknameFormat(nickname);
         validateNicknameDuplicate(nickname);
+    }
+
+    @Transactional(readOnly = true)
+    public MyPage getMyPage(UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId();
+        return statRepository.getMyPageByUserId(userId);
     }
 }

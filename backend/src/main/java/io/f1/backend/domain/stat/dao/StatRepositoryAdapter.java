@@ -5,14 +5,13 @@ import static io.f1.backend.domain.stat.mapper.StatMapper.toStatListPageResponse
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.user.dto.MyPage;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
+import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import jakarta.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -96,5 +95,33 @@ public class StatRepositoryAdapter implements StatRepository {
 
         int pageNumber = rowNum > 0 ? (int) (rowNum / pageSize) : 0;
         return PageRequest.of(pageNumber, pageSize, Sort.by(Direction.DESC, "score"));
+    }
+
+    @Override
+    public MyPage getMyPageByUserId(long userId) {
+        try {
+            return redisRepository.getStatByUserId(userId);
+        } catch (Exception e) {
+            log.error("Redis miss, fallback to MySQL for userId={}", userId, e);
+        }
+
+        StatWithNicknameAndUserId stat = findFirstMatchingStat(userId);
+        long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
+
+        return new MyPage(
+            stat.nickname(),
+            rank,
+            stat.totalGames(),
+            stat.winningGames(),
+            stat.score()
+        );
+    }
+
+    private StatWithNicknameAndUserId findFirstMatchingStat(long userId) {
+        return jpaRepository.findAllStatWithNicknameAndUserId()
+            .stream()
+            .filter(stat -> stat.userId() == userId)
+            .findFirst()
+            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }
