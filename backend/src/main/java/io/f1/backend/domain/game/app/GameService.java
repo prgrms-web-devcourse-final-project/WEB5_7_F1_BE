@@ -167,9 +167,11 @@ public class GameService {
         room.updateRoomState(RoomState.WAITING);
 
         messageSender.send(
-            destination,
-            MessageType.GAME_SETTING,
-            toGameSettingResponse(room.getGameSetting(), quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(
+                        room.getGameSetting(),
+                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
         messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
