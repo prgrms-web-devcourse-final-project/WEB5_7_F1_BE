@@ -4,7 +4,6 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
@@ -165,10 +164,10 @@ public class RoomService {
             String destination = getDestination(roomId);
 
             messageSender.sendPersonal(
-                getUserDestination(),
-                MessageType.EXIT_SUCCESS,
-                new ExitSuccessResponse(true),
-                principal);
+                    getUserDestination(),
+                    MessageType.EXIT_SUCCESS,
+                    new ExitSuccessResponse(true),
+                    principal);
 
             cleanRoom(room, sessionId, removePlayer);
 
@@ -178,7 +177,8 @@ public class RoomService {
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
             messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
-            messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.sendBroadcast(
+                    destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
     }
 
@@ -212,21 +212,21 @@ public class RoomService {
 
         if (room.isPlaying()) {
             messageSender.sendPersonal(
-                userDestination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(
-                    principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
-                principal);
+                    userDestination,
+                    MessageType.SYSTEM_NOTICE,
+                    ofPlayerEvent(
+                            principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
+                    principal);
             messageSender.sendPersonal(
-                userDestination,
-                MessageType.RANK_UPDATE,
-                toRankUpdateResponse(room),
-                principal);
+                    userDestination,
+                    MessageType.RANK_UPDATE,
+                    toRankUpdateResponse(room),
+                    principal);
             messageSender.sendPersonal(
-                userDestination,
-                MessageType.GAME_START,
-                toGameStartResponse(room.getQuestions()),
-                principal);
+                    userDestination,
+                    MessageType.GAME_START,
+                    toGameStartResponse(room.getQuestions()),
+                    principal);
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -240,11 +240,11 @@ public class RoomService {
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
             messageSender.sendPersonal(
-                userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal);
+                    userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal);
             messageSender.sendPersonal(
-                userDestination, MessageType.PLAYER_LIST, playerListResponse, principal);
+                    userDestination, MessageType.PLAYER_LIST, playerListResponse, principal);
             messageSender.sendPersonal(
-                userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal);
+                    userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal);
         }
     }
 
@@ -338,8 +338,10 @@ public class RoomService {
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
-            messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-            messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.sendBroadcast(
+                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+            messageSender.sendBroadcast(
+                    destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
     }
 

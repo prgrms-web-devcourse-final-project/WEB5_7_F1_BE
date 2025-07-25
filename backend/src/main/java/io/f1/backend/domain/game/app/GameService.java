@@ -82,12 +82,14 @@ public class GameService {
 
         timerService.startTimer(room, START_DELAY);
 
-        messageSender.sendBroadcast(destination, MessageType.GAME_START, toGameStartResponse(questions));
-        messageSender.sendBroadcast(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.sendBroadcast(
-            destination,
-            MessageType.QUESTION_START,
-            toQuestionStartResponse(room, START_DELAY));
+                destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.sendBroadcast(
+                destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+        messageSender.sendBroadcast(
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, START_DELAY));
     }
 
     @EventListener
@@ -106,7 +108,8 @@ public class GameService {
                 destination,
                 MessageType.QUESTION_RESULT,
                 toQuestionResultResponse(chatMessage.nickname(), answer));
-        messageSender.sendBroadcast(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+        messageSender.sendBroadcast(
+                destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.sendBroadcast(
                 destination,
                 MessageType.SYSTEM_NOTICE,
@@ -183,7 +186,8 @@ public class GameService {
                 toGameSettingResponse(
                         room.getGameSetting(),
                         quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
-        messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
+        messageSender.sendBroadcast(
+                destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
