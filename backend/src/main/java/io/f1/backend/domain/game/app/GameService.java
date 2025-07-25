@@ -1,9 +1,7 @@
 package io.f1.backend.domain.game.app;
 
+
 import static io.f1.backend.domain.game.mapper.RoomMapper.*;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
@@ -14,6 +12,10 @@ import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
+
+import io.f1.backend.domain.game.dto.request.GameSettingChanger;
+import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -36,7 +38,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -47,6 +48,7 @@ public class GameService {
     private static final int START_DELAY = 5;
     private static final int CONTINUE_DELAY = 3;
     private static final String NONE_CORRECT_USER = "";
+
 
     private final QuizService quizService;
     private final RoomService roomService;
@@ -156,8 +158,6 @@ public class GameService {
     public void gameEnd(Room room) {
         Long roomId = room.getId();
         String destination = getDestination(roomId);
-
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         // TODO : 랭킹 정보 업데이트
         messageSender.send(

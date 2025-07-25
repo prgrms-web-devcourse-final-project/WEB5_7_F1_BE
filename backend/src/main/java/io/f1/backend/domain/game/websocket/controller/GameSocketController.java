@@ -28,6 +28,7 @@ public class GameSocketController {
     private final RoomService roomService;
     private final GameService gameService;
     private final ChatService chatService;
+
     private final SessionService sessionService;
 
     @MessageMapping("/room/initializeRoomSocket/{roomId}")
