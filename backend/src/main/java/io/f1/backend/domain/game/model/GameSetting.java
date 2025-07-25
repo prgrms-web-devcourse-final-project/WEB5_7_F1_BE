@@ -17,7 +17,7 @@ public class GameSetting {
 
     public void changeQuiz(Long quizId, int questionsCount) {
         this.quizId = quizId;
-        round = questionsCount;// 라운드를 바꾼 퀴즈의 문제 수로 동기화
+        round = questionsCount; // 라운드를 바꾼 퀴즈의 문제 수로 동기화
     }
 
     public void changeTimeLimit(TimeLimit timeLimit) {
