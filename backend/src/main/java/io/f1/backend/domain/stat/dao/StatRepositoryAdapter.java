@@ -108,17 +108,15 @@ public class StatRepositoryAdapter implements StatRepository {
             log.error("Redis miss, fallback to MySQL for userId={}", userId, e);
         }
 
-        StatWithNicknameAndUserId stat = findFirstMatchingStat(userId);
+        StatWithNicknameAndUserId stat = findStatByUserId(userId);
         long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
 
         return new MyPageInfo(
                 stat.nickname(), rank, stat.totalGames(), stat.winningGames(), stat.score());
     }
 
-    private StatWithNicknameAndUserId findFirstMatchingStat(long userId) {
-        return jpaRepository.findAllStatWithNicknameAndUserId().stream()
-                .filter(stat -> stat.userId() == userId)
-                .findFirst()
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+    private StatWithNicknameAndUserId findStatByUserId(long userId) {
+        return jpaRepository.findByUserId(userId)
+            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }

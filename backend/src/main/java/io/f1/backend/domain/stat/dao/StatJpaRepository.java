@@ -63,4 +63,14 @@ public interface StatJpaRepository extends JpaRepository<Stat, Long> {
             		s.user.id = :userId
             """)
     void updateStatByUserIdCaseLose(long deltaScore, long userId);
+
+    @Query(
+            """
+            SELECT new io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId(
+                u.id, u.nickname, s.totalGames, s.winningGames, s.score
+            )
+            FROM Stat s JOIN s.user u
+            WHERE u.id = :userId
+            """)
+    Optional<StatWithNicknameAndUserId> findByUserId(long userId);
 }
