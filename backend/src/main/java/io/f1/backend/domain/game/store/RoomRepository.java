@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.store;
 
-import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 
 import java.util.List;
@@ -15,6 +14,4 @@ public interface RoomRepository {
     List<Room> findAll();
 
     void removeRoom(Long roomId);
-
-    Optional<Player> findPlayerInRoomBySessionId(Long roomId, String sessionId);
 }

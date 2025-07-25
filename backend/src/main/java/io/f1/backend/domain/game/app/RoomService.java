@@ -233,6 +233,7 @@ public class RoomService {
 
     // todo 동시성적용
     public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
+
         Room room = findRoom(roomId);
 
         String destination = getDestination(roomId);
@@ -350,7 +351,7 @@ public class RoomService {
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
-            room.removeUserId(principal.getUserId());
+            room.removeValidatedUserId(principal.getUserId());
             throw new CustomException(RoomErrorCode.SOCKET_SESSION_NOT_FOUND);
         }
         return removePlayer;
@@ -397,7 +398,6 @@ public class RoomService {
     }
 
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
-        room.removeUserId(removePlayer.getId());
         room.removeSessionId(sessionId);
         room.removeValidatedUserId(removePlayer.getId());
     }

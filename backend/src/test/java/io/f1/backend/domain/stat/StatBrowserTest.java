@@ -9,15 +9,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.database.rider.core.api.dataset.DataSet;
 
+import io.f1.backend.domain.stat.dao.StatRepositoryAdapter;
+import io.f1.backend.global.config.RedisTestContainerConfig;
 import io.f1.backend.global.template.BrowserTestTemplate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.ResultActions;
 
 @WithMockUser
+@Import(RedisTestContainerConfig.class)
 public class StatBrowserTest extends BrowserTestTemplate {
+
+    @Autowired RedisConnectionFactory redisConnectionFactory;
+
+    @Autowired private StatRepositoryAdapter repository;
+
+    @BeforeEach
+    void init() {
+        redisConnectionFactory.getConnection().serverCommands().flushAll();
+        repository.setup();
+    }
+
     @Test
     @DataSet("datasets/stat/one-user-stat.yml")
     @DisplayName("총 유저 수가 1명이면 첫 페이지에서 1개의 결과를 반환한다")
@@ -96,7 +114,7 @@ public class StatBrowserTest extends BrowserTestTemplate {
         String nickname = "UNREGISTERED";
 
         // when
-        ResultActions result = mockMvc.perform(get("/stats/rankings/" + nickname));
+        ResultActions result = mockMvc.perform(get("/stats/rankings").param("nickname", nickname));
 
         // then
         result.andExpectAll(
@@ -112,7 +130,8 @@ public class StatBrowserTest extends BrowserTestTemplate {
 
         // when
         ResultActions result =
-                mockMvc.perform(get("/stats/rankings/" + nickname).param("size", "2"));
+                mockMvc.perform(
+                        get("/stats/rankings").param("size", "2").param("nickname", nickname));
 
         // then
         result.andExpectAll(
@@ -133,7 +152,8 @@ public class StatBrowserTest extends BrowserTestTemplate {
 
         // when
         ResultActions result =
-                mockMvc.perform(get("/stats/rankings/" + nickname).param("size", "2"));
+                mockMvc.perform(
+                        get("/stats/rankings").param("size", "2").param("nickname", nickname));
 
         // then
         result.andExpectAll(
