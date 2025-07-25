@@ -46,7 +46,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<MyPageInfo> getMyPage(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<MyPageInfo> getMyPage(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         MyPageInfo response = userService.getMyPage(userPrincipal);
         return ResponseEntity.ok(response);
     }

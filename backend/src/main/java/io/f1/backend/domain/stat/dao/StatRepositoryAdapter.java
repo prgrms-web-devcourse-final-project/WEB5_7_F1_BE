@@ -116,7 +116,8 @@ public class StatRepositoryAdapter implements StatRepository {
     }
 
     private StatWithNicknameAndUserId findStatByUserId(long userId) {
-        return jpaRepository.findByUserId(userId)
-            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        return jpaRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }
