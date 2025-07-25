@@ -10,7 +10,7 @@ import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
 import io.f1.backend.domain.stat.dao.StatRepository;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
-import io.f1.backend.domain.user.dto.MyPage;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.dto.UserSummary;
@@ -127,7 +127,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public MyPage getMyPage(UserPrincipal userPrincipal) {
+    public MyPageInfo getMyPage(UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getUserId();
         return statRepository.getMyPageByUserId(userId);
     }

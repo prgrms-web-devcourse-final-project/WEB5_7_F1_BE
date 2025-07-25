@@ -1,7 +1,7 @@
 package io.f1.backend.domain.stat.dao;
 
 import io.f1.backend.domain.stat.dto.StatPageResponse;
-import io.f1.backend.domain.user.dto.MyPage;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 
 import org.springframework.data.domain.Pageable;
 
@@ -19,5 +19,5 @@ public interface StatRepository {
 
     void removeUser(long userId);
 
-    MyPage getMyPageByUserId(long userId);
+    MyPageInfo getMyPageByUserId(long userId);
 }

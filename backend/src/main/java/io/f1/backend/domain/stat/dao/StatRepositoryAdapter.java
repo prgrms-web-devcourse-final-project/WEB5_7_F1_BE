@@ -5,7 +5,7 @@ import static io.f1.backend.domain.stat.mapper.StatMapper.toStatListPageResponse
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
-import io.f1.backend.domain.user.dto.MyPage;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
@@ -101,7 +101,7 @@ public class StatRepositoryAdapter implements StatRepository {
     }
 
     @Override
-    public MyPage getMyPageByUserId(long userId) {
+    public MyPageInfo getMyPageByUserId(long userId) {
         try {
             return redisRepository.getStatByUserId(userId);
         } catch (Exception e) {
@@ -111,7 +111,7 @@ public class StatRepositoryAdapter implements StatRepository {
         StatWithNicknameAndUserId stat = findFirstMatchingStat(userId);
         long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
 
-        return new MyPage(
+        return new MyPageInfo(
                 stat.nickname(), rank, stat.totalGames(), stat.winningGames(), stat.score());
     }
 

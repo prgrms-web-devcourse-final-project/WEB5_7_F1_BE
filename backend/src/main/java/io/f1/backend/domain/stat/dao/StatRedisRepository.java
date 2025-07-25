@@ -5,7 +5,7 @@ import static java.util.Objects.requireNonNull;
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatResponse;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
-import io.f1.backend.domain.user.dto.MyPage;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -152,7 +152,7 @@ public class StatRedisRepository {
         return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
     }
 
-    public MyPage getStatByUserId(long userId) {
+    public MyPageInfo getStatByUserId(long userId) {
         String statUserKey = getStatUserKey(userId);
 
         Long rank = zSetOps.reverseRank(STAT_RANK, userId);
@@ -163,7 +163,7 @@ public class StatRedisRepository {
             throw new IllegalStateException("User not found in Redis: " + userId);
         }
 
-        return new MyPage(
+        return new MyPageInfo(
                 (String) statMap.get("nickname"),
                 rank + 1,
                 (long) statMap.get("totalGames"),

@@ -3,7 +3,7 @@ package io.f1.backend.domain.user.api;
 import static io.f1.backend.global.util.SecurityUtils.logout;
 
 import io.f1.backend.domain.user.app.UserService;
-import io.f1.backend.domain.user.dto.MyPage;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
@@ -46,8 +46,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<MyPage> getMyPage(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        MyPage response = userService.getMyPage(userPrincipal);
+    public ResponseEntity<MyPageInfo> getMyPage(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        MyPageInfo response = userService.getMyPage(userPrincipal);
         return ResponseEntity.ok(response);
     }
 }
