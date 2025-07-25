@@ -65,4 +65,9 @@ public class GameSocketController {
 
         roomService.handlePlayerReady(roomId, getSessionId(message));
     }
+
+    @MessageMapping("/room/init/{roomId}")
+    public void backToRoom(@DestinationVariable Long roomId, Message<?> message) {
+        roomService.backToRoom(roomId, getSessionId(message));
+    }
 }

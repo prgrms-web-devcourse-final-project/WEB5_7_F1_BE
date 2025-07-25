@@ -162,20 +162,6 @@ public class GameService {
                 destination,
                 MessageType.GAME_RESULT,
                 toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
-
-        room.initializeRound();
-        room.initializePlayers();
-
-        room.updateRoomState(RoomState.WAITING);
-
-        messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
-        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
-
-        List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
-        roomService.handleDisconnectedPlayers(room, disconnectedPlayers);
     }
 
     private boolean validateReadyStatus(Room room) {

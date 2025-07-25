@@ -62,8 +62,6 @@ public class RoomService {
 
     private final MessageSender messageSender;
 
-    private static final int CONTINUE_DELAY = 3;
-
     private static final String PENDING_SESSION_ID = "PENDING_SESSION_ID";
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
@@ -169,19 +167,7 @@ public class RoomService {
 
             Player removePlayer = getRemovePlayer(room, sessionId, principal);
 
-            /* 방 삭제 */
-            if (isLastPlayer(room, sessionId)) {
-                removeRoom(room);
-                return;
-            }
-
-            /* 방장 변경 */
-            if (room.isHost(removePlayer.getId())) {
-                changeHost(room, sessionId);
-            }
-
-            /* 플레이어 삭제 */
-            removePlayer(room, sessionId, removePlayer);
+            cleanRoom(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
@@ -193,6 +179,26 @@ public class RoomService {
             messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
+    }
+
+    public void backToRoom(Long roomId, String sessionId) {
+        Room room = findRoom(roomId);
+        String destination = getDestination(roomId);
+
+        room.initializeRound();
+        room.initializePlayers();
+
+        List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
+        handleDisconnectedPlayers(room, disconnectedPlayers);
+
+        room.updateRoomState(RoomState.WAITING);
+
+        messageSender.send(
+            destination,
+            MessageType.GAME_SETTING,
+            toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
+        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
+
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -290,19 +296,7 @@ public class RoomService {
             // 연결 끊긴 플레이어 exit 로직 타게 해주기
             Room room = findRoom(roomId);
 
-            /* 방 삭제 */
-            if (isLastPlayer(room, sessionId)) {
-                removeRoom(room);
-                return;
-            }
-
-            /* 방장 변경 */
-            if (room.isHost(player.getId())) {
-                changeHost(room, sessionId);
-            }
-
-            /* 플레이어 삭제 */
-            removePlayer(room, sessionId, player);
+            cleanRoom(room, sessionId, player);
 
             String destination = getDestination(roomId);
 
@@ -312,6 +306,22 @@ public class RoomService {
             messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
+    }
+
+    private void cleanRoom(Room room, String sessionId, Player player) {
+        /* 방 삭제 */
+        if (isLastPlayer(room, sessionId)) {
+            removeRoom(room);
+            return;
+        }
+
+        /* 방장 변경 */
+        if (room.isHost(player.getId())) {
+            changeHost(room, sessionId);
+        }
+
+        /* 플레이어 삭제 */
+        removePlayer(room, sessionId, player);
     }
 
     public void handleDisconnectedPlayers(Room room, List<Player> disconnectedPlayers) {
