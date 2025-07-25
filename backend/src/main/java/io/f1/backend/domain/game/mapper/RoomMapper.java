@@ -138,7 +138,8 @@ public class RoomMapper {
         return new GameResultListResponse(gameResults);
     }
 
-    private static List<GameResultResponse> buildRankedGameResults(List<Player> rankedPlayers, int round) {
+    private static List<GameResultResponse> buildRankedGameResults(
+            List<Player> rankedPlayers, int round) {
         int totalPlayers = rankedPlayers.size();
         int prevCorrectCnt = -1;
         int rank = 0;

@@ -107,10 +107,13 @@ public class Room {
     }
 
     public void initializePlayers() {
-        this.playerSessionMap.values().forEach(player -> {
-            player.initializeCorrectCount();
-            player.toggleReady();
-        });
+        this.playerSessionMap
+                .values()
+                .forEach(
+                        player -> {
+                            player.initializeCorrectCount();
+                            player.toggleReady();
+                        });
     }
 
     public String getSessionIdByUserId(Long userId) {

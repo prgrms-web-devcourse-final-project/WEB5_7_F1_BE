@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.app;
 
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.model.Room;
-import io.f1.backend.domain.game.websocket.MessageSender;
 
 import lombok.RequiredArgsConstructor;
 

@@ -4,9 +4,6 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
@@ -14,7 +11,6 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
-import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -34,7 +30,6 @@ import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.game.websocket.MessageSender;
-import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -312,12 +307,11 @@ public class RoomService {
             String destination = getDestination(roomId);
 
             SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(player.nickname, RoomEventType.EXIT);
+                    ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
             messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
             messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
-
     }
 
     public void handleDisconnectedPlayers(Room room, List<Player> disconnectedPlayers) {

@@ -98,14 +98,14 @@ public class GameService {
         room.increasePlayerCorrectCount(sessionId);
 
         messageSender.send(
-            destination,
-            MessageType.QUESTION_RESULT,
-            toQuestionResultResponse(chatMessage.nickname(), answer));
+                destination,
+                MessageType.QUESTION_RESULT,
+                toQuestionResultResponse(chatMessage.nickname(), answer));
         messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.send(
-            destination,
-            MessageType.SYSTEM_NOTICE,
-            ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
 
         timerService.cancelTimer(room);
 
@@ -118,9 +118,9 @@ public class GameService {
         // 타이머 추가하기
         timerService.startTimer(room, CONTINUE_DELAY);
         messageSender.send(
-            destination,
-            MessageType.QUESTION_START,
-            toQuestionStartResponse(room, CONTINUE_DELAY));
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, CONTINUE_DELAY));
     }
 
     @EventListener
@@ -129,13 +129,13 @@ public class GameService {
         String destination = getDestination(room.getId());
 
         messageSender.send(
-            destination,
-            MessageType.QUESTION_RESULT,
-            toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
+                destination,
+                MessageType.QUESTION_RESULT,
+                toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
         messageSender.send(
-            destination,
-            MessageType.SYSTEM_NOTICE,
-            ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
 
         if (!timerService.validateCurrentRound(room)) {
             gameEnd(room);
@@ -146,9 +146,9 @@ public class GameService {
 
         timerService.startTimer(room, CONTINUE_DELAY);
         messageSender.send(
-            destination,
-            MessageType.QUESTION_START,
-            toQuestionStartResponse(room, CONTINUE_DELAY));
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, CONTINUE_DELAY));
     }
 
     public void gameEnd(Room room) {

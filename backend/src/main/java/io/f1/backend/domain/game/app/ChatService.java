@@ -1,20 +1,16 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 
 import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
-import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
-import io.f1.backend.domain.user.app.UserService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +41,8 @@ public class ChatService {
         String answer = currentQuestion.getAnswer();
 
         if (answer.equals(chatMessage.message())) {
-            eventPublisher.publishEvent(new GameCorrectAnswerEvent(room, sessionId, chatMessage, answer));
+            eventPublisher.publishEvent(
+                    new GameCorrectAnswerEvent(room, sessionId, chatMessage, answer));
         }
     }
 }
