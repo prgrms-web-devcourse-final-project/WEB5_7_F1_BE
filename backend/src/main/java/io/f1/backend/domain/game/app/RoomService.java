@@ -181,25 +181,6 @@ public class RoomService {
         }
     }
 
-    public void backToRoom(Long roomId, String sessionId) {
-        Room room = findRoom(roomId);
-        String destination = getDestination(roomId);
-
-        room.initializeRound();
-        room.initializePlayers();
-
-        List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
-        handleDisconnectedPlayers(room, disconnectedPlayers);
-
-        room.updateRoomState(RoomState.WAITING);
-
-        messageSender.send(
-                destination,
-                MessageType.GAME_SETTING,
-                toGameSettingResponse(room.getGameSetting(), room.getCurrentQuestion().getQuiz()));
-        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
-    }
-
     public void handlePlayerReady(Long roomId, String sessionId) {
         Player player =
                 roomRepository
