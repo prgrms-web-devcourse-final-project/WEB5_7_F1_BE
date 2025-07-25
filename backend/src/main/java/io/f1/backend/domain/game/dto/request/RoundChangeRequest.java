@@ -3,7 +3,6 @@ package io.f1.backend.domain.game.dto.request;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
-import io.f1.backend.domain.quiz.entity.Quiz;
 
 public record RoundChangeRequest(int round) implements GameSettingChanger {
 
@@ -13,10 +12,9 @@ public record RoundChangeRequest(int round) implements GameSettingChanger {
             return false; // 동일하면 무시
         }
 
-        Quiz quiz = quizService.findQuizById(room.getQuizId());
-        int questionSize = quiz.getQuestions().size();
+        Long questionsCount = quizService.getQuestionsCount(room.getQuizId());
 
-        room.changeRound(round, questionSize);
+        room.changeRound(round, questionsCount.intValue());
         return true;
     }
 
