@@ -65,5 +65,4 @@ public class GameSocketController {
 
         roomService.handlePlayerReady(roomId, getSessionId(message));
     }
-
 }
