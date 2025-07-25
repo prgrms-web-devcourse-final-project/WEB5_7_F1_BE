@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatResponse;
-import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.stat.dto.StatWithUserSummary;
 import io.f1.backend.domain.user.dto.MyPageInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class StatRedisRepository {
         valueOps = redisTemplate.opsForValue();
     }
 
-    public void initialize(StatWithNicknameAndUserId stat) {
+    public void initialize(StatWithUserSummary stat) {
         String statUserKey = getStatUserKey(stat.userId());
         String statNicknameKey = getStatNickname(stat.nickname());
 
