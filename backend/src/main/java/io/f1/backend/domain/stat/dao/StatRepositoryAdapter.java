@@ -9,9 +9,12 @@ import io.f1.backend.domain.user.dto.MyPage;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
+
 import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -109,19 +112,13 @@ public class StatRepositoryAdapter implements StatRepository {
         long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
 
         return new MyPage(
-            stat.nickname(),
-            rank,
-            stat.totalGames(),
-            stat.winningGames(),
-            stat.score()
-        );
+                stat.nickname(), rank, stat.totalGames(), stat.winningGames(), stat.score());
     }
 
     private StatWithNicknameAndUserId findFirstMatchingStat(long userId) {
-        return jpaRepository.findAllStatWithNicknameAndUserId()
-            .stream()
-            .filter(stat -> stat.userId() == userId)
-            .findFirst()
-            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        return jpaRepository.findAllStatWithNicknameAndUserId().stream()
+                .filter(stat -> stat.userId() == userId)
+                .findFirst()
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }

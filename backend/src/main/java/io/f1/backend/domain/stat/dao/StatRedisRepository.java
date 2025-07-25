@@ -6,11 +6,9 @@ import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatResponse;
 import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
 import io.f1.backend.domain.user.dto.MyPage;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +19,11 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository
 @RequiredArgsConstructor
@@ -161,11 +164,10 @@ public class StatRedisRepository {
         }
 
         return new MyPage(
-            (String) statMap.get("nickname"),
-            rank + 1,
-            (long) statMap.get("totalGames"),
-            (long) statMap.get("winningGames"),
-            score.longValue()
-        );
+                (String) statMap.get("nickname"),
+                rank + 1,
+                (long) statMap.get("totalGames"),
+                (long) statMap.get("winningGames"),
+                score.longValue());
     }
 }
