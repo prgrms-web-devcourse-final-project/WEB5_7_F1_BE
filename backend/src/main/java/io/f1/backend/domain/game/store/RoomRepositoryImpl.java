@@ -34,9 +34,4 @@ public class RoomRepositoryImpl implements RoomRepository {
     public void removeRoom(Long roomId) {
         roomMap.remove(roomId);
     }
-
-    // 테스트 전용 메소드
-    public Room getRoomForTest(Long roomId) {
-        return roomMap.get(roomId);
-    }
 }

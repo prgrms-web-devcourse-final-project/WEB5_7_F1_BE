@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.model;
 
 import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
-import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
@@ -94,8 +93,8 @@ public class Room {
         this.timer = timer;
     }
 
-    public void removeSessionId(String sessionId) {
-        this.playerSessionMap.remove(sessionId);
+    public boolean removeSessionId(String sessionId) {
+        return this.playerSessionMap.remove(sessionId) != null;
     }
 
     public void removeValidatedUserId(Long userId) {
@@ -118,6 +117,40 @@ public class Room {
         currentRound++;
     }
 
+    public void initializeRound() {
+        currentRound = 0;
+    }
+
+    public List<Player> getDisconnectedPlayers() {
+        List<Player> disconnectedPlayers = new ArrayList<>();
+
+        for (Player player : this.playerSessionMap.values()) {
+            if (player.getState().equals(ConnectionState.DISCONNECTED)) {
+                disconnectedPlayers.add(player);
+            }
+        }
+        return disconnectedPlayers;
+    }
+
+    public void initializePlayers() {
+        this.playerSessionMap
+                .values()
+                .forEach(
+                        player -> {
+                            player.initializeCorrectCount();
+                            player.toggleReady();
+                        });
+    }
+
+    public String getSessionIdByUserId(Long userId) {
+        for (Map.Entry<String, Player> entry : playerSessionMap.entrySet()) {
+            if (entry.getValue().getId().equals(userId)) {
+                return entry.getKey();
+            }
+        }
+        throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+    }
+
     public void reconnectSession(String oldSessionId, String newSessionId) {
         Player player = playerSessionMap.get(oldSessionId);
         removeSessionId(oldSessionId);
@@ -134,10 +167,7 @@ public class Room {
     }
 
     public boolean isLastPlayer(String sessionId) {
-        long connectedCount =
-                playerSessionMap.values().stream()
-                        .filter(player -> player.getState() == ConnectionState.CONNECTED)
-                        .count();
+        long connectedCount = playerSessionMap.size();
         return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
     }
 
@@ -161,8 +191,8 @@ public class Room {
         }
     }
 
-    public void changeQuiz(Quiz quiz) {
-        gameSetting.changeQuiz(quiz);
+    public void changeQuiz(Long quizId, int questionsCount) {
+        gameSetting.changeQuiz(quizId, questionsCount);
     }
 
     public void changeTimeLimit(TimeLimit timeLimit) {

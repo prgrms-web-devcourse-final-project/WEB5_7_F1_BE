@@ -52,7 +52,7 @@ class RoomRepositoryTests {
 
         roomRepository.saveRoom(newRoom);
 
-        Room savedRoom = roomRepository.getRoomForTest(newId);
+        Room savedRoom = roomRepository.findRoom(newId).orElseThrow();
 
         assertThat(savedRoom.getHost().getId()).isEqualTo(loginUser.get("id"));
         assertThat(savedRoom.getHost().getNickname()).isEqualTo(loginUser.get("nickname"));

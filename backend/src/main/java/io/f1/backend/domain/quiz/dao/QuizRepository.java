@@ -21,6 +21,9 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     @Query("SELECT q FROM Quiz q LEFT JOIN FETCH q.questions WHERE q.id = :quizId")
     Optional<Quiz> findQuizWithQuestionsById(Long quizId);
 
+    @Query("SELECT COUNT(qst) FROM Quiz q JOIN q.questions qst WHERE q.id = :quizId")
+    Long countQuestionsByQuizId(Long quizId);
+
     @Query(
 """
     SELECT new io.f1.backend.domain.quiz.dto.QuizMinData (q.id, COUNT(qs.id))

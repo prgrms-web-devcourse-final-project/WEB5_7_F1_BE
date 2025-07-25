@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +47,7 @@ class RoomServiceTests {
 
     @Mock private RoomRepository roomRepository;
     @Mock private QuizService quizService;
+    @Mock private GameService gameService;
     @Mock private TimerService timerService;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private MessageSender messageSender;
@@ -53,6 +55,7 @@ class RoomServiceTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
+
         roomService =
                 new RoomService(
                         timerService, quizService, roomRepository, eventPublisher, messageSender);
@@ -83,6 +86,7 @@ class RoomServiceTests {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
         RoomValidationRequest roomValidationRequest = new RoomValidationRequest(roomId, password);
+
         for (int i = 1; i <= threadCount; i++) {
             User user = createUser(i);
 
@@ -113,6 +117,7 @@ class RoomServiceTests {
         String password = "123";
         boolean locked = true;
 
+        /* 방 생성 */
         Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
 
         int threadCount = 10;
@@ -128,6 +133,7 @@ class RoomServiceTests {
         Player host = players.getFirst();
         room.updateHost(host);
 
+        /* 방 입장 */
         for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
@@ -141,6 +147,7 @@ class RoomServiceTests {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
+        /* 방 퇴장 테스트 */
         for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             User user = createUser(i);
@@ -190,7 +197,14 @@ class RoomServiceTests {
                         .providerId(providerId)
                         .lastLogin(lastLogin)
                         .build();
-        user.setId(userId);
+
+        try {
+            Field idField = User.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(user, userId);
+        } catch (Exception e) {
+            throw new RuntimeException("ID 설정 실패", e);
+        }
 
         return user;
     }
