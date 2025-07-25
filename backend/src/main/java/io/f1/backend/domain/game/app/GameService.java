@@ -25,6 +25,7 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -152,6 +153,8 @@ public class GameService {
     public void gameEnd(Room room) {
         Long roomId = room.getId();
         String destination = getDestination(roomId);
+
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
 
         // TODO : 랭킹 정보 업데이트
         messageSender.send(

@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.app.GameService.START_DELAY;
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
@@ -208,61 +207,6 @@ public class RoomService {
                     destination,
                     MessageType.QUESTION_START,
                     toQuestionStartResponse(room, CONTINUE_DELAY));
-        } else {
-            RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
-
-            Long quizId = room.getGameSetting().getQuizId();
-
-            Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
-
-            GameSettingResponse gameSettingResponse =
-                    toGameSettingResponse(room.getGameSetting(), quiz);
-
-            PlayerListResponse playerListResponse = toPlayerListResponse(room);
-
-            messageSender.send(destination, MessageType.ROOM_SETTING, roomSettingResponse);
-            messageSender.send(destination, MessageType.GAME_SETTING, gameSettingResponse);
-            messageSender.send(destination, MessageType.PLAYER_LIST, playerListResponse);
-        }
-    }
-
-    public void changeConnectedStatus(Long roomId, String sessionId, ConnectionState newState) {
-        Room room = findRoom(roomId);
-        room.updatePlayerConnectionState(sessionId, newState);
-    }
-
-    public boolean isExit(String sessionId, Long roomId) {
-        Room room = findRoom(roomId);
-        return room.isExit(sessionId);
-    }
-
-    public void exitIfNotPlaying(Long roomId, String sessionId, UserPrincipal principal) {
-        Room room = findRoom(roomId);
-        if (!room.isPlaying()) {
-            exitRoom(roomId, sessionId, principal);
-        }
-    }
-
-    public void reconnectSession(
-            Long roomId, String oldSessionId, String newSessionId, UserPrincipal principal) {
-        Room room = findRoom(roomId);
-        room.reconnectSession(oldSessionId, newSessionId);
-
-        String destination = getDestination(roomId);
-
-        messageSender.send(
-                destination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
-
-        if (room.isPlaying()) {
-            // todo 랭킹 리스트 추가
-            messageSender.send(
-                    destination, MessageType.GAME_START, toGameStartResponse(room.getQuestions()));
-            messageSender.send(
-                    destination,
-                    MessageType.QUESTION_START,
-                    toQuestionStartResponse(room, START_DELAY));
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
