@@ -111,7 +111,10 @@ public class RoomMapper {
         return new QuestionStartResponse(
                 room.getCurrentQuestion().getId(),
                 room.getCurrentRound(),
-                Instant.now().plusSeconds(delay));
+                Instant.now().plusSeconds(delay),
+                room.getGameSetting().getTimeLimit(),
+                Instant.now(),
+                room.getGameSetting().getRound());
     }
 
     public static GameResultResponse toGameResultResponse(
@@ -130,12 +133,17 @@ public class RoomMapper {
                         .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
                         .toList();
 
-        int totalPlayers = rankedPlayers.size();
+        List<GameResultResponse> gameResults = buildRankedGameResults(rankedPlayers, round);
 
+        return new GameResultListResponse(gameResults);
+    }
+
+    private static List<GameResultResponse> buildRankedGameResults(List<Player> rankedPlayers, int round) {
+        int totalPlayers = rankedPlayers.size();
         int prevCorrectCnt = -1;
         int rank = 0;
 
-        List<GameResultResponse> gameResults = new ArrayList<>();
+        List<GameResultResponse> results = new ArrayList<>();
         for (int i = 0; i < totalPlayers; i++) {
             Player player = rankedPlayers.get(i);
 
@@ -145,10 +153,9 @@ public class RoomMapper {
                 rank = i + 1;
             }
 
-            gameResults.add(toGameResultResponse(player, round, rank, totalPlayers));
+            results.add(toGameResultResponse(player, round, rank, totalPlayers));
             prevCorrectCnt = correctCnt;
         }
-
-        return new GameResultListResponse(gameResults);
+        return results;
     }
 }

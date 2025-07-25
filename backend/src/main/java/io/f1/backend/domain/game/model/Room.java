@@ -94,4 +94,26 @@ public class Room {
     public void initializeRound() {
         currentRound = 0;
     }
+
+    public List<Player> getDisconnectedPlayers() {
+        List<Player> disconnectedPlayers = new ArrayList<>();
+
+        for (Player player : this.playerSessionMap.values()) {
+            if (player.getState().equals(ConnectionState.DISCONNECTED)) {
+                disconnectedPlayers.add(player);
+            }
+        }
+        return disconnectedPlayers;
+    }
+
+    public void initializePlayers() {
+        this.playerSessionMap.values().forEach(player -> {
+            player.initializeCorrectCount();
+            player.toggleReady();
+        });
+    }
+
+    public String getSessionIdByUserId(Long userId) {
+        return userIdSessionMap.get(userId);
+    }
 }

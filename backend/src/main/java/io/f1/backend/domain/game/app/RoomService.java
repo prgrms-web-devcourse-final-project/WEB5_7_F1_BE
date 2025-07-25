@@ -59,8 +59,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RoomService {
 
-    private final GameService gameService;
-    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
@@ -232,54 +230,6 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
-    // todo 동시성적용
-    public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
-
-        Room room = findRoom(roomId);
-
-        String destination = getDestination(roomId);
-
-        messageSender.send(destination, MessageType.CHAT, chatMessage);
-
-        if (!room.isPlaying()) {
-            return;
-        }
-
-        Question currentQuestion = room.getCurrentQuestion();
-
-        String answer = currentQuestion.getAnswer();
-
-        if (answer.equals(chatMessage.message())) {
-            room.increasePlayerCorrectCount(sessionId);
-
-            messageSender.send(
-                    destination,
-                    MessageType.QUESTION_RESULT,
-                    toQuestionResultResponse(chatMessage.nickname(), answer));
-            messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-            messageSender.send(
-                    destination,
-                    MessageType.SYSTEM_NOTICE,
-                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
-
-            timerService.cancelTimer(room);
-
-            if (!timerService.validateCurrentRound(room)) {
-                gameService.gameEnd(room);
-                return;
-            }
-
-            room.increaseCurrentRound();
-
-            // 타이머 추가하기
-            timerService.startTimer(room, CONTINUE_DELAY);
-            messageSender.send(
-                    destination,
-                    MessageType.QUESTION_START,
-                    toQuestionStartResponse(room, CONTINUE_DELAY));
-        }
-    }
-
     private Player getRemovePlayer(Room room, String sessionId, UserPrincipal principal) {
         Player removePlayer = room.getPlayerSessionMap().get(sessionId);
         if (removePlayer == null) {
@@ -297,7 +247,7 @@ public class RoomService {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
     }
 
-    private Room findRoom(Long roomId) {
+    public Room findRoom(Long roomId) {
         return roomRepository
                 .findRoom(roomId)
                 .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
@@ -339,28 +289,41 @@ public class RoomService {
 
     public void exitRoomForDisconnectedPlayer(Long roomId, Player player, String sessionId) {
 
-        // 연결 끊긴 플레이어 exit 로직 타게 해주기
-        Room room = findRoom(roomId);
+        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
 
-        /* 방 삭제 */
-        if (isLastPlayer(room, sessionId)) {
-            removeRoom(room);
-            return;
-        }
+        synchronized (lock) {
+            // 연결 끊긴 플레이어 exit 로직 타게 해주기
+            Room room = findRoom(roomId);
 
-        /* 방장 변경 */
-        if (room.isHost(player.getId())) {
-            changeHost(room, sessionId);
-        }
+            /* 방 삭제 */
+            if (isLastPlayer(room, sessionId)) {
+                removeRoom(room);
+                return;
+            }
 
-        /* 플레이어 삭제 */
-        removePlayer(room, sessionId, player);
+            /* 방장 변경 */
+            if (room.isHost(player.getId())) {
+                changeHost(room, sessionId);
+            }
 
-        SystemNoticeResponse systemNoticeResponse =
+            /* 플레이어 삭제 */
+            removePlayer(room, sessionId, player);
+
+            String destination = getDestination(roomId);
+
+            SystemNoticeResponse systemNoticeResponse =
                 ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
-        String destination = getDestination(roomId);
+            messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+            messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        }
 
-        messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+    }
+
+    public void handleDisconnectedPlayers(Room room, List<Player> disconnectedPlayers) {
+        for (Player player : disconnectedPlayers) {
+            String sessionId = room.getSessionIdByUserId(player.getId());
+            exitRoomForDisconnectedPlayer(room.getId(), player, sessionId);
+        }
     }
 }
