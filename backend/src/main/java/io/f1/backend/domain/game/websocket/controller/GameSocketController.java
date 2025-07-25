@@ -24,11 +24,8 @@ public class GameSocketController {
 
     private final RoomService roomService;
     private final GameService gameService;
-<<<<<<< HEAD:backend/src/main/java/io/f1/backend/domain/game/websocket/GameSocketController.java
     private final ChatService chatService;
-=======
     private final SessionService sessionService;
->>>>>>> 1f88146 (:sparkles: feat : 재연결 로직 구현 ):backend/src/main/java/io/f1/backend/domain/game/websocket/controller/GameSocketController.java
 
     @MessageMapping("/room/initializeRoomSocket/{roomId}")
     public void initializeRoomSocket(@DestinationVariable Long roomId, Message<?> message) {
