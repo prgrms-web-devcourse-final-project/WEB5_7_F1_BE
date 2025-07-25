@@ -16,6 +16,7 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
 
+import java.lang.reflect.Field;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.AfterEach;
@@ -44,18 +45,24 @@ class RoomServiceTests {
 
     private RoomService roomService;
 
-    @Mock private RoomRepository roomRepository;
-    @Mock private QuizService quizService;
-    @Mock private TimerService timerService;
-    @Mock private ApplicationEventPublisher eventPublisher;
-    @Mock private MessageSender messageSender;
+    @Mock
+    private RoomRepository roomRepository;
+    @Mock
+    private QuizService quizService;
+    @Mock
+    private TimerService timerService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private MessageSender messageSender;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
+
         roomService =
-                new RoomService(
-                        timerService, quizService, roomRepository, eventPublisher, messageSender);
+            new RoomService(
+                timerService, quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
@@ -83,21 +90,22 @@ class RoomServiceTests {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
         RoomValidationRequest roomValidationRequest = new RoomValidationRequest(roomId, password);
+
         for (int i = 1; i <= threadCount; i++) {
             User user = createUser(i);
 
             executorService.submit(
-                    () -> {
-                        try {
-                            SecurityUtils.setAuthentication(user);
-                            roomService.enterRoom(roomValidationRequest);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            SecurityContextHolder.clearContext();
-                            countDownLatch.countDown();
-                        }
-                    });
+                () -> {
+                    try {
+                        SecurityUtils.setAuthentication(user);
+                        roomService.enterRoom(roomValidationRequest);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        SecurityContextHolder.clearContext();
+                        countDownLatch.countDown();
+                    }
+                });
         }
         countDownLatch.await();
         assertThat(room.getCurrentUserCnt()).isEqualTo(room.getRoomSetting().maxUserCount());
@@ -113,6 +121,7 @@ class RoomServiceTests {
         String password = "123";
         boolean locked = true;
 
+        /* 방 생성 */
         Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
 
         int threadCount = 10;
@@ -128,6 +137,7 @@ class RoomServiceTests {
         Player host = players.getFirst();
         room.updateHost(host);
 
+        /* 방 입장 */
         for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
@@ -141,36 +151,37 @@ class RoomServiceTests {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
+        /* 방 퇴장 테스트 */
         for (int i = 1; i <= threadCount; i++) {
             String sessionId = "sessionId" + i;
             User user = createUser(i);
             executorService.submit(
-                    () -> {
-                        try {
-                            UserPrincipal principal =
-                                    new UserPrincipal(user, Collections.emptyMap());
-                            SecurityUtils.setAuthentication(user);
-                            log.info("room.getHost().getId() = {}", room.getHost().getId());
-                            roomService.exitRoom(roomId, sessionId, principal);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            SecurityContextHolder.clearContext();
-                            countDownLatch.countDown();
-                        }
-                    });
+                () -> {
+                    try {
+                        UserPrincipal principal =
+                            new UserPrincipal(user, Collections.emptyMap());
+                        SecurityUtils.setAuthentication(user);
+                        log.info("room.getHost().getId() = {}", room.getHost().getId());
+                        roomService.exitRoom(roomId, sessionId, principal);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        SecurityContextHolder.clearContext();
+                        countDownLatch.countDown();
+                    }
+                });
         }
         countDownLatch.await();
         verify(roomRepository).removeRoom(roomId);
     }
 
     private Room createRoom(
-            Long roomId,
-            Long playerId,
-            Long quizId,
-            String password,
-            int maxUserCount,
-            boolean locked) {
+        Long roomId,
+        Long playerId,
+        Long quizId,
+        String password,
+        int maxUserCount,
+        boolean locked) {
         RoomSetting roomSetting = new RoomSetting("방제목", maxUserCount, locked, password);
         GameSetting gameSetting = new GameSetting(quizId, 10, 60);
         Player host = new Player(playerId, "nickname");
@@ -185,12 +196,19 @@ class RoomServiceTests {
         LocalDateTime lastLogin = LocalDateTime.now();
 
         User user =
-                User.builder()
-                        .provider(provider)
-                        .providerId(providerId)
-                        .lastLogin(lastLogin)
-                        .build();
-        user.setId(userId);
+            User.builder()
+                .provider(provider)
+                .providerId(providerId)
+                .lastLogin(lastLogin)
+                .build();
+
+        try {
+            Field idField = User.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(user, userId);
+        } catch (Exception e) {
+            throw new RuntimeException("ID 설정 실패", e);
+        }
 
         return user;
     }
