@@ -117,6 +117,40 @@ public class Room {
         currentRound++;
     }
 
+    public void initializeRound() {
+        currentRound = 0;
+    }
+
+    public List<Player> getDisconnectedPlayers() {
+        List<Player> disconnectedPlayers = new ArrayList<>();
+
+        for (Player player : this.playerSessionMap.values()) {
+            if (player.getState().equals(ConnectionState.DISCONNECTED)) {
+                disconnectedPlayers.add(player);
+            }
+        }
+        return disconnectedPlayers;
+    }
+
+    public void initializePlayers() {
+        this.playerSessionMap
+                .values()
+                .forEach(
+                        player -> {
+                            player.initializeCorrectCount();
+                            player.toggleReady();
+                        });
+    }
+
+    public String getSessionIdByUserId(Long userId) {
+        for (Map.Entry<String, Player> entry : playerSessionMap.entrySet()) {
+            if (entry.getValue().getId().equals(userId)) {
+                return entry.getKey();
+            }
+        }
+        throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+    }
+
     public void reconnectSession(String oldSessionId, String newSessionId) {
         Player player = playerSessionMap.get(oldSessionId);
         removeSessionId(oldSessionId);

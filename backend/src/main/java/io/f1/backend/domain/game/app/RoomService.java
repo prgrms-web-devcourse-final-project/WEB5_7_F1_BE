@@ -1,13 +1,10 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.app.GameService.START_DELAY;
 import static io.f1.backend.domain.game.mapper.RoomMapper.ofPlayerEvent;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionResultResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toRankUpdateResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomResponse;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
@@ -16,7 +13,6 @@ import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
 
-import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.RoomCreateRequest;
@@ -37,7 +33,6 @@ import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.model.RoomState;
 import io.f1.backend.domain.game.store.RoomRepository;
 import io.f1.backend.domain.game.websocket.MessageSender;
-import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -62,7 +57,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RoomService {
 
-    private final TimerService timerService;
     private final QuizService quizService;
     private final RoomRepository roomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
@@ -166,19 +160,7 @@ public class RoomService {
 
             String destination = getDestination(roomId);
 
-            /* 방 삭제 */
-            if (room.isLastPlayer(sessionId)) {
-                removeRoom(room);
-                return;
-            }
-
-            /* 방장 변경 */
-            if (room.isHost(removePlayer.getId())) {
-                changeHost(room, sessionId);
-            }
-
-            /* 플레이어 삭제 */
-            removePlayer(room, sessionId, removePlayer);
+            cleanRoom(room, sessionId, removePlayer);
 
             SystemNoticeResponse systemNoticeResponse =
                     ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
@@ -205,55 +187,6 @@ public class RoomService {
         return new RoomListResponse(roomResponses);
     }
 
-    // todo 동시성적용
-    public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
-
-        Room room = findRoom(roomId);
-
-        String destination = getDestination(roomId);
-
-        messageSender.send(destination, MessageType.CHAT, chatMessage);
-
-        if (!room.isPlaying()) {
-            return;
-        }
-
-        Question currentQuestion = room.getCurrentQuestion();
-
-        String answer = currentQuestion.getAnswer();
-
-        if (answer.equals(chatMessage.message())) {
-            room.increasePlayerCorrectCount(sessionId);
-
-            messageSender.send(
-                    destination,
-                    MessageType.QUESTION_RESULT,
-                    toQuestionResultResponse(chatMessage.nickname(), answer));
-            messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
-            messageSender.send(
-                    destination,
-                    MessageType.SYSTEM_NOTICE,
-                    ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
-
-            timerService.cancelTimer(room);
-
-            // TODO : 게임 종료 로직 추가
-            if (!timerService.validateCurrentRound(room)) {
-                // 게임 종료 로직
-                return;
-            }
-
-            room.increaseCurrentRound();
-
-            // 타이머 추가하기
-            timerService.startTimer(room, CONTINUE_DELAY);
-            messageSender.send(
-                    destination,
-                    MessageType.QUESTION_START,
-                    toQuestionStartResponse(room, CONTINUE_DELAY));
-        }
-    }
-
     public void reconnectSession(
             Long roomId, String oldSessionId, String newSessionId, UserPrincipal principal) {
         Room room = findRoom(roomId);
@@ -273,7 +206,7 @@ public class RoomService {
             messageSender.send(
                     destination,
                     MessageType.QUESTION_START,
-                    toQuestionStartResponse(room, START_DELAY));
+                    toQuestionStartResponse(room, CONTINUE_DELAY));
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -326,7 +259,7 @@ public class RoomService {
         return new Player(getCurrentUserId(), getCurrentUserNickname());
     }
 
-    private Room findRoom(Long roomId) {
+    public Room findRoom(Long roomId) {
         return roomRepository
                 .findRoom(roomId)
                 .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
@@ -361,5 +294,48 @@ public class RoomService {
     private void removePlayer(Room room, String sessionId, Player removePlayer) {
         room.removeSessionId(sessionId);
         room.removeValidatedUserId(removePlayer.getId());
+    }
+
+    public void exitRoomForDisconnectedPlayer(Long roomId, Player player, String sessionId) {
+
+        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
+
+        synchronized (lock) {
+            // 연결 끊긴 플레이어 exit 로직 타게 해주기
+            Room room = findRoom(roomId);
+
+            cleanRoom(room, sessionId, player);
+
+            String destination = getDestination(roomId);
+
+            SystemNoticeResponse systemNoticeResponse =
+                    ofPlayerEvent(player.nickname, RoomEventType.EXIT);
+
+            messageSender.send(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+            messageSender.send(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        }
+    }
+
+    private void cleanRoom(Room room, String sessionId, Player player) {
+        /* 방 삭제 */
+        if (room.isLastPlayer(sessionId)) {
+            removeRoom(room);
+            return;
+        }
+
+        /* 방장 변경 */
+        if (room.isHost(player.getId())) {
+            changeHost(room, sessionId);
+        }
+
+        /* 플레이어 삭제 */
+        removePlayer(room, sessionId, player);
+    }
+
+    public void handleDisconnectedPlayers(Room room, List<Player> disconnectedPlayers) {
+        for (Player player : disconnectedPlayers) {
+            String sessionId = room.getSessionIdByUserId(player.getId());
+            exitRoomForDisconnectedPlayer(room.getId(), player, sessionId);
+        }
     }
 }

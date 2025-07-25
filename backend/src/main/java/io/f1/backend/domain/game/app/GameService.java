@@ -1,13 +1,16 @@
 package io.f1.backend.domain.game.app;
 
-import static io.f1.backend.domain.game.mapper.RoomMapper.toGameSettingResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toPlayerListResponse;
-import static io.f1.backend.domain.game.mapper.RoomMapper.toQuestionStartResponse;
+import static io.f1.backend.domain.game.mapper.RoomMapper.*;
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 
+import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
+import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
 import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
+import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -26,9 +29,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -36,11 +41,14 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class GameService {
 
-    public static final int START_DELAY = 5;
+    private static final int START_DELAY = 5;
+    private static final int CONTINUE_DELAY = 3;
+    private static final String NONE_CORRECT_USER = "";
 
-    private final MessageSender messageSender;
-    private final TimerService timerService;
     private final QuizService quizService;
+    private final RoomService roomService;
+    private final TimerService timerService;
+    private final MessageSender messageSender;
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -68,10 +76,107 @@ public class GameService {
         timerService.startTimer(room, START_DELAY);
 
         messageSender.send(destination, MessageType.GAME_START, toGameStartResponse(questions));
+        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.send(
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, START_DELAY));
+    }
+
+    @EventListener
+    public void onCorrectAnswer(GameCorrectAnswerEvent event) {
+
+        Room room = event.room();
+        String sessionId = event.sessionId();
+        ChatMessage chatMessage = event.chatMessage();
+        String answer = event.answer();
+
+        String destination = getDestination(room.getId());
+
+        room.increasePlayerCorrectCount(sessionId);
+
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_RESULT,
+                toQuestionResultResponse(chatMessage.nickname(), answer));
+        messageSender.send(destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
+        messageSender.send(
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
+
+        timerService.cancelTimer(room);
+
+        if (!timerService.validateCurrentRound(room)) {
+            gameEnd(room);
+            return;
+        }
+
+        room.increaseCurrentRound();
+
+        // 타이머 추가하기
+        timerService.startTimer(room, CONTINUE_DELAY);
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, CONTINUE_DELAY));
+    }
+
+    @EventListener
+    public void onTimeout(GameTimeoutEvent event) {
+        Room room = event.room();
+        String destination = getDestination(room.getId());
+
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_RESULT,
+                toQuestionResultResponse(NONE_CORRECT_USER, room.getCurrentQuestion().getAnswer()));
+        messageSender.send(
+                destination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(NONE_CORRECT_USER, RoomEventType.TIMEOUT));
+
+        if (!timerService.validateCurrentRound(room)) {
+            gameEnd(room);
+            return;
+        }
+
+        room.increaseCurrentRound();
+
+        timerService.startTimer(room, CONTINUE_DELAY);
+        messageSender.send(
+                destination,
+                MessageType.QUESTION_START,
+                toQuestionStartResponse(room, CONTINUE_DELAY));
+    }
+
+    public void gameEnd(Room room) {
+        Long roomId = room.getId();
+        String destination = getDestination(roomId);
+
+        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+
+        // TODO : 랭킹 정보 업데이트
+        messageSender.send(
+                destination,
+                MessageType.GAME_RESULT,
+                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+
+        room.initializeRound();
+        room.initializePlayers();
+
+        List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
+        roomService.handleDisconnectedPlayers(room, disconnectedPlayers);
+
+        room.updateRoomState(RoomState.WAITING);
+
+        messageSender.send(
+                destination,
+                MessageType.GAME_SETTING,
+                toGameSettingResponse(
+                        room.getGameSetting(),
+                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId())));
+        messageSender.send(destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
     public void handlePlayerReady(Long roomId, String sessionId) {
@@ -134,10 +239,6 @@ public class GameService {
         return roomRepository
                 .findRoom(roomId)
                 .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
-    }
-
-    private String getDestination(Long roomId) {
-        return "/sub/room/" + roomId;
     }
 
     private void validateHostAndState(Room room, UserPrincipal principal) {
