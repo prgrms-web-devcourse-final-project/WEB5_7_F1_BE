@@ -1,7 +1,7 @@
 package io.f1.backend.domain.stat.dao;
 
 import io.f1.backend.domain.stat.dto.StatWithNickname;
-import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.stat.dto.StatWithUserSummary;
 import io.f1.backend.domain.stat.entity.Stat;
 
 import org.springframework.data.domain.Page;
@@ -33,12 +33,12 @@ public interface StatJpaRepository extends JpaRepository<Stat, Long> {
     @Query(
             """
             SELECT
-            		new io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId
+            		new io.f1.backend.domain.stat.dto.StatWithUserSummary
             				(u.id, u.nickname, s.totalGames, s.winningGames, s.score)
             FROM
             		Stat s JOIN s.user u
             """)
-    List<StatWithNicknameAndUserId> findAllStatWithNicknameAndUserId();
+    List<StatWithUserSummary> findAllStatWithUserSummary();
 
     @Modifying
     @Query(
@@ -63,4 +63,14 @@ public interface StatJpaRepository extends JpaRepository<Stat, Long> {
             		s.user.id = :userId
             """)
     void updateStatByUserIdCaseLose(long deltaScore, long userId);
+
+    @Query(
+            """
+            SELECT new io.f1.backend.domain.stat.dto.StatWithUserSummary(
+                u.id, u.nickname, s.totalGames, s.winningGames, s.score
+            )
+            FROM Stat s JOIN s.user u
+            WHERE u.id = :userId
+            """)
+    Optional<StatWithUserSummary> findStatWithUserSummary(long userId);
 }

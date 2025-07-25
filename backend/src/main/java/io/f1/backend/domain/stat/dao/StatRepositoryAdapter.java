@@ -4,9 +4,11 @@ import static io.f1.backend.domain.stat.mapper.StatMapper.toStatListPageResponse
 
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
-import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.stat.dto.StatWithUserSummary;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+import io.f1.backend.global.exception.errorcode.UserErrorCode;
 
 import jakarta.annotation.PostConstruct;
 
@@ -54,7 +56,7 @@ public class StatRepositoryAdapter implements StatRepository {
 
     @Override
     public void addUser(long userId, String nickname) {
-        redisRepository.initialize(new StatWithNicknameAndUserId(userId, nickname, 0, 0, 0));
+        redisRepository.initialize(new StatWithUserSummary(userId, nickname, 0, 0, 0));
     }
 
     @Override
@@ -78,7 +80,7 @@ public class StatRepositoryAdapter implements StatRepository {
     }
 
     private void warmingRedis() {
-        jpaRepository.findAllStatWithNicknameAndUserId().forEach(redisRepository::initialize);
+        jpaRepository.findAllStatWithUserSummary().forEach(redisRepository::initialize);
     }
 
     private Pageable getPageableFromNickname(String nickname, int pageSize) {
@@ -96,5 +98,26 @@ public class StatRepositoryAdapter implements StatRepository {
 
         int pageNumber = rowNum > 0 ? (int) (rowNum / pageSize) : 0;
         return PageRequest.of(pageNumber, pageSize, Sort.by(Direction.DESC, "score"));
+    }
+
+    @Override
+    public MyPageInfo getMyPageByUserId(long userId) {
+        try {
+            return redisRepository.getStatByUserId(userId);
+        } catch (Exception e) {
+            log.error("Redis miss, fallback to MySQL for userId={}", userId, e);
+        }
+
+        StatWithUserSummary stat = findStatByUserId(userId);
+        long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
+
+        return new MyPageInfo(
+                stat.nickname(), rank, stat.totalGames(), stat.winningGames(), stat.score());
+    }
+
+    private StatWithUserSummary findStatByUserId(long userId) {
+        return jpaRepository
+                .findStatWithUserSummary(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }

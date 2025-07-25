@@ -4,7 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.domain.stat.dto.StatResponse;
-import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.stat.dto.StatWithUserSummary;
+import io.f1.backend.domain.user.dto.MyPageInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Repository
 @RequiredArgsConstructor
 public class StatRedisRepository {
+
     private static final String STAT_RANK = "stat:rank";
     private static final String STAT_USER = "stat:user:%d";
     private static final String STAT_NICKNAME = "stat:%s";
@@ -42,7 +44,7 @@ public class StatRedisRepository {
         valueOps = redisTemplate.opsForValue();
     }
 
-    public void initialize(StatWithNicknameAndUserId stat) {
+    public void initialize(StatWithUserSummary stat) {
         String statUserKey = getStatUserKey(stat.userId());
         String statNicknameKey = getStatNickname(stat.nickname());
 
@@ -148,5 +150,24 @@ public class StatRedisRepository {
 
     private long getUserIdFromNickname(String nickname) {
         return ((Number) requireNonNull(valueOps.get(getStatNickname(nickname)))).longValue();
+    }
+
+    public MyPageInfo getStatByUserId(long userId) {
+        String statUserKey = getStatUserKey(userId);
+
+        Long rank = zSetOps.reverseRank(STAT_RANK, userId);
+        Double score = zSetOps.score(STAT_RANK, userId);
+        Map<Object, Object> statMap = hashOps.entries(statUserKey);
+
+        if (rank == null || score == null || statMap.isEmpty()) {
+            throw new IllegalStateException("User not found in Redis: " + userId);
+        }
+
+        return new MyPageInfo(
+                (String) statMap.get("nickname"),
+                rank + 1,
+                (long) statMap.get("totalGames"),
+                (long) statMap.get("winningGames"),
+                score.longValue());
     }
 }

@@ -1,6 +1,9 @@
 package io.f1.backend.domain.game.websocket;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +45,7 @@ class SessionServiceTests {
     private String sessionId1 = "session1";
     private String sessionId2 = "session2";
     private Long userId1 = 100L;
-    private Long userId2 = 200L;
     private Long roomId1 = 1L;
-    private Long roomId2 = 2L;
 
     @BeforeEach
     void setUp() {
@@ -95,8 +97,7 @@ class SessionServiceTests {
         sessionService.addRoomId(roomId1, sessionId1);
         sessionService.addSession(sessionId1, userId1);
 
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
+        User user = createUser(1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
         // disconnect 호출
@@ -154,8 +155,7 @@ class SessionServiceTests {
         sessionService.addSession(sessionId1, userId1); // 유저의 현재 활성 세션
         sessionService.addRoomId(roomId1, sessionId1);
 
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
+        User user = createUser(1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
         // when
@@ -183,8 +183,7 @@ class SessionServiceTests {
         sessionService.addSession(sessionId1, userId1); // 초기 세션
         sessionService.addRoomId(roomId1, sessionId1);
 
-        User user = new User("provider", "providerId", LocalDateTime.now());
-        user.setId(userId1);
+        User user = createUser(1);
         UserPrincipal principal = new UserPrincipal(user, new HashMap<>());
 
         sessionService.handleUserDisconnect(
@@ -230,5 +229,29 @@ class SessionServiceTests {
         assertEquals(userId1, sessionIdUser.get(sessionId2));
         assertTrue(sessionIdRoom.containsKey(sessionId2));
         assertEquals(roomId1, sessionIdRoom.get(sessionId2));
+    }
+
+    private User createUser(int i) {
+        Long userId = i + 1L;
+        String provider = "provider +" + i;
+        String providerId = "providerId" + i;
+        LocalDateTime lastLogin = LocalDateTime.now();
+
+        User user =
+                User.builder()
+                        .provider(provider)
+                        .providerId(providerId)
+                        .lastLogin(lastLogin)
+                        .build();
+
+        try {
+            Field idField = User.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(user, userId);
+        } catch (Exception e) {
+            throw new RuntimeException("ID 설정 실패", e);
+        }
+
+        return user;
     }
 }

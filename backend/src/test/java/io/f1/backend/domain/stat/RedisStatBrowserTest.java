@@ -26,7 +26,7 @@ import com.github.database.rider.core.api.dataset.DataSet;
 import io.f1.backend.domain.stat.dao.StatJpaRepository;
 import io.f1.backend.domain.stat.dao.StatRepositoryAdapter;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
-import io.f1.backend.domain.stat.dto.StatWithNicknameAndUserId;
+import io.f1.backend.domain.stat.dto.StatWithUserSummary;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
@@ -186,9 +186,9 @@ public class RedisStatBrowserTest extends BrowserTestTemplate {
     }
 
     private void warmingRedisOneUser(User user) {
-        StatWithNicknameAndUserId mockStat =
-                new StatWithNicknameAndUserId(user.getId(), user.getNickname(), 10, 10, 100);
-        given(statJpaRepository.findAllStatWithNicknameAndUserId()).willReturn(List.of(mockStat));
+        StatWithUserSummary mockStat =
+                new StatWithUserSummary(user.getId(), user.getNickname(), 10, 10, 100);
+        given(statJpaRepository.findAllStatWithUserSummary()).willReturn(List.of(mockStat));
         statRepositoryAdapter.setup();
     }
 }

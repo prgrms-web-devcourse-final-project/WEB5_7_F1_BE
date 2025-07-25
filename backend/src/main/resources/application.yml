@@ -64,3 +64,26 @@ server:
         secure: true
         http-only: true
       timeout: ${SESSION_TIMEOUT}
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  security:
+    user:
+      name: ${PROM_NAME}
+      password: ${PROM_PASSWORD}
+      roles: PROMETHEUS
+
+management:
+  server:
+    port: ${ACTUATOR_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus"
+      base-path: ${ACTUATOR_BASE_PATH}
+  endpoint:
+    prometheus:
+      access: read_only
