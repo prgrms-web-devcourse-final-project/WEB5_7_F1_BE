@@ -58,7 +58,7 @@ class RoomServiceTests {
 
         roomService =
                 new RoomService(
-                        timerService, quizService, roomRepository, eventPublisher, messageSender);
+                        quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
