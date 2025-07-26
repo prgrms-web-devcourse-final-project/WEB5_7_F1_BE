@@ -56,9 +56,7 @@ class RoomServiceTests {
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
 
-        roomService =
-                new RoomService(
-                        quizService, roomRepository, eventPublisher, messageSender);
+        roomService = new RoomService(quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
