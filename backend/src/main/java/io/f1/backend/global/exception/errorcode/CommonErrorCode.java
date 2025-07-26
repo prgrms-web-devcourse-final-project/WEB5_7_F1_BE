@@ -12,7 +12,8 @@ public enum CommonErrorCode implements ErrorCode {
     INVALID_PAGINATION("E400006", HttpStatus.BAD_REQUEST, "page와 size는 1 이상의 정수여야 합니다."),
     INTERNAL_SERVER_ERROR(
             "E500001", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러가 발생했습니다. 관리자에게 문의해주세요."),
-    INVALID_JSON_FORMAT("E400008", HttpStatus.BAD_REQUEST, "요청 형식이 올바르지 않습니다. JSON 문법을 확인해주세요.");
+    INVALID_JSON_FORMAT("E400008", HttpStatus.BAD_REQUEST, "요청 형식이 올바르지 않습니다. JSON 문법을 확인해주세요."),
+    LOCK_ACQUISITION_FAILED("E409003", HttpStatus.CONFLICT, "다른 요청이 작업 중입니다. 잠시 후 다시 시도해주세요.");
 
     private final String code;
 
