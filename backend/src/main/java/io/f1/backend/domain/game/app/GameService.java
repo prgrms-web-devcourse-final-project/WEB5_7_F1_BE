@@ -31,8 +31,8 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
-
 import io.f1.backend.global.lock.DistributedLock;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -224,9 +224,7 @@ public class GameService {
         broadcastGameSetting(room);
 
         RoomUpdatedEvent roomUpdatedEvent =
-                new RoomUpdatedEvent(
-                        room,
-                        quizService.getQuizWithQuestionsById(room.getQuizId()));
+                new RoomUpdatedEvent(room, quizService.getQuizWithQuestionsById(room.getQuizId()));
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }
