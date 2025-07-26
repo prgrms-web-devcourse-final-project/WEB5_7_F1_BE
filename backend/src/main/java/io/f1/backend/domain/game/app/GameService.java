@@ -32,6 +32,7 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import io.f1.backend.global.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,6 +60,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @DistributedLock(prefix = "room", key = "#roomId", waitTime = 0)
     public void gameStart(Long roomId, UserPrincipal principal) {
 
         String destination = getDestination(roomId);
@@ -81,6 +83,9 @@ public class GameService {
         eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
 
         timerService.startTimer(room, START_DELAY);
+
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+        log.info(playerListResponse.toString());
 
         messageSender.sendBroadcast(
                 destination, MessageType.GAME_START, toGameStartResponse(questions));
@@ -190,6 +195,7 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void handlePlayerReady(Long roomId, String sessionId) {
 
         Room room = findRoom(roomId);
@@ -220,7 +226,7 @@ public class GameService {
         RoomUpdatedEvent roomUpdatedEvent =
                 new RoomUpdatedEvent(
                         room,
-                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
+                        quizService.getQuizWithQuestionsById(room.getQuizId()));
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }
@@ -242,7 +248,7 @@ public class GameService {
     // 라운드 수만큼 랜덤 Question 추출
     private List<Question> prepareQuestions(Room room, Quiz quiz) {
         Long quizId = quiz.getId();
-        Integer round = room.getGameSetting().getRound();
+        Integer round = room.getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
     }
 
