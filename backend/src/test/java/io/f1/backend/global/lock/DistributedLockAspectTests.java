@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.f1.backend.global.exception.CustomException;
-import java.util.concurrent.TimeUnit;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,27 +30,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
+import java.util.concurrent.TimeUnit;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ExtendWith(MockitoExtension.class)
 class DistributedLockAspectTests {
 
-    @InjectMocks
-    DistributedLockAspect distributedLockAspect;
+    @InjectMocks DistributedLockAspect distributedLockAspect;
 
-    @Mock
-    RedissonClient redissonClient;
+    @Mock RedissonClient redissonClient;
 
-    @Mock
-    RLock rLock;
+    @Mock RLock rLock;
 
-    @Mock
-    ProceedingJoinPoint joinPoint;
+    @Mock ProceedingJoinPoint joinPoint;
 
-    @Mock
-    MethodSignature methodSignature;
+    @Mock MethodSignature methodSignature;
 
-    @Mock
-    DistributedLock distributedLockAnnotation;
+    @Mock DistributedLock distributedLockAnnotation;
 
     private final String TEST_PREFIX = "room";
     private final String TEST_KEY = "#roomId";
@@ -69,8 +65,8 @@ class DistributedLockAspectTests {
         when(distributedLockAnnotation.timeUnit()).thenReturn(TimeUnit.SECONDS);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
-        when(methodSignature.getParameterNames()).thenReturn(new String[]{"roomId"});
-        when(joinPoint.getArgs()).thenReturn(new Object[]{TEST_ROOM_ID});
+        when(methodSignature.getParameterNames()).thenReturn(new String[] {"roomId"});
+        when(joinPoint.getArgs()).thenReturn(new Object[] {TEST_ROOM_ID});
     }
 
     @Order(1)
@@ -84,23 +80,26 @@ class DistributedLockAspectTests {
         when(rLock.isHeldByCurrentThread()).thenReturn(true);
         when(joinPoint.proceed()).thenReturn(EXPECTED_RETURN_VALUE);
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                any(String[].class), any(Object[].class), anyString()
-            )).thenReturn(TEST_ROOM_ID);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            any(String[].class), any(Object[].class), anyString()))
+                    .thenReturn(TEST_ROOM_ID);
 
             // When
             Object result = distributedLockAspect.lock(joinPoint, distributedLockAnnotation);
 
             // Then
             assertAll(
-                () -> assertEquals(EXPECTED_RETURN_VALUE, result),
-                () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
-                () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
-                () -> verify(joinPoint, times(1)).proceed(),
-                () -> verify(rLock, times(1)).isHeldByCurrentThread(),
-                () -> verify(rLock, times(1)).unlock()
-            );
+                    () -> assertEquals(EXPECTED_RETURN_VALUE, result),
+                    () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
+                    () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
+                    () -> verify(joinPoint, times(1)).proceed(),
+                    () -> verify(rLock, times(1)).isHeldByCurrentThread(),
+                    () -> verify(rLock, times(1)).unlock());
         }
     }
 
@@ -114,23 +113,28 @@ class DistributedLockAspectTests {
         // 무조건 false 반환 하도록 강제
         when(rLock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)).thenReturn(false);
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                any(String[].class), any(Object[].class), anyString()
-            )).thenReturn(TEST_ROOM_ID);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            any(String[].class), any(Object[].class), anyString()))
+                    .thenReturn(TEST_ROOM_ID);
 
             // When & Then
-            CustomException exception = assertThrows(CustomException.class,
-                () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
+            CustomException exception =
+                    assertThrows(
+                            CustomException.class,
+                            () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
 
             assertAll(
-                () -> assertNotNull(exception),
-                () -> assertEquals("다른 요청이 작업 중입니다. 잠시 후 다시 시도해주세요.", exception.getMessage()),
-                () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
-                () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
-                () -> verify(joinPoint, never()).proceed(),
-                () -> verify(rLock, never()).unlock()
-            );
+                    () -> assertNotNull(exception),
+                    () -> assertEquals("다른 요청이 작업 중입니다. 잠시 후 다시 시도해주세요.", exception.getMessage()),
+                    () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
+                    () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
+                    () -> verify(joinPoint, never()).proceed(),
+                    () -> verify(rLock, never()).unlock());
         }
     }
 
@@ -142,25 +146,30 @@ class DistributedLockAspectTests {
         when(distributedLockAnnotation.key()).thenReturn(TEST_KEY);
         when(redissonClient.getLock(EXPECTED_LOCK_KEY)).thenReturn(rLock);
         when(rLock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS))
-            .thenThrow(new InterruptedException("Thread interrupted"));
+                .thenThrow(new InterruptedException("Thread interrupted"));
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                any(String[].class), any(Object[].class), anyString()
-            )).thenReturn(TEST_ROOM_ID);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            any(String[].class), any(Object[].class), anyString()))
+                    .thenReturn(TEST_ROOM_ID);
 
             // When & Then
-            InterruptedException exception = assertThrows(InterruptedException.class,
-                () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
+            InterruptedException exception =
+                    assertThrows(
+                            InterruptedException.class,
+                            () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
 
             assertAll(
-                () -> assertNotNull(exception),
-                () -> assertEquals("Thread interrupted", exception.getMessage()),
-                () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
-                () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
-                () -> verify(joinPoint, never()).proceed(),
-                () -> verify(rLock, never()).unlock()
-            );
+                    () -> assertNotNull(exception),
+                    () -> assertEquals("Thread interrupted", exception.getMessage()),
+                    () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
+                    () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
+                    () -> verify(joinPoint, never()).proceed(),
+                    () -> verify(rLock, never()).unlock());
         }
     }
 
@@ -175,23 +184,27 @@ class DistributedLockAspectTests {
         when(rLock.isHeldByCurrentThread()).thenReturn(false); // 현재 스레드가 락을 보유하지 않도록 강제
         when(joinPoint.proceed()).thenReturn(EXPECTED_RETURN_VALUE);
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                any(String[].class), any(Object[].class), anyString()
-            )).thenReturn(TEST_ROOM_ID);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            any(String[].class), any(Object[].class), anyString()))
+                    .thenReturn(TEST_ROOM_ID);
 
             // When
             Object result = distributedLockAspect.lock(joinPoint, distributedLockAnnotation);
 
             // Then
             assertAll(
-                () -> assertEquals(EXPECTED_RETURN_VALUE, result),
-                () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
-                () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
-                () -> verify(joinPoint, times(1)).proceed(),
-                () -> verify(rLock, times(1)).isHeldByCurrentThread(),
-                () -> verify(rLock, never()).unlock() // unlock 호출되지 않아야 함
-            );
+                    () -> assertEquals(EXPECTED_RETURN_VALUE, result),
+                    () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
+                    () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
+                    () -> verify(joinPoint, times(1)).proceed(),
+                    () -> verify(rLock, times(1)).isHeldByCurrentThread(),
+                    () -> verify(rLock, never()).unlock() // unlock 호출되지 않아야 함
+                    );
         }
     }
 
@@ -207,23 +220,29 @@ class DistributedLockAspectTests {
         when(rLock.isHeldByCurrentThread()).thenReturn(true);
         when(joinPoint.proceed()).thenThrow(testException);
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                any(String[].class), any(Object[].class), anyString()
-            )).thenReturn(TEST_ROOM_ID);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            any(String[].class), any(Object[].class), anyString()))
+                    .thenReturn(TEST_ROOM_ID);
 
             // When & Then
-            RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
+            RuntimeException exception =
+                    assertThrows(
+                            RuntimeException.class,
+                            () -> distributedLockAspect.lock(joinPoint, distributedLockAnnotation));
 
             assertAll(
-                () -> assertEquals(testException, exception),
-                () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
-                () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
-                () -> verify(joinPoint, times(1)).proceed(),
-                () -> verify(rLock, times(1)).isHeldByCurrentThread(),
-                () -> verify(rLock, times(1)).unlock() // 예외 발생해도 unlock 호출되어야 함
-            );
+                    () -> assertEquals(testException, exception),
+                    () -> verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY),
+                    () -> verify(rLock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS),
+                    () -> verify(joinPoint, times(1)).proceed(),
+                    () -> verify(rLock, times(1)).isHeldByCurrentThread(),
+                    () -> verify(rLock, times(1)).unlock() // 예외 발생해도 unlock 호출되어야 함
+                    );
         }
     }
 
@@ -237,28 +256,33 @@ class DistributedLockAspectTests {
 
         when(distributedLockAnnotation.prefix()).thenReturn("room");
         when(distributedLockAnnotation.key()).thenReturn("#roomId");
-        when(methodSignature.getParameterNames()).thenReturn(new String[]{"roomId"});
-        when(joinPoint.getArgs()).thenReturn(new Object[]{roomId});
+        when(methodSignature.getParameterNames()).thenReturn(new String[] {"roomId"});
+        when(joinPoint.getArgs()).thenReturn(new Object[] {roomId});
 
         when(redissonClient.getLock(expectedLockKey)).thenReturn(rLock);
         when(rLock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)).thenReturn(true);
         when(rLock.isHeldByCurrentThread()).thenReturn(true);
         when(joinPoint.proceed()).thenReturn(EXPECTED_RETURN_VALUE);
 
-        try (MockedStatic<CustomSpringELParser> mockedParser = Mockito.mockStatic(CustomSpringELParser.class)) {
-            mockedParser.when(() -> CustomSpringELParser.getDynamicValue(
-                new String[]{"roomId"}, new Object[]{roomId}, "#roomId"
-            )).thenReturn(roomId);
+        try (MockedStatic<CustomSpringELParser> mockedParser =
+                Mockito.mockStatic(CustomSpringELParser.class)) {
+            mockedParser
+                    .when(
+                            () ->
+                                    CustomSpringELParser.getDynamicValue(
+                                            new String[] {"roomId"},
+                                            new Object[] {roomId},
+                                            "#roomId"))
+                    .thenReturn(roomId);
 
             // When
             Object result = distributedLockAspect.lock(joinPoint, distributedLockAnnotation);
 
             // Then
             assertAll(
-                () -> assertEquals(EXPECTED_RETURN_VALUE, result),
-                () -> verify(redissonClient, times(1)).getLock(expectedLockKey),
-                () -> verify(rLock, times(1)).unlock()
-            );
+                    () -> assertEquals(EXPECTED_RETURN_VALUE, result),
+                    () -> verify(redissonClient, times(1)).getLock(expectedLockKey),
+                    () -> verify(rLock, times(1)).unlock());
         }
     }
 }
