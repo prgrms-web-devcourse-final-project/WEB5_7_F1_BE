@@ -21,7 +21,7 @@ public class SseMapper {
                         room.getId(),
                         room.getRoomSetting().roomName(),
                         room.getRoomSetting().maxUserCount(),
-                        room.getPlayerSessionMap().size(),
+                        room.getCurrentUserCnt(),
                         room.getRoomSetting().locked(),
                         room.getState().name(),
                         quiz.getTitle(),
@@ -38,7 +38,7 @@ public class SseMapper {
         RoomUpdatedPayload payload =
                 new RoomUpdatedPayload(
                         room.getId(),
-                        room.getPlayerSessionMap().size(),
+                        room.getCurrentUserCnt(),
                         room.getState().name(),
                         quiz.getTitle(),
                         quiz.getDescription(),
