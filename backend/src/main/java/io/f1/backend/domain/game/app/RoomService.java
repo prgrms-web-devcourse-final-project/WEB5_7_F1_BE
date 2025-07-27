@@ -341,7 +341,7 @@ public class RoomService {
             messageSender.sendBroadcast(
                     destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
             messageSender.sendBroadcast(
-                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
         }
     }
 
