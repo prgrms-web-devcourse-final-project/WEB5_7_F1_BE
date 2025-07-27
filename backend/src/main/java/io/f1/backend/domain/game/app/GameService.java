@@ -176,12 +176,13 @@ public class GameService {
         room.initializePlayers();
 
         List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
+
         if (!disconnectedPlayers.isEmpty()) {
             roomService.handleDisconnectedPlayers(room, disconnectedPlayers);
-        } else {
-            messageSender.sendBroadcast(
-                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
         }
+
+        messageSender.sendBroadcast(
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
 
         room.updateRoomState(RoomState.WAITING);
 

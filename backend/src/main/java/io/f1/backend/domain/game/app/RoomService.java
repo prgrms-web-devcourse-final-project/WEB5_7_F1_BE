@@ -364,10 +364,5 @@ public class RoomService {
             String sessionId = room.getSessionIdByUserId(player.getId());
             exitRoomForDisconnectedPlayer(room.getId(), player, sessionId);
         }
-
-        String destination = getDestination(room.getId());
-
-        messageSender.sendBroadcast(
-                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 }
