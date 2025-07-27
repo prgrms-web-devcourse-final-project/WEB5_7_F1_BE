@@ -138,8 +138,8 @@ public class Room {
                 .forEach(
                         player -> {
                             player.initializeCorrectCount();
-                            player.toggleReady();
                         });
+        resetAllPlayerReadyStates();
     }
 
     public String getSessionIdByUserId(Long userId) {
