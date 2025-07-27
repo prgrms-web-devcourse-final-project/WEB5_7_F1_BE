@@ -213,16 +213,10 @@ public class GameService {
         if (!request.change(room, quizService)) {
             return;
         }
-        request.afterChange(room, messageSender);
+        request.afterChange(room, messageSender, eventPublisher, quizService);
 
         broadcastGameSetting(room);
 
-        RoomUpdatedEvent roomUpdatedEvent =
-                new RoomUpdatedEvent(
-                        room,
-                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
-
-        eventPublisher.publishEvent(roomUpdatedEvent);
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
