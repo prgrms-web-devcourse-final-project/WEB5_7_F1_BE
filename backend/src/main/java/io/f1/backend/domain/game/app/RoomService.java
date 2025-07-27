@@ -340,9 +340,9 @@ public class RoomService {
                     ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
             messageSender.sendBroadcast(
-                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-            messageSender.sendBroadcast(
                     destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.sendBroadcast(
+                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
         }
     }
 
