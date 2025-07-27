@@ -48,7 +48,6 @@ public class RoomMapper {
         return new RoomSettingResponse(
                 room.getRoomSetting().roomName(),
                 room.getRoomSetting().maxUserCount(),
-                room.getCurrentUserCnt(),
                 room.getRoomSetting().locked());
     }
 
