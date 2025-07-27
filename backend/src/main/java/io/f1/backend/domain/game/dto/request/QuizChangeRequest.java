@@ -11,6 +11,7 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
@@ -28,7 +29,11 @@ public record QuizChangeRequest(long quizId) implements GameSettingChanger {
     }
 
     @Override
-    public void afterChange(Room room, MessageSender messageSender, ApplicationEventPublisher eventPublisher, QuizService quizService) {
+    public void afterChange(
+            Room room,
+            MessageSender messageSender,
+            ApplicationEventPublisher eventPublisher,
+            QuizService quizService) {
 
         String destination = getDestination(room.getId());
         PlayerListResponse response = toPlayerListResponse(room);
@@ -37,9 +42,9 @@ public record QuizChangeRequest(long quizId) implements GameSettingChanger {
         messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, response);
 
         RoomUpdatedEvent roomUpdatedEvent =
-            new RoomUpdatedEvent(
-                room,
-                quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
+                new RoomUpdatedEvent(
+                        room,
+                        quizService.getQuizWithQuestionsById(room.getGameSetting().getQuizId()));
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }

@@ -216,7 +216,6 @@ public class GameService {
         request.afterChange(room, messageSender, eventPublisher, quizService);
 
         broadcastGameSetting(room);
-
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
