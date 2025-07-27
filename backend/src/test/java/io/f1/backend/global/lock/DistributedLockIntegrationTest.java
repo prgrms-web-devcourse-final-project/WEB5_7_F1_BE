@@ -27,9 +27,7 @@ class DistributedLockIntegrationTest {
 
     @DynamicPropertySource
     static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add(
-                "spring.data.redis.host",
-                RedisTestContainerConfig.redisContainer::getHost);
+        registry.add("spring.data.redis.host", RedisTestContainerConfig.redisContainer::getHost);
         registry.add(
                 "spring.data.redis.port",
                 () -> RedisTestContainerConfig.redisContainer.getFirstMappedPort());

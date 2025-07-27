@@ -18,8 +18,8 @@ public class RedisTestContainerConfig {
 
     @Container
     public static RedisContainer redisContainer =
-        new RedisContainer(
-            RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG));
+            new RedisContainer(
+                    RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG));
 
     static {
         redisContainer.start();
@@ -28,13 +28,16 @@ public class RedisTestContainerConfig {
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(
-            redisContainer.getHost(), redisContainer.getFirstMappedPort());
+                redisContainer.getHost(), redisContainer.getFirstMappedPort());
     }
 
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        String address = String.format("redis://%s:%d", redisContainer.getHost(), redisContainer.getFirstMappedPort());
+        String address =
+                String.format(
+                        "redis://%s:%d",
+                        redisContainer.getHost(), redisContainer.getFirstMappedPort());
         config.useSingleServer().setAddress(address);
         return Redisson.create(config);
     }
