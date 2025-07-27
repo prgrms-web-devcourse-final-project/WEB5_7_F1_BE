@@ -48,7 +48,6 @@ public class RoomMapper {
         return new RoomSettingResponse(
                 room.getRoomSetting().roomName(),
                 room.getRoomSetting().maxUserCount(),
-                room.getPlayerSessionMap().size(),
                 room.getRoomSetting().locked());
     }
 
@@ -63,7 +62,7 @@ public class RoomMapper {
                         .map(player -> new PlayerResponse(player.getNickname(), player.isReady()))
                         .toList();
 
-        return new PlayerListResponse(room.getHost().getNickname(), playerResponseList);
+        return new PlayerListResponse(room.getHost().getNickname(), playerResponseList, playerResponseList.size());
     }
 
     public static RoomResponse toRoomResponse(Room room, Quiz quiz) {
