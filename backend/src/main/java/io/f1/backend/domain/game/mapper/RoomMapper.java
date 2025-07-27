@@ -48,7 +48,7 @@ public class RoomMapper {
         return new RoomSettingResponse(
                 room.getRoomSetting().roomName(),
                 room.getRoomSetting().maxUserCount(),
-                room.getPlayerSessionMap().size(),
+                room.getCurrentUserCnt(),
                 room.getRoomSetting().locked());
     }
 
@@ -71,7 +71,7 @@ public class RoomMapper {
                 room.getId(),
                 room.getRoomSetting().roomName(),
                 room.getRoomSetting().maxUserCount(),
-                room.getPlayerSessionMap().size(),
+                room.getCurrentUserCnt(),
                 room.getRoomSetting().locked(),
                 room.getState().name(),
                 quiz.getTitle(),
@@ -111,9 +111,9 @@ public class RoomMapper {
                 room.getCurrentQuestion().getId(),
                 room.getCurrentRound(),
                 Instant.now().plusSeconds(delay),
-                room.getGameSetting().getTimeLimit(),
+                room.getTimeLimit(),
                 Instant.now(),
-                room.getGameSetting().getRound());
+                room.getRound());
     }
 
     public static GameResultResponse toGameResultResponse(
