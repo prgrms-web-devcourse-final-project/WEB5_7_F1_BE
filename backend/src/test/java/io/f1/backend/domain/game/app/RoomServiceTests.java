@@ -47,8 +47,6 @@ class RoomServiceTests {
 
     @Mock private RoomRepository roomRepository;
     @Mock private QuizService quizService;
-    @Mock private GameService gameService;
-    @Mock private TimerService timerService;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private MessageSender messageSender;
 
@@ -57,8 +55,7 @@ class RoomServiceTests {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
 
         roomService =
-                new RoomService(
-                        timerService, quizService, roomRepository, eventPublisher, messageSender);
+                new RoomService(quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
