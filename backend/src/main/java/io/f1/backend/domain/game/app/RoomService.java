@@ -368,6 +368,6 @@ public class RoomService {
         String destination = getDestination(room.getId());
 
         messageSender.sendBroadcast(
-            destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 }
