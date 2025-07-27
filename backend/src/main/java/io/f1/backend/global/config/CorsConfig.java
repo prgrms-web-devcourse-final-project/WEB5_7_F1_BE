@@ -15,6 +15,7 @@ public class CorsConfig {
 
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://brainrace.duckdns.org");
+		config.addAllowedOrigin("https://api.brainrace.duckdns.org");
 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
