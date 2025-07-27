@@ -47,8 +47,6 @@ class RoomServiceTests {
 
     @Mock private RoomRepository roomRepository;
     @Mock private QuizService quizService;
-    @Mock private GameService gameService;
-    @Mock private TimerService timerService;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private MessageSender messageSender;
 
@@ -58,7 +56,7 @@ class RoomServiceTests {
 
         roomService =
                 new RoomService(
-                        timerService, quizService, roomRepository, eventPublisher, messageSender);
+                        quizService, roomRepository, eventPublisher, messageSender);
 
         SecurityContextHolder.clearContext();
     }
