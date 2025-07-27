@@ -26,6 +26,7 @@ import io.f1.backend.domain.game.dto.response.RoomResponse;
 import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 import io.f1.backend.domain.game.event.RoomCreatedEvent;
+import io.f1.backend.domain.game.event.RoomDeletedEvent;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
@@ -339,9 +340,9 @@ public class RoomService {
                     ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
             messageSender.sendBroadcast(
-                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-            messageSender.sendBroadcast(
                     destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+            messageSender.sendBroadcast(
+                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
         }
     }
 
@@ -349,6 +350,8 @@ public class RoomService {
         /* 방 삭제 */
         if (room.isLastPlayer(sessionId)) {
             removeRoom(room);
+            Long roomId = room.getId();
+            eventPublisher.publishEvent(new RoomDeletedEvent(roomId));
             return;
         }
 
