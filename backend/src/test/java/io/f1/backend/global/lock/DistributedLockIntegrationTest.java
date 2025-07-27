@@ -3,7 +3,7 @@ package io.f1.backend.global.lock;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.f1.backend.global.config.RedissonTestContainerConfig;
+import io.f1.backend.global.config.RedisTestContainerConfig;
 import io.f1.backend.global.exception.CustomException;
 
 import org.junit.jupiter.api.DisplayName;
@@ -22,17 +22,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SpringBootTest
-@Import({RedissonTestContainerConfig.class, DistributedLockIntegrationTest.TestLockService.class})
+@Import({RedisTestContainerConfig.class, DistributedLockIntegrationTest.TestLockService.class})
 class DistributedLockIntegrationTest {
 
     @DynamicPropertySource
     static void redisProperties(DynamicPropertyRegistry registry) {
         registry.add(
-                "spring.datasource.data.redis.host",
-                RedissonTestContainerConfig.redisContainer::getHost);
+                "spring.data.redis.host",
+                RedisTestContainerConfig.redisContainer::getHost);
         registry.add(
-                "spring.datasource.data.redis.port",
-                () -> RedissonTestContainerConfig.redisContainer.getFirstMappedPort());
+                "spring.data.redis.port",
+                () -> RedisTestContainerConfig.redisContainer.getFirstMappedPort());
     }
 
     @Autowired private TestLockService testLockService;
