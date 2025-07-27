@@ -339,8 +339,6 @@ public class RoomService {
                     ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
             messageSender.sendBroadcast(
-                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-            messageSender.sendBroadcast(
                     destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
         }
     }
@@ -366,5 +364,10 @@ public class RoomService {
             String sessionId = room.getSessionIdByUserId(player.getId());
             exitRoomForDisconnectedPlayer(room.getId(), player, sessionId);
         }
+
+        String destination = getDestination(room.getId());
+
+        messageSender.sendBroadcast(
+            destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 }
