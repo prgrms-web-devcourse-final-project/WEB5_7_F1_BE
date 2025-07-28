@@ -150,7 +150,6 @@ public class RoomService {
              }else{
                  exitRoom(joinedRoomId,getCurrentUserPrincipal());
              }
-            removeUserRepository(userId, joinedRoomId);
          }
     }
 
@@ -312,7 +311,9 @@ public class RoomService {
 
     public void exitIfNotPlaying(Long roomId, UserPrincipal principal) {
         Room room = findRoom(roomId);
-        if (!room.isPlaying()) {
+        if (room.isPlaying()) {
+            removeUserRepository(principal.getUserId(), roomId);
+        }else{
             exitRoom(roomId, principal);
         }
     }
@@ -380,6 +381,10 @@ public class RoomService {
     private void cleanRoom(Room room, Player player) {
 
         Long roomId = room.getId();
+        Long userId = player.getId();
+
+        /* user-room mapping 정보 삭제 */
+        removeUserRepository(userId, roomId);
 
         /* 방 삭제 */
         if (room.isLastPlayer(player)) {
@@ -387,8 +392,6 @@ public class RoomService {
             eventPublisher.publishEvent(new RoomDeletedEvent(roomId));
             return;
         }
-
-        Long userId = player.getId();
 
         /* 방장 변경 */
         if (room.isHost(userId)) {
@@ -412,5 +415,9 @@ public class RoomService {
 
     public void removeUserRepository(Long userId, Long roomId) {
         userRoomRepository.removeUser(userId, roomId);
+    }
+
+    public boolean isUserInAnyRoom(Long userId){
+        return userRoomRepository.isUserInAnyRoom(userId);
     }
 }
