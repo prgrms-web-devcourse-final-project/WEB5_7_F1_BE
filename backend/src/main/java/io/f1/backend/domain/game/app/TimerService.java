@@ -4,8 +4,8 @@ import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.model.Room;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
