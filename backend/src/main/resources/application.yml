@@ -64,6 +64,12 @@ server:
         secure: true
         http-only: true
       timeout: ${SESSION_TIMEOUT}
+
+custom:
+  oauth:
+    redirect:
+      signup-url: ${SIGNUP_URL}
+      main-url: ${MAIN_URL}
 ---
 spring:
   config:
