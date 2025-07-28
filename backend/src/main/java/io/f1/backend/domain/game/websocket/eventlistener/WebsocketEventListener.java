@@ -29,12 +29,16 @@ public class WebsocketEventListener {
 
         Long userId = principal.getUserId();
 
+        /* 정상 로직 */
+        if(!roomService.isUserInAnyRoom(userId)) {
+            return;
+        }
+
         Long roomId = roomService.changeConnectedStatus(userId,ConnectionState.DISCONNECTED);
 
         taskManager.scheduleDisconnectTask(userId , () -> {
             if(ConnectionState.DISCONNECTED.equals(roomService.getPlayerState(userId,roomId))) {
                 roomService.exitIfNotPlaying(roomId,principal);
-                roomService.removeUserRepository(userId, roomId);
             }
         });
     }

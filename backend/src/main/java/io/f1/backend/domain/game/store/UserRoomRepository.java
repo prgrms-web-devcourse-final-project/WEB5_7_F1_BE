@@ -23,4 +23,8 @@ public class UserRoomRepository {
         userRoomMap.remove(userId, roomId);
     }
 
+    public boolean isUserInAnyRoom(Long userId) {
+        return userRoomMap.containsKey(userId);
+    }
+
 }
