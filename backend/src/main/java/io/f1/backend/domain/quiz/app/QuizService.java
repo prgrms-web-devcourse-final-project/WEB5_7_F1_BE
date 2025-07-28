@@ -6,6 +6,7 @@ import static java.nio.file.Files.deleteIfExists;
 
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
@@ -14,6 +15,7 @@ import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
+import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
@@ -138,7 +140,7 @@ public class QuizService {
         quizRepository.deleteById(quizId);
     }
 
-    private static void verifyUserAuthority(Quiz quiz) {
+    public static void verifyUserAuthority(Quiz quiz) {
         if (SecurityUtils.getCurrentUserRole() == Role.ADMIN) {
             return;
         }
@@ -148,7 +150,7 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateQuizTitle(Long quizId, String title) {
+    public void updateQuizAndQuestions(Long quizId, QuizUpdateRequest request) {
         Quiz quiz =
                 quizRepository
                         .findById(quizId)
@@ -156,22 +158,14 @@ public class QuizService {
 
         verifyUserAuthority(quiz);
 
-        validateTitle(title);
-        quiz.changeTitle(title);
-    }
+        quiz.changeTitle(request.getTitle());
+        quiz.changeDescription(request.getDescription());
 
-    @Transactional
-    public void updateQuizDesc(Long quizId, String description) {
+        List<QuestionUpdateRequest> questionReqList = request.getQuestions();
 
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
-
-        verifyUserAuthority(quiz);
-
-        validateDesc(description);
-        quiz.changeDescription(description);
+        for (QuestionUpdateRequest questionReq : questionReqList) {
+            questionService.updateQuestions(quiz, questionReq);
+        }
     }
 
     @Transactional
@@ -189,18 +183,6 @@ public class QuizService {
 
         deleteThumbnailFile(quiz.getThumbnailUrl());
         quiz.changeThumbnailUrl(newThumbnailPath);
-    }
-
-    private void validateDesc(String desc) {
-        if (desc.trim().length() < 10 || desc.trim().length() > 50) {
-            throw new CustomException(QuizErrorCode.INVALID_DESC_LENGTH);
-        }
-    }
-
-    private void validateTitle(String title) {
-        if (title.trim().length() < 2 || title.trim().length() > 30) {
-            throw new CustomException(QuizErrorCode.INVALID_TITLE_LENGTH);
-        }
     }
 
     private void deleteThumbnailFile(String oldFilename) {

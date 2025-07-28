@@ -19,4 +19,12 @@ public class QuestionRequest {
     @TrimmedSize(min = 1, max = 30)
     @NotBlank(message = "정답을 입력해주세요.")
     private String answer;
+
+    public static QuestionRequest of(QuestionUpdateRequest request) {
+        QuestionRequest questionRequest = new QuestionRequest();
+        questionRequest.content = request.getContent();
+        questionRequest.answer = request.getAnswer();
+
+        return questionRequest;
+    }
 }
