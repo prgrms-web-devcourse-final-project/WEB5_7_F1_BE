@@ -84,9 +84,6 @@ public class GameService {
 
         timerService.startTimer(room, START_DELAY);
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        log.info(playerListResponse.toString());
-
         messageSender.sendBroadcast(
                 destination, MessageType.GAME_START, toGameStartResponse(questions));
         messageSender.sendBroadcast(
@@ -212,9 +209,7 @@ public class GameService {
 
         String destination = getDestination(roomId);
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        log.info(playerListResponse.toString());
-        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public void changeGameSetting(
