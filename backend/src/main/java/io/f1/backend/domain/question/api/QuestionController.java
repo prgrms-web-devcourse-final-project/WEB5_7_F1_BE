@@ -1,15 +1,12 @@
 package io.f1.backend.domain.question.api;
 
 import io.f1.backend.domain.question.app.QuestionService;
-import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

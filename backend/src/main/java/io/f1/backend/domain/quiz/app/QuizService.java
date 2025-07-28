@@ -152,9 +152,9 @@ public class QuizService {
     @Transactional
     public void updateQuizAndQuestions(Long quizId, QuizUpdateRequest request) {
         Quiz quiz =
-            quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+                quizRepository
+                        .findById(quizId)
+                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         verifyUserAuthority(quiz);
 
@@ -163,7 +163,7 @@ public class QuizService {
 
         List<QuestionUpdateRequest> questionReqList = request.questions();
 
-        for(QuestionUpdateRequest questionReq : questionReqList) {
+        for (QuestionUpdateRequest questionReq : questionReqList) {
             questionService.updateQuestions(questionReq);
         }
     }

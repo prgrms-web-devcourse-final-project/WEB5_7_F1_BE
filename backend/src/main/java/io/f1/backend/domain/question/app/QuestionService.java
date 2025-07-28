@@ -12,17 +12,12 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.global.exception.CustomException;
-import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
-import io.f1.backend.global.security.enums.Role;
-import io.f1.backend.global.util.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -46,14 +41,13 @@ public class QuestionService {
     public void updateQuestions(QuestionUpdateRequest request) {
 
         Question question =
-            questionRepository
-                .findById(request.id())
-                .orElseThrow(
-                    () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                questionRepository
+                        .findById(request.id())
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
         updateQuestionContent(question, request.content());
         updateQuestionAnswer(question, request.answer());
-
     }
 
     private void updateQuestionContent(Question question, String content) {
