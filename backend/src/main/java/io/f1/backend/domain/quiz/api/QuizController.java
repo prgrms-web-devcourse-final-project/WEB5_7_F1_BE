@@ -59,13 +59,7 @@ public class QuizController {
             @RequestPart(required = false) MultipartFile thumbnailFile,
             @RequestPart QuizUpdateRequest request) {
 
-        if (request.title() != null) {
-            quizService.updateQuizTitle(quizId, request.title());
-        }
-
-        if (request.description() != null) {
-            quizService.updateQuizDesc(quizId, request.description());
-        }
+        quizService.updateQuizAndQuestions(quizId, request);
 
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             quizService.updateThumbnail(quizId, thumbnailFile);

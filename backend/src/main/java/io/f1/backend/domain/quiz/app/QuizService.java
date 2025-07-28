@@ -6,6 +6,7 @@ import static java.nio.file.Files.deleteIfExists;
 
 import io.f1.backend.domain.question.app.QuestionService;
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
@@ -14,6 +15,7 @@ import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
+import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
@@ -138,7 +140,7 @@ public class QuizService {
         quizRepository.deleteById(quizId);
     }
 
-    private static void verifyUserAuthority(Quiz quiz) {
+    public static void verifyUserAuthority(Quiz quiz) {
         if (SecurityUtils.getCurrentUserRole() == Role.ADMIN) {
             return;
         }
@@ -148,28 +150,30 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateQuizTitle(Long quizId, String title) {
+    public void updateQuizAndQuestions(Long quizId, QuizUpdateRequest request) {
         Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+            quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
 
         verifyUserAuthority(quiz);
 
+        updateQuizTitle(quiz, request.title());
+        updateQuizDesc(quiz, request.description());
+
+        List<QuestionUpdateRequest> questionReqList = request.questions();
+
+        for(QuestionUpdateRequest questionReq : questionReqList) {
+            questionService.updateQuestions(questionReq);
+        }
+    }
+
+    private void updateQuizTitle(Quiz quiz, String title) {
         validateTitle(title);
         quiz.changeTitle(title);
     }
 
-    @Transactional
-    public void updateQuizDesc(Long quizId, String description) {
-
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
-
-        verifyUserAuthority(quiz);
-
+    private void updateQuizDesc(Quiz quiz, String description) {
         validateDesc(description);
         quiz.changeDescription(description);
     }

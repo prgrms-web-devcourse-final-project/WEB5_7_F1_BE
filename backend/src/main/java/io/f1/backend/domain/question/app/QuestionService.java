@@ -2,10 +2,12 @@ package io.f1.backend.domain.question.app;
 
 import static io.f1.backend.domain.question.mapper.QuestionMapper.questionRequestToQuestion;
 import static io.f1.backend.domain.question.mapper.TextQuestionMapper.questionRequestToTextQuestion;
+import static io.f1.backend.domain.quiz.app.QuizService.verifyUserAuthority;
 
 import io.f1.backend.domain.question.dao.QuestionRepository;
 import io.f1.backend.domain.question.dao.TextQuestionRepository;
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
@@ -41,45 +43,28 @@ public class QuestionService {
         question.addTextQuestion(textQuestion);
     }
 
-    @Transactional
-    public void updateQuestionContent(Long questionId, String content) {
-
-        validateContent(content);
+    public void updateQuestions(QuestionUpdateRequest request) {
 
         Question question =
-                questionRepository
-                        .findById(questionId)
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+            questionRepository
+                .findById(request.id())
+                .orElseThrow(
+                    () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
-        verifyUserAuthority(question.getQuiz());
+        updateQuestionContent(question, request.content());
+        updateQuestionAnswer(question, request.answer());
+
+    }
+
+    private void updateQuestionContent(Question question, String content) {
+        validateContent(content);
 
         TextQuestion textQuestion = question.getTextQuestion();
         textQuestion.changeContent(content);
     }
 
-    private static void verifyUserAuthority(Quiz quiz) {
-        if (SecurityUtils.getCurrentUserRole() == Role.ADMIN) {
-            return;
-        }
-        if (!Objects.equals(SecurityUtils.getCurrentUserId(), quiz.getCreator().getId())) {
-            throw new CustomException(AuthErrorCode.FORBIDDEN);
-        }
-    }
-
-    @Transactional
-    public void updateQuestionAnswer(Long questionId, String answer) {
-
+    private void updateQuestionAnswer(Question question, String answer) {
         validateAnswer(answer);
-
-        Question question =
-                questionRepository
-                        .findById(questionId)
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
-
-        verifyUserAuthority(question.getQuiz());
-
         question.changeAnswer(answer);
     }
 

@@ -20,21 +20,6 @@ public class QuestionController {
 
     private final QuestionService questionService;
 
-    @PutMapping("/{questionId}")
-    public ResponseEntity<Void> updateQuestion(
-            @PathVariable Long questionId, @RequestBody QuestionUpdateRequest request) {
-
-        if (request.content() != null) {
-            questionService.updateQuestionContent(questionId, request.content());
-        }
-
-        if (request.content() != null) {
-            questionService.updateQuestionAnswer(questionId, request.answer());
-        }
-
-        return ResponseEntity.noContent().build();
-    }
-
     @DeleteMapping("/{questionId}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long questionId) {
         questionService.deleteQuestion(questionId);
