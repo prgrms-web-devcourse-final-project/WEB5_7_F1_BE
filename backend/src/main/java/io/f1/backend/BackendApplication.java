@@ -1,6 +1,7 @@
 package io.f1.backend;
 
 import io.f1.backend.domain.user.dto.OAuthRedirectProperties;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
