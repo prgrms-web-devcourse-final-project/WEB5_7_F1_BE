@@ -87,7 +87,7 @@ public class SecurityConfig {
                                                         userInfo.userService(
                                                                 customOAuthUserService))
                                         .successHandler(oAuthSuccessHandler))
-				.httpBasic(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults())
                 .logout(
                         logout ->
                                 logout.logoutUrl("/logout")
