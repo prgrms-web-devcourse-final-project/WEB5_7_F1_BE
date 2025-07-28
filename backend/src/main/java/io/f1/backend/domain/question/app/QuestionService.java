@@ -42,6 +42,7 @@ public class QuestionService {
 
         if (request.getId() == null) {
             saveQuestion(quiz, QuestionRequest.of(request));
+            return;
         }
 
         Question question =
