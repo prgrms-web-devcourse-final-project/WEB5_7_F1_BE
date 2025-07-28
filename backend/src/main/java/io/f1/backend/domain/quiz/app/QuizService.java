@@ -161,7 +161,6 @@ public class QuizService {
         quiz.changeTitle(request.getTitle());
         quiz.changeDescription(request.getDescription());
 
-
         List<QuestionUpdateRequest> questionReqList = request.getQuestions();
 
         for (QuestionUpdateRequest questionReq : questionReqList) {

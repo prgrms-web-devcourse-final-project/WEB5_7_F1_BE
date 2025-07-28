@@ -1,7 +1,9 @@
 package io.f1.backend.domain.question.dto;
 
 import io.f1.backend.global.validation.TrimmedSize;
+
 import jakarta.validation.constraints.NotBlank;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
