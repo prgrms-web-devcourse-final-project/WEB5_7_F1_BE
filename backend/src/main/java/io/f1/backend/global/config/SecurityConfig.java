@@ -50,7 +50,8 @@ public class SecurityConfig {
                                                 "/signup",
                                                 "/css/**",
                                                 "/js/**",
-                                                "/admin/login")
+                                                "/admin/login",
+                                                actuatorBasePath + "/**")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                                         .permitAll()
@@ -83,7 +84,6 @@ public class SecurityConfig {
                                                         userInfo.userService(
                                                                 customOAuthUserService))
                                         .successHandler(oAuthSuccessHandler))
-                .httpBasic(Customizer.withDefaults())
                 .logout(
                         logout ->
                                 logout.logoutUrl("/logout")
