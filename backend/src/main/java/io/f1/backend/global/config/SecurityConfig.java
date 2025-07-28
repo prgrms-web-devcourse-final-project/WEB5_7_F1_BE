@@ -50,7 +50,8 @@ public class SecurityConfig {
                                                 "/signup",
                                                 "/css/**",
                                                 "/js/**",
-                                                "/admin/login")
+                                                "/admin/login",
+												actuatorBasePath + "/**")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                                         .permitAll()

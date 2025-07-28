@@ -76,12 +76,6 @@ spring:
     activate:
       on-profile: dev
 
-  security:
-    user:
-      name: ${PROM_NAME}
-      password: ${PROM_PASSWORD}
-      roles: PROMETHEUS
-
 management:
   server:
     port: ${ACTUATOR_PORT}
@@ -98,12 +92,6 @@ spring:
   config:
     activate:
       on-profile: prod
-
-  security:
-    user:
-      name: ${PROM_NAME}
-      password: ${PROM_PASSWORD}
-      roles: PROMETHEUS
 
 # TODO: Flyway 추가와 함께 설정이 필요한 항목들
 #  sql:
