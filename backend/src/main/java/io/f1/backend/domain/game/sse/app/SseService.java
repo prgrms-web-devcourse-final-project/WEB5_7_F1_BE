@@ -17,7 +17,7 @@ public class SseService {
     private final SseEmitterRepository emitterRepository;
 
     public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(30_000L);
+        SseEmitter emitter = new SseEmitter(1_800_000L);
         emitterRepository.save(emitter);
 
         try {
