@@ -3,7 +3,6 @@ package io.f1.backend.global.config;
 import io.f1.backend.domain.stat.dao.StatRepositoryAdapter;
 import io.f1.backend.global.util.RedisUserSubscriber;
 
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,8 +41,8 @@ public class RedisConfig {
         return container;
     }
 
-	@Bean
-	ApplicationRunner redisWarmingRunner(StatRepositoryAdapter statRepositoryAdapter) {
-		return args -> statRepositoryAdapter.setup();
-	}
+    @Bean
+    ApplicationRunner redisWarmingRunner(StatRepositoryAdapter statRepositoryAdapter) {
+        return args -> statRepositoryAdapter.setup();
+    }
 }
