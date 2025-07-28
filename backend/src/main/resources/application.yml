@@ -70,6 +70,29 @@ server:
 spring:
   config:
     activate:
+      on-profile: dev
+
+  security:
+    user:
+      name: ${PROM_NAME}
+      password: ${PROM_PASSWORD}
+      roles: PROMETHEUS
+
+management:
+  server:
+    port: ${ACTUATOR_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus"
+      base-path: ${ACTUATOR_BASE_PATH}
+  endpoint:
+    prometheus:
+      access: read_only
+---
+spring:
+  config:
+    activate:
       on-profile: prod
 
   security:
@@ -77,6 +100,20 @@ spring:
       name: ${PROM_NAME}
       password: ${PROM_PASSWORD}
       roles: PROMETHEUS
+
+# TODO: Flyway 추가와 함께 설정이 필요한 항목들
+#  sql:
+#    init:
+#      mode: never
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: none
+#
+#    properties:
+#      hibernate:
+#        show_sql: false
+#        format_sql: false
 
 management:
   server:

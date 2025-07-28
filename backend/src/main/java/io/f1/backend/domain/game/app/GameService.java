@@ -181,7 +181,13 @@ public class GameService {
         room.initializePlayers();
 
         List<Player> disconnectedPlayers = room.getDisconnectedPlayers();
-        roomService.handleDisconnectedPlayers(room, disconnectedPlayers);
+
+        if (!disconnectedPlayers.isEmpty()) {
+            roomService.handleDisconnectedPlayers(room, disconnectedPlayers);
+        } else {
+            messageSender.sendBroadcast(
+                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
+        }
 
         room.updateRoomState(RoomState.WAITING);
 
@@ -219,14 +225,9 @@ public class GameService {
         if (!request.change(room, quizService)) {
             return;
         }
-        request.afterChange(room, messageSender);
+        request.afterChange(room, messageSender, eventPublisher, quizService);
 
         broadcastGameSetting(room);
-
-        RoomUpdatedEvent roomUpdatedEvent =
-                new RoomUpdatedEvent(room, quizService.getQuizWithQuestionsById(room.getQuizId()));
-
-        eventPublisher.publishEvent(roomUpdatedEvent);
     }
 
     private void validateRoomStart(Room room, UserPrincipal principal) {
