@@ -40,7 +40,7 @@ public class QuestionService {
 
     public void updateQuestions(Quiz quiz, QuestionUpdateRequest request) {
 
-        if(request.getId() == null) {
+        if (request.getId() == null) {
             saveQuestion(quiz, QuestionRequest.of(request));
         }
 
