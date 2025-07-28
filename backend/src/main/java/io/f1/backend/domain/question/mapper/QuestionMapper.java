@@ -1,6 +1,7 @@
 package io.f1.backend.domain.question.mapper;
 
 import io.f1.backend.domain.question.dto.QuestionRequest;
+import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.entity.Quiz;
 

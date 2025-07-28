@@ -164,7 +164,7 @@ public class QuizService {
         List<QuestionUpdateRequest> questionReqList = request.getQuestions();
 
         for (QuestionUpdateRequest questionReq : questionReqList) {
-            questionService.updateQuestions(questionReq);
+            questionService.updateQuestions(quiz, questionReq);
         }
     }
 

@@ -38,7 +38,11 @@ public class QuestionService {
         question.addTextQuestion(textQuestion);
     }
 
-    public void updateQuestions(QuestionUpdateRequest request) {
+    public void updateQuestions(Quiz quiz, QuestionUpdateRequest request) {
+
+        if(request.getId() == null) {
+            saveQuestion(quiz, QuestionRequest.of(request));
+        }
 
         Question question =
                 questionRepository
