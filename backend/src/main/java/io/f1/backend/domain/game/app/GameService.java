@@ -95,7 +95,9 @@ public class GameService {
     @EventListener
     public void onCorrectAnswer(GameCorrectAnswerEvent event) {
 
+
         Room room = event.room();
+        log.debug("Correct Answer! " + room.getCurrentRound());
         String sessionId = event.sessionId();
         ChatMessage chatMessage = event.chatMessage();
         String answer = event.answer();
@@ -135,6 +137,8 @@ public class GameService {
     @EventListener
     public void onTimeout(GameTimeoutEvent event) {
         Room room = event.room();
+        log.debug("Timeout! " + room.getCurrentRound());
+
         String destination = getDestination(room.getId());
 
         messageSender.sendBroadcast(
