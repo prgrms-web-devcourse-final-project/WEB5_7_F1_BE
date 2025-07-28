@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.websocket.controller;
 
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.app.ChatService;
@@ -11,11 +10,8 @@ import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.QuizChangeRequest;
 import io.f1.backend.domain.game.dto.request.RoundChangeRequest;
 import io.f1.backend.domain.game.dto.request.TimeLimitChangeRequest;
-import io.f1.backend.domain.game.websocket.service.SessionService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -29,44 +25,27 @@ public class GameSocketController {
     private final GameService gameService;
     private final ChatService chatService;
 
-    private final SessionService sessionService;
-
     @MessageMapping("/room/initializeRoomSocket/{roomId}")
     public void initializeRoomSocket(@DestinationVariable Long roomId, Message<?> message) {
-
-        String websocketSessionId = getSessionId(message);
-
         UserPrincipal principal = getSessionUser(message);
 
-        roomService.initializeRoomSocket(roomId, websocketSessionId, principal);
+        roomService.initializeRoomSocket(roomId, principal);
     }
 
     @MessageMapping("/room/reconnect/{roomId}")
     public void reconnect(@DestinationVariable Long roomId, Message<?> message) {
-        String websocketSessionId = getSessionId(message);
 
         UserPrincipal principal = getSessionUser(message);
-        Long userId = principal.getUserId();
 
-        if (!sessionService.hasOldSessionId(userId)) {
-            return;
-        }
-
-        String oldSessionId = sessionService.getOldSessionId(userId);
-
-        /* room 재연결 대상인지 아닌지 판별 */
-        if (!roomService.isExit(oldSessionId, roomId)) {
-            roomService.reconnectSession(roomId, oldSessionId, websocketSessionId, principal);
-        }
+        roomService.reconnectSendResponse(roomId, principal);
     }
 
     @MessageMapping("/room/exit/{roomId}")
     public void exitRoom(@DestinationVariable Long roomId, Message<?> message) {
 
-        String websocketSessionId = getSessionId(message);
         UserPrincipal principal = getSessionUser(message);
 
-        roomService.exitRoom(roomId, websocketSessionId, principal);
+        roomService.exitRoom(roomId, principal);
     }
 
     @MessageMapping("/room/start/{roomId}")
@@ -79,38 +58,38 @@ public class GameSocketController {
 
     @MessageMapping("room/chat/{roomId}")
     public void chat(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<ChatMessage>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<ChatMessage>> message) {
 
-        chatService.chat(roomId, getSessionId(message), message.getPayload().getMessage());
+        chatService.chat(roomId, getSessionUser(message), message.getPayload().getMessage());
     }
 
     @MessageMapping("/room/ready/{roomId}")
     public void playerReady(@DestinationVariable Long roomId, Message<?> message) {
 
-        gameService.handlePlayerReady(roomId, getSessionId(message));
+        gameService.handlePlayerReady(roomId, getSessionUser(message));
     }
 
     @MessageMapping("/room/quiz/{roomId}")
     public void quizChange(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<QuizChangeRequest>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<QuizChangeRequest>> message) {
         UserPrincipal principal = getSessionUser(message);
         gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
     }
 
     @MessageMapping("/room/time-limit/{roomId}")
     public void timeLimitChange(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<TimeLimitChangeRequest>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<TimeLimitChangeRequest>> message) {
         UserPrincipal principal = getSessionUser(message);
         gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
     }
 
     @MessageMapping("/room/round/{roomId}")
     public void roundChange(
-            @DestinationVariable Long roomId,
-            Message<DefaultWebSocketRequest<RoundChangeRequest>> message) {
+        @DestinationVariable Long roomId,
+        Message<DefaultWebSocketRequest<RoundChangeRequest>> message) {
         UserPrincipal principal = getSessionUser(message);
         gameService.changeGameSetting(roomId, principal, message.getPayload().getMessage());
     }

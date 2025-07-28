@@ -96,13 +96,13 @@ public class GameService {
     public void onCorrectAnswer(GameCorrectAnswerEvent event) {
 
         Room room = event.room();
-        String sessionId = event.sessionId();
+        Long userId = event.userId();
         ChatMessage chatMessage = event.chatMessage();
         String answer = event.answer();
 
         String destination = getDestination(room.getId());
 
-        room.increasePlayerCorrectCount(sessionId);
+        room.increasePlayerCorrectCount(userId);
 
         messageSender.sendBroadcast(
                 destination,
@@ -164,13 +164,13 @@ public class GameService {
         Long roomId = room.getId();
         String destination = getDestination(roomId);
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Map<Long, Player> playerMap = room.getPlayerMap();
 
         // TODO : 랭킹 정보 업데이트
         messageSender.sendBroadcast(
                 destination,
                 MessageType.GAME_RESULT,
-                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+                toGameResultListResponse(playerMap, room.getGameSetting().getRound()));
 
         room.initializeRound();
         room.initializePlayers();
@@ -196,11 +196,11 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
-    public void handlePlayerReady(Long roomId, String sessionId) {
+    public void handlePlayerReady(Long roomId, UserPrincipal userPrincipal) {
 
         Room room = findRoom(roomId);
 
-        Player player = room.getPlayerBySessionId(sessionId);
+        Player player = room.getPlayerByUserId(userPrincipal.getUserId());
 
         toggleReadyIfPossible(room, player);
 

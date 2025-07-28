@@ -58,7 +58,7 @@ public class RoomMapper {
 
     public static PlayerListResponse toPlayerListResponse(Room room) {
         List<PlayerResponse> playerResponseList =
-                room.getPlayerSessionMap().values().stream()
+                room.getPlayerMap().values().stream()
                         .map(player -> new PlayerResponse(player.getNickname(), player.isReady()))
                         .toList();
 
@@ -100,7 +100,7 @@ public class RoomMapper {
 
     public static RankUpdateResponse toRankUpdateResponse(Room room) {
         return new RankUpdateResponse(
-                room.getPlayerSessionMap().values().stream()
+                room.getPlayerMap().values().stream()
                         .sorted(Comparator.comparing(Player::getCorrectCount).reversed())
                         .map(player -> new Rank(player.getNickname(), player.getCorrectCount()))
                         .toList());
@@ -125,10 +125,10 @@ public class RoomMapper {
     }
 
     public static GameResultListResponse toGameResultListResponse(
-            Map<String, Player> playerSessionMap, int round) {
+            Map<Long, Player> playerMap, int round) {
 
         List<Player> rankedPlayers =
-                playerSessionMap.values().stream()
+            playerMap.values().stream()
                         .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
                         .toList();
 

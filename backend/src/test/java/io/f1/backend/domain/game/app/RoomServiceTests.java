@@ -10,6 +10,8 @@ import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomSetting;
 import io.f1.backend.domain.game.store.RoomRepository;
+import io.f1.backend.domain.game.store.UserRoomRepository;
+import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
 import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
@@ -47,14 +49,16 @@ class RoomServiceTests {
 
     @Mock private RoomRepository roomRepository;
     @Mock private QuizService quizService;
+    @Mock private UserRoomRepository userRoomRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private MessageSender messageSender;
+    @Mock private DisconnectTaskManager disconnectTaskManager;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
 
-        roomService = new RoomService(quizService, roomRepository, eventPublisher, messageSender);
+        roomService = new RoomService(quizService, roomRepository,userRoomRepository, eventPublisher,disconnectTaskManager, messageSender);
 
         SecurityContextHolder.clearContext();
     }
@@ -78,6 +82,7 @@ class RoomServiceTests {
 
         when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
 
+
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
@@ -85,11 +90,12 @@ class RoomServiceTests {
 
         for (int i = 1; i <= threadCount; i++) {
             User user = createUser(i);
-
+            when(userRoomRepository.getRoomId(user.getId())).thenReturn(null);
             executorService.submit(
                     () -> {
                         try {
                             SecurityUtils.setAuthentication(user);
+
                             roomService.enterRoom(roomValidationRequest);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -131,12 +137,11 @@ class RoomServiceTests {
 
         /* 방 입장 */
         for (int i = 1; i <= threadCount; i++) {
-            String sessionId = "sessionId" + i;
             Player player = players.get(i - 1);
-            room.getPlayerSessionMap().put(sessionId, player);
+            room.getPlayerMap().put(player.id, player);
         }
 
-        log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerSessionMap().size());
+        log.info("room.getPlayerSessionMap().size() = {}", room.getPlayerMap().size());
 
         when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
 
@@ -145,7 +150,6 @@ class RoomServiceTests {
 
         /* 방 퇴장 테스트 */
         for (int i = 1; i <= threadCount; i++) {
-            String sessionId = "sessionId" + i;
             User user = createUser(i);
             executorService.submit(
                     () -> {
@@ -154,7 +158,7 @@ class RoomServiceTests {
                                     new UserPrincipal(user, Collections.emptyMap());
                             SecurityUtils.setAuthentication(user);
                             log.info("room.getHost().getId() = {}", room.getHost().getId());
-                            roomService.exitRoom(roomId, sessionId, principal);
+                            roomService.exitRoom(roomId, principal);
                         } catch (Exception e) {
                             e.printStackTrace();
                         } finally {
