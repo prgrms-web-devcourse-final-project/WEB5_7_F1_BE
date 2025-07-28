@@ -96,7 +96,7 @@ public class GameService {
     public void onCorrectAnswer(GameCorrectAnswerEvent event) {
 
         Room room = event.room();
-        log.debug("Correct Answer! " + room.getCurrentRound());
+        log.debug(room.getId() + "번 방 채팅으로 정답! 현재 라운드 : " + room.getCurrentRound());
         String sessionId = event.sessionId();
         ChatMessage chatMessage = event.chatMessage();
         String answer = event.answer();
@@ -136,7 +136,7 @@ public class GameService {
     @EventListener
     public void onTimeout(GameTimeoutEvent event) {
         Room room = event.room();
-        log.debug("Timeout! " + room.getCurrentRound());
+        log.debug(room.getId() + "번 방 타임아웃! 현재 라운드 : " + room.getCurrentRound());
 
         String destination = getDestination(room.getId());
 

@@ -20,7 +20,7 @@ public class TimerService {
     private final ApplicationEventPublisher eventPublisher;
 
     public void startTimer(Room room, int delaySec) {
-        log.debug("Starting timer : round " + room.getCurrentRound());
+        log.debug(room.getId() + "번 방 타이머 시작 ! 현재 라운드 : " + room.getCurrentRound());
         cancelTimer(room);
 
         ScheduledFuture<?> timer =
@@ -46,7 +46,7 @@ public class TimerService {
 
     public boolean cancelTimer(Room room) {
         // 정답 맞혔어요 ~ 타이머 캔슬 부탁
-        log.debug("Canceling timer : round " + room.getCurrentRound());
+        log.debug(room.getId() + "번 방 타이머 취소 ! 현재 라운드 : " + room.getCurrentRound());
         ScheduledFuture<?> timer = room.getTimer();
         if (timer != null && !timer.isDone()) {
             return timer.cancel(false);
