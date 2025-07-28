@@ -1,5 +1,6 @@
 package io.f1.backend.domain.user.app.handler;
 
+import io.f1.backend.domain.user.dto.OAuthRedirectProperties;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private final OAuthRedirectProperties redirectProperties;
+
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -25,11 +28,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         if (principal.getUserNickname() == null) {
-            String SIGNUP_REDIRECT_URL = "http://localhost:3000/signup";
-            getRedirectStrategy().sendRedirect(request, response, SIGNUP_REDIRECT_URL);
+            getRedirectStrategy().sendRedirect(request, response, redirectProperties.signupUrl());
         } else {
-            String MAIN_REDIRECT_URL = "http://localhost:3000/room";
-            getRedirectStrategy().sendRedirect(request, response, MAIN_REDIRECT_URL);
+            getRedirectStrategy().sendRedirect(request, response, redirectProperties.mainUrl());
         }
     }
 }

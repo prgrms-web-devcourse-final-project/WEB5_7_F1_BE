@@ -15,12 +15,10 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter // quizService의 퀴즈 조회 메서드 구현 시까지 임시 사용
 @Entity
 @Table(name = "`user`")
 @NoArgsConstructor

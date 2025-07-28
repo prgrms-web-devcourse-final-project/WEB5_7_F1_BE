@@ -6,7 +6,6 @@ import io.f1.backend.domain.user.app.CustomOAuthUserService;
 import io.f1.backend.domain.user.app.handler.CustomAuthenticationEntryPoint;
 import io.f1.backend.domain.user.app.handler.OAuthSuccessHandler;
 import io.f1.backend.domain.user.app.handler.UserAndAdminLogoutSuccessHandler;
-import io.f1.backend.global.filter.DevTokenAuthFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +18,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -40,8 +38,6 @@ public class SecurityConfig {
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .addFilterBefore(
-                        new DevTokenAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exception ->
                                 exception.authenticationEntryPoint(customAuthenticationEntryPoint))
@@ -87,6 +83,7 @@ public class SecurityConfig {
                                                         userInfo.userService(
                                                                 customOAuthUserService))
                                         .successHandler(oAuthSuccessHandler))
+                .httpBasic(Customizer.withDefaults())
                 .logout(
                         logout ->
                                 logout.logoutUrl("/logout")
