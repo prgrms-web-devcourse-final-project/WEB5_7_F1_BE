@@ -42,24 +42,13 @@ public class QuestionService {
 
         Question question =
                 questionRepository
-                        .findById(request.id())
+                        .findById(request.getId())
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
 
-        updateQuestionContent(question, request.content());
-        updateQuestionAnswer(question, request.answer());
-    }
-
-    private void updateQuestionContent(Question question, String content) {
-        validateContent(content);
-
         TextQuestion textQuestion = question.getTextQuestion();
-        textQuestion.changeContent(content);
-    }
-
-    private void updateQuestionAnswer(Question question, String answer) {
-        validateAnswer(answer);
-        question.changeAnswer(answer);
+        textQuestion.changeContent(request.getContent());
+        question.changeAnswer(request.getAnswer());
     }
 
     @Transactional
@@ -74,17 +63,5 @@ public class QuestionService {
         verifyUserAuthority(question.getQuiz());
 
         questionRepository.delete(question);
-    }
-
-    private void validateAnswer(String answer) {
-        if (answer.trim().length() < 5 || answer.trim().length() > 30) {
-            throw new CustomException(QuestionErrorCode.INVALID_ANSWER_LENGTH);
-        }
-    }
-
-    private void validateContent(String content) {
-        if (content.trim().length() < 5 || content.trim().length() > 30) {
-            throw new CustomException(QuestionErrorCode.INVALID_CONTENT_LENGTH);
-        }
     }
 }

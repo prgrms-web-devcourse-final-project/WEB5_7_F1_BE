@@ -158,24 +158,15 @@ public class QuizService {
 
         verifyUserAuthority(quiz);
 
-        updateQuizTitle(quiz, request.title());
-        updateQuizDesc(quiz, request.description());
+        quiz.changeTitle(request.getTitle());
+        quiz.changeDescription(request.getDescription());
 
-        List<QuestionUpdateRequest> questionReqList = request.questions();
+
+        List<QuestionUpdateRequest> questionReqList = request.getQuestions();
 
         for (QuestionUpdateRequest questionReq : questionReqList) {
             questionService.updateQuestions(questionReq);
         }
-    }
-
-    private void updateQuizTitle(Quiz quiz, String title) {
-        validateTitle(title);
-        quiz.changeTitle(title);
-    }
-
-    private void updateQuizDesc(Quiz quiz, String description) {
-        validateDesc(description);
-        quiz.changeDescription(description);
     }
 
     @Transactional
@@ -193,18 +184,6 @@ public class QuizService {
 
         deleteThumbnailFile(quiz.getThumbnailUrl());
         quiz.changeThumbnailUrl(newThumbnailPath);
-    }
-
-    private void validateDesc(String desc) {
-        if (desc.trim().length() < 10 || desc.trim().length() > 50) {
-            throw new CustomException(QuizErrorCode.INVALID_DESC_LENGTH);
-        }
-    }
-
-    private void validateTitle(String title) {
-        if (title.trim().length() < 2 || title.trim().length() > 30) {
-            throw new CustomException(QuizErrorCode.INVALID_TITLE_LENGTH);
-        }
     }
 
     private void deleteThumbnailFile(String oldFilename) {

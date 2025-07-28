@@ -57,7 +57,7 @@ public class QuizController {
     public ResponseEntity<Void> updateQuiz(
             @PathVariable Long quizId,
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @RequestPart QuizUpdateRequest request) {
+            @Valid @RequestPart QuizUpdateRequest request) {
 
         quizService.updateQuizAndQuestions(quizId, request);
 
