@@ -2,9 +2,11 @@ package io.f1.backend.domain.game.store;
 
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
+
+import org.springframework.stereotype.Repository;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserRoomRepository {
@@ -26,5 +28,4 @@ public class UserRoomRepository {
     public boolean isUserInAnyRoom(Long userId) {
         return userRoomMap.containsKey(userId);
     }
-
 }

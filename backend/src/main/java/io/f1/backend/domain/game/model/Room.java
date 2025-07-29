@@ -4,6 +4,9 @@ import io.f1.backend.domain.game.dto.request.TimeLimit;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import lombok.Getter;
 
 @Getter
 public class Room {
@@ -83,7 +85,6 @@ public class Room {
     public void removePlayer(Player removePlayer) {
         playerMap.remove(removePlayer.getId());
     }
-
 
     public void increasePlayerCorrectCount(Long userId) {
         this.playerMap.get(userId).increaseCorrectCount();
