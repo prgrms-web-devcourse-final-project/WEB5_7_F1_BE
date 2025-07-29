@@ -9,11 +9,9 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -34,9 +32,7 @@ public class Room {
 
     private List<Question> questions = new ArrayList<>();
 
-    private Map<String, Player> playerSessionMap = new ConcurrentHashMap<>();
-
-    private final Set<Long> validatedUserIds = new HashSet<>();
+    private Map<Long, Player> playerMap = new ConcurrentHashMap<>();
 
     private final LocalDateTime createdAt = LocalDateTime.now();
 
@@ -53,24 +49,17 @@ public class Room {
         this.host = host;
     }
 
-    public void addValidatedUserId(Long userId) {
-        validatedUserIds.add(userId);
-    }
-
     public int getCurrentUserCnt() {
-        return validatedUserIds.size();
+        return playerMap.size();
     }
 
-    public void addPlayer(String sessionId, Player player) {
+    public void addPlayer(Player player) {
         Long userId = player.getId();
-        if (!validatedUserIds.contains(userId)) {
-            throw new CustomException(RoomErrorCode.ROOM_ENTER_REQUIRED);
-        }
 
         if (isHost(userId)) {
             player.toggleReady();
         }
-        playerSessionMap.put(sessionId, player);
+        playerMap.put(player.getId(), player);
     }
 
     public boolean isHost(Long id) {
@@ -93,16 +82,12 @@ public class Room {
         this.timer = timer;
     }
 
-    public boolean removeSessionId(String sessionId) {
-        return this.playerSessionMap.remove(sessionId) != null;
+    public void removePlayer(Player removePlayer) {
+        playerMap.remove(removePlayer.getId());
     }
 
-    public void removeValidatedUserId(Long userId) {
-        validatedUserIds.remove(userId);
-    }
-
-    public void increasePlayerCorrectCount(String sessionId) {
-        this.playerSessionMap.get(sessionId).increaseCorrectCount();
+    public void increasePlayerCorrectCount(Long userId) {
+        this.playerMap.get(userId).increaseCorrectCount();
     }
 
     public Question getCurrentQuestion() {
@@ -124,7 +109,7 @@ public class Room {
     public List<Player> getDisconnectedPlayers() {
         List<Player> disconnectedPlayers = new ArrayList<>();
 
-        for (Player player : this.playerSessionMap.values()) {
+        for (Player player : this.playerMap.values()) {
             if (player.getState().equals(ConnectionState.DISCONNECTED)) {
                 disconnectedPlayers.add(player);
             }
@@ -133,7 +118,7 @@ public class Room {
     }
 
     public void initializePlayers() {
-        this.playerSessionMap
+        this.playerMap
                 .values()
                 .forEach(
                         player -> {
@@ -142,42 +127,26 @@ public class Room {
         resetAllPlayerReadyStates();
     }
 
-    public String getSessionIdByUserId(Long userId) {
-        for (Map.Entry<String, Player> entry : playerSessionMap.entrySet()) {
-            if (entry.getValue().getId().equals(userId)) {
-                return entry.getKey();
-            }
-        }
-        throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
+    public void updatePlayerConnectionState(Long userId, ConnectionState newState) {
+        playerMap.get(userId).updateState(newState);
     }
 
-    public void reconnectSession(String oldSessionId, String newSessionId) {
-        Player player = playerSessionMap.get(oldSessionId);
-        removeSessionId(oldSessionId);
-        player.updateState(ConnectionState.CONNECTED);
-        playerSessionMap.put(newSessionId, player);
+    public boolean hasPlayer(Long userId) {
+        return playerMap.get(userId) != null;
     }
 
-    public void updatePlayerConnectionState(String sessionId, ConnectionState newState) {
-        playerSessionMap.get(sessionId).updateState(newState);
-    }
-
-    public boolean isExit(String sessionId) {
-        return playerSessionMap.get(sessionId) == null;
-    }
-
-    public boolean isLastPlayer(String sessionId) {
-        long connectedCount = playerSessionMap.size();
-        return connectedCount == 1 && playerSessionMap.containsKey(sessionId);
+    public boolean isLastPlayer(Player player) {
+        long connectedCount = playerMap.size();
+        return connectedCount == 1 && playerMap.containsKey(player.getId());
     }
 
     public boolean validateReadyStatus() {
 
-        return playerSessionMap.values().stream().allMatch(Player::isReady);
+        return playerMap.values().stream().allMatch(Player::isReady);
     }
 
-    public Player getPlayerBySessionId(String sessionId) {
-        Player player = playerSessionMap.get(sessionId);
+    public Player getPlayerByUserId(Long userId) {
+        Player player = playerMap.get(userId);
         if (player == null) {
             throw new CustomException(RoomErrorCode.PLAYER_NOT_FOUND);
         }
@@ -185,7 +154,7 @@ public class Room {
     }
 
     public void resetAllPlayerReadyStates() {
-        for (Player player : playerSessionMap.values()) {
+        for (Player player : playerMap.values()) {
             if (Objects.equals(player.getId(), getHost().getId())) continue;
             player.setReadyFalse();
         }
@@ -213,5 +182,21 @@ public class Room {
 
     public int getRound() {
         return gameSetting.getRound();
+    }
+
+    public ConnectionState getPlayerState(Long userId) {
+        return playerMap.get(userId).getState();
+    }
+
+    public boolean isSameRoom(Long otherRoomId) {
+        return Objects.equals(id, otherRoomId);
+    }
+
+    public boolean isPlayerInState(Long userId, ConnectionState state) {
+        return getPlayerState(userId).equals(state);
+    }
+
+    public boolean isPasswordIncorrect(String password) {
+        return roomSetting.locked() && !roomSetting.password().equals(password);
     }
 }
