@@ -15,10 +15,12 @@ import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
+import io.f1.backend.domain.game.dto.response.GameResultListResponse;
+import io.f1.backend.domain.game.dto.response.GameResultResponse;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
+import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.model.RoomState;
@@ -27,10 +29,12 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.stat.app.StatService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+import io.f1.backend.global.lock.DistributedLock;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +56,7 @@ public class GameService {
     private static final int CONTINUE_DELAY = 3;
     private static final String NONE_CORRECT_USER = "";
 
+    private final StatService statService;
     private final QuizService quizService;
     private final RoomService roomService;
     private final TimerService timerService;
@@ -59,6 +64,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void gameStart(Long roomId, UserPrincipal principal) {
 
         String destination = getDestination(roomId);
@@ -97,13 +103,13 @@ public class GameService {
 
         Room room = event.room();
         log.debug(room.getId() + "번 방 채팅으로 정답! 현재 라운드 : " + room.getCurrentRound());
-        String sessionId = event.sessionId();
+        Long userId = event.userId();
         ChatMessage chatMessage = event.chatMessage();
         String answer = event.answer();
 
         String destination = getDestination(room.getId());
 
-        room.increasePlayerCorrectCount(sessionId);
+        room.increasePlayerCorrectCount(userId);
 
         messageSender.sendBroadcast(
                 destination,
@@ -167,13 +173,14 @@ public class GameService {
         Long roomId = room.getId();
         String destination = getDestination(roomId);
 
-        Map<String, Player> playerSessionMap = room.getPlayerSessionMap();
+        Map<Long, Player> playerMap = room.getPlayerMap();
 
-        // TODO : 랭킹 정보 업데이트
-        messageSender.sendBroadcast(
-                destination,
-                MessageType.GAME_RESULT,
-                toGameResultListResponse(playerSessionMap, room.getGameSetting().getRound()));
+        GameResultListResponse gameResultListResponse =
+                toGameResultListResponse(playerMap, room.getGameSetting().getRound());
+
+        messageSender.sendBroadcast(destination, MessageType.GAME_RESULT, gameResultListResponse);
+
+        updateRank(room, gameResultListResponse);
 
         room.initializeRound();
         room.initializePlayers();
@@ -199,19 +206,44 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
-    public void handlePlayerReady(Long roomId, String sessionId) {
+    private void updateRank(Room room, GameResultListResponse gameResultListResponse) {
+
+        List<GameResultResponse> result = gameResultListResponse.result();
+
+        for (GameResultResponse gameResultResponse : result) {
+            Long playerId = gameResultResponse.id();
+            int rank = gameResultResponse.rank();
+            int score = gameResultResponse.score();
+
+            Player player = room.getPlayerByUserId(playerId);
+
+            if (room.isPlayerInState(playerId, ConnectionState.DISCONNECTED)) {
+                statService.updateRank(playerId, false, 0);
+                continue;
+            }
+
+            if (rank == 1) {
+                statService.updateRank(playerId, true, score);
+                continue;
+            }
+
+            statService.updateRank(playerId, false, score);
+        }
+    }
+
+    @DistributedLock(prefix = "room", key = "#roomId")
+    public void handlePlayerReady(Long roomId, UserPrincipal userPrincipal) {
 
         Room room = findRoom(roomId);
 
-        Player player = room.getPlayerBySessionId(sessionId);
+        Player player = room.getPlayerByUserId(userPrincipal.getUserId());
 
         toggleReadyIfPossible(room, player);
 
         String destination = getDestination(roomId);
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        log.info(playerListResponse.toString());
-        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public void changeGameSetting(
@@ -244,7 +276,7 @@ public class GameService {
     // 라운드 수만큼 랜덤 Question 추출
     private List<Question> prepareQuestions(Room room, Quiz quiz) {
         Long quizId = quiz.getId();
-        Integer round = room.getGameSetting().getRound();
+        Integer round = room.getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
     }
 

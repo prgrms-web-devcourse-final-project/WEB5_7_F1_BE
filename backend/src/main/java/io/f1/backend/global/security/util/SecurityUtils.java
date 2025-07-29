@@ -1,4 +1,4 @@
-package io.f1.backend.global.util;
+package io.f1.backend.global.security.util;
 
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.user.dto.UserPrincipal;
@@ -46,8 +46,7 @@ public class SecurityUtils {
 
     public static Role getCurrentUserRole() {
         Authentication authentication = getAuthentication();
-        if (authentication != null
-                && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             return Role.USER;
         }
         return Role.ADMIN;

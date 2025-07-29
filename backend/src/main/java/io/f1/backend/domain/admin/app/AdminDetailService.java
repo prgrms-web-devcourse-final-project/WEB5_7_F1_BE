@@ -27,7 +27,6 @@ public class AdminDetailService implements UserDetailsService {
                                 () ->
                                         new UsernameNotFoundException(
                                                 AdminErrorCode.ADMIN_NOT_FOUND.getMessage()));
-        // 프론트엔드로 내려가지 않는 예외
         return new AdminPrincipal(admin);
     }
 }

@@ -8,6 +8,7 @@ import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.model.Room;
 import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
+import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +25,7 @@ public class ChatService {
     private final ApplicationEventPublisher eventPublisher;
 
     // todo 동시성적용
-    public void chat(Long roomId, String sessionId, ChatMessage chatMessage) {
+    public void chat(Long roomId, UserPrincipal userPrincipal, ChatMessage chatMessage) {
 
         Room room = roomService.findRoom(roomId);
 
@@ -42,7 +43,8 @@ public class ChatService {
 
         if (answer.equals(chatMessage.message())) {
             eventPublisher.publishEvent(
-                    new GameCorrectAnswerEvent(room, sessionId, chatMessage, answer));
+                    new GameCorrectAnswerEvent(
+                            room, userPrincipal.getUserId(), chatMessage, answer));
         }
     }
 }
