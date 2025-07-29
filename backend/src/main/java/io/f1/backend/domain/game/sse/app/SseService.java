@@ -44,12 +44,16 @@ public class SseService {
     }
 
     private void startHeartBeat(SseEmitter emitter) {
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                emitter.send(SseEmitter.event().name("heartbeat").data("sse-alive"));
-            } catch (IOException e) {
-                emitterRepository.remove(emitter);
-            }
-        }, 5, 60, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(
+                () -> {
+                    try {
+                        emitter.send(SseEmitter.event().name("heartbeat").data("sse-alive"));
+                    } catch (IOException e) {
+                        emitterRepository.remove(emitter);
+                    }
+                },
+                5,
+                60,
+                TimeUnit.SECONDS);
     }
 }
