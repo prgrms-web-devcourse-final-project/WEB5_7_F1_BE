@@ -9,28 +9,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class SseService {
 
     private final SseEmitterRepository emitterRepository;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(1_800_000L);
+        SseEmitter emitter = new SseEmitter(5_000L);
         emitterRepository.save(emitter);
 
         try {
-            // emitter 정상 전송확인 메시지
             emitter.send(SseEmitter.event().name("connect").data("connected"));
+            startHeartBeat(emitter);
         } catch (IOException e) {
-            // emitter send() 호출 시 예외 처리
-            emitterRepository.remove(emitter);
+            emitter.completeWithError(e);
         }
         return emitter;
     }
 
-    // 로비로 SSE 메시지를 쏘기위한 메서드
     public <T> void notifyLobbyUpdate(LobbySseEvent<T> event) {
         for (SseEmitter emitter : emitterRepository.getAll()) {
             try {
@@ -39,5 +41,15 @@ public class SseService {
                 emitterRepository.remove(emitter);
             }
         }
+    }
+
+    private void startHeartBeat(SseEmitter emitter) {
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().name("heartbeat").data("sse-alive"));
+            } catch (IOException e) {
+                emitterRepository.remove(emitter);
+            }
+        }, 5, 60, TimeUnit.SECONDS);
     }
 }
