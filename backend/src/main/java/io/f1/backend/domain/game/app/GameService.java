@@ -217,7 +217,7 @@ public class GameService {
 
             Player player = room.getPlayerByUserId(playerId);
 
-            if (Objects.equals(player.getState(), ConnectionState.DISCONNECTED)) {
+            if (room.isPlayerInState(playerId, ConnectionState.DISCONNECTED)) {
                 statService.updateRank(playerId, false, 0);
                 continue;
             }
