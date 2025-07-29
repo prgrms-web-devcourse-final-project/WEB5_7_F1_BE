@@ -64,7 +64,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @DistributedLock(prefix = "room", key = "#roomId", waitTime = 0)
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void gameStart(Long roomId, UserPrincipal principal) {
 
         String destination = getDestination(roomId);
