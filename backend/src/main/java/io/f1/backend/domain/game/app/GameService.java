@@ -175,13 +175,10 @@ public class GameService {
 
         Map<Long, Player> playerMap = room.getPlayerMap();
 
-		GameResultListResponse gameResultListResponse = toGameResultListResponse(playerMap,
-			room.getGameSetting().getRound());
+        GameResultListResponse gameResultListResponse =
+                toGameResultListResponse(playerMap, room.getGameSetting().getRound());
 
-        messageSender.sendBroadcast(
-                destination,
-                MessageType.GAME_RESULT,gameResultListResponse
-                );
+        messageSender.sendBroadcast(destination, MessageType.GAME_RESULT, gameResultListResponse);
 
         updateRank(room, gameResultListResponse);
 
@@ -209,31 +206,30 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
-	private void updateRank(Room room, GameResultListResponse gameResultListResponse) {
+    private void updateRank(Room room, GameResultListResponse gameResultListResponse) {
 
-		List<GameResultResponse> result = gameResultListResponse.result();
+        List<GameResultResponse> result = gameResultListResponse.result();
 
-		for(GameResultResponse gameResultResponse : result) {
-			Long playerId = gameResultResponse.id();
-			int rank = gameResultResponse.rank();
-			int score = gameResultResponse.score();
+        for (GameResultResponse gameResultResponse : result) {
+            Long playerId = gameResultResponse.id();
+            int rank = gameResultResponse.rank();
+            int score = gameResultResponse.score();
 
-			Player player = room.getPlayerByUserId(playerId);
+            Player player = room.getPlayerByUserId(playerId);
 
-			if (Objects.equals(player.getState(), ConnectionState.DISCONNECTED)) {
-				statService.updateRank(playerId, false, 0);
-				continue;
-			}
+            if (Objects.equals(player.getState(), ConnectionState.DISCONNECTED)) {
+                statService.updateRank(playerId, false, 0);
+                continue;
+            }
 
-			if(rank == 1) {
-				statService.updateRank(playerId, true, score);
-				continue;
-			}
+            if (rank == 1) {
+                statService.updateRank(playerId, true, score);
+                continue;
+            }
 
-			statService.updateRank(playerId, false, score);
-
-		}
-	}
+            statService.updateRank(playerId, false, score);
+        }
+    }
 
     @DistributedLock(prefix = "room", key = "#roomId")
     public void handlePlayerReady(Long roomId, UserPrincipal userPrincipal) {
