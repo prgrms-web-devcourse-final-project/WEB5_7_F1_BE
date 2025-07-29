@@ -15,6 +15,6 @@ public class UserAndAdminLogoutSuccessHandler implements LogoutSuccessHandler {
             HttpServletRequest request,
             HttpServletResponse response,
             Authentication authentication) {
-        response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 }

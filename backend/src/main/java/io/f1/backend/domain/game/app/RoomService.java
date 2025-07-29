@@ -10,9 +10,9 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
-import static io.f1.backend.global.util.SecurityUtils.getCurrentUserId;
-import static io.f1.backend.global.util.SecurityUtils.getCurrentUserNickname;
-import static io.f1.backend.global.util.SecurityUtils.getCurrentUserPrincipal;
+import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserId;
+import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserNickname;
+import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserPrincipal;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
@@ -71,8 +71,6 @@ public class RoomService {
     private final DisconnectTaskManager disconnectTasks;
 
     private final MessageSender messageSender;
-
-    private static final int CONTINUE_DELAY = 3;
 
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 

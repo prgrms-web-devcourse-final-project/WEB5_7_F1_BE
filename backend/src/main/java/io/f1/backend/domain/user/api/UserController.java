@@ -1,6 +1,6 @@
 package io.f1.backend.domain.user.api;
 
-import static io.f1.backend.global.util.SecurityUtils.logout;
+import static io.f1.backend.global.security.util.SecurityUtils.logout;
 
 import io.f1.backend.domain.user.app.UserService;
 import io.f1.backend.domain.user.dto.MyPageInfo;

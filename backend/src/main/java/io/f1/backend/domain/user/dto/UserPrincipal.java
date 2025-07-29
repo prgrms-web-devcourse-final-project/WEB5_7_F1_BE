@@ -49,7 +49,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public String getPassword() {
-        return null; // 소셜 로그인이라 비밀번호 없음
+        return null;
     }
 
     @Override

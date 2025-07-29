@@ -1,6 +1,6 @@
 package io.f1.backend.domain.auth.api;
 
-import static io.f1.backend.global.util.SecurityUtils.getAuthentication;
+import static io.f1.backend.global.security.util.SecurityUtils.getAuthentication;
 
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.auth.dto.CurrentUserAndAdminResponse;
