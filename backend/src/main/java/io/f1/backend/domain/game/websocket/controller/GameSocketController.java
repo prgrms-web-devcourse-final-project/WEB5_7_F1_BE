@@ -10,6 +10,7 @@ import io.f1.backend.domain.game.dto.request.DefaultWebSocketRequest;
 import io.f1.backend.domain.game.dto.request.QuizChangeRequest;
 import io.f1.backend.domain.game.dto.request.RoundChangeRequest;
 import io.f1.backend.domain.game.dto.request.TimeLimitChangeRequest;
+import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class GameSocketController {
     public void reconnect(@DestinationVariable Long roomId, Message<?> message) {
 
         UserPrincipal principal = getSessionUser(message);
-
+        roomService.changeConnectedStatus(principal.getUserId(), ConnectionState.CONNECTED);
         roomService.reconnectSendResponse(roomId, principal);
     }
 
