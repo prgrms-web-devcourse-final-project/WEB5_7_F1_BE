@@ -187,4 +187,12 @@ public class Room {
     public ConnectionState getPlayerState(Long userId) {
         return playerMap.get(userId).getState();
     }
+
+    public boolean isSameRoom(Long otherRoomId){
+        return Objects.equals(id, otherRoomId);
+    }
+
+    public boolean isPlayerInState(Long userId, ConnectionState state){
+        return getPlayerState(userId).equals(state);
+    }
 }

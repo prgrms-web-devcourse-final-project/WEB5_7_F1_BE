@@ -25,15 +25,17 @@ public class DisconnectTaskManager {
         ScheduledFuture<?> scheduled = scheduler.schedule(task, 5, TimeUnit.SECONDS);
 
         ScheduledFuture<?> prev = disconnectTasks.put(userId, scheduled);
-        if (prev != null && !prev.isDone()) {
-            prev.cancel(false);
-        }
+        cancelIfRunning(prev);
     }
 
     public void cancelDisconnectTask(Long userId) {
         ScheduledFuture<?> task = disconnectTasks.remove(userId);
-        if (task != null && !task.isDone()) {
-            task.cancel(false);
+        cancelIfRunning(task);
+    }
+
+    private static void cancelIfRunning(ScheduledFuture<?> future) {
+        if (future != null && !future.isDone()) {
+            future.cancel(false);
         }
     }
 }
