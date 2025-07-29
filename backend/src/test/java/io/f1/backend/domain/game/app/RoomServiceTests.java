@@ -165,7 +165,7 @@ class RoomServiceTests {
                             log.info("room.getHost().getId() = {}", room.getHost().getId());
                             roomService.exitRoom(roomId, principal);
                         } catch (Exception e) {
-                            e.printStackTrace();
+
                         } finally {
                             SecurityContextHolder.clearContext();
                             countDownLatch.countDown();
