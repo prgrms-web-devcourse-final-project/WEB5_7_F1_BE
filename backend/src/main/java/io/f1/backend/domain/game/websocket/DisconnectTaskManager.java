@@ -33,7 +33,7 @@ public class DisconnectTaskManager {
         cancelIfRunning(task);
     }
 
-    private static void cancelIfRunning(ScheduledFuture<?> future) {
+    private void cancelIfRunning(ScheduledFuture<?> future) {
         if (future != null && !future.isDone()) {
             future.cancel(false);
         }
