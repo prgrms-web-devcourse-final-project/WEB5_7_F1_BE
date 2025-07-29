@@ -128,7 +128,7 @@ public class RoomMapper {
             Map<Long, Player> playerMap, int round) {
 
         List<Player> rankedPlayers =
-            playerMap.values().stream()
+                playerMap.values().stream()
                         .sorted(Comparator.comparingInt(Player::getCorrectCount).reversed())
                         .toList();
 

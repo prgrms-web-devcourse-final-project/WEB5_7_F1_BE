@@ -58,7 +58,14 @@ class RoomServiceTests {
     void setUp() {
         MockitoAnnotations.openMocks(this); // @Mock 어노테이션이 붙은 필드들을 초기화합니다.
 
-        roomService = new RoomService(quizService, roomRepository,userRoomRepository, eventPublisher,disconnectTaskManager, messageSender);
+        roomService =
+                new RoomService(
+                        quizService,
+                        roomRepository,
+                        userRoomRepository,
+                        eventPublisher,
+                        disconnectTaskManager,
+                        messageSender);
 
         SecurityContextHolder.clearContext();
     }
@@ -81,7 +88,6 @@ class RoomServiceTests {
         Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
 
         when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-
 
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

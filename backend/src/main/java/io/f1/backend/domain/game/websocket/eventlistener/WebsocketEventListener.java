@@ -6,8 +6,10 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
 import io.f1.backend.domain.user.dto.UserPrincipal;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
@@ -30,16 +32,19 @@ public class WebsocketEventListener {
         Long userId = principal.getUserId();
 
         /* 정상 로직 */
-        if(!roomService.isUserInAnyRoom(userId)) {
+        if (!roomService.isUserInAnyRoom(userId)) {
             return;
         }
 
-        Long roomId = roomService.changeConnectedStatus(userId,ConnectionState.DISCONNECTED);
+        Long roomId = roomService.changeConnectedStatus(userId, ConnectionState.DISCONNECTED);
 
-        taskManager.scheduleDisconnectTask(userId , () -> {
-            if(ConnectionState.DISCONNECTED.equals(roomService.getPlayerState(userId,roomId))) {
-                roomService.exitIfNotPlaying(roomId,principal);
-            }
-        });
+        taskManager.scheduleDisconnectTask(
+                userId,
+                () -> {
+                    if (ConnectionState.DISCONNECTED.equals(
+                            roomService.getPlayerState(userId, roomId))) {
+                        roomService.exitIfNotPlaying(roomId, principal);
+                    }
+                });
     }
 }
