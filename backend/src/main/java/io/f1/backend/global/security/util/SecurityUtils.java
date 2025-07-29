@@ -46,8 +46,7 @@ public class SecurityUtils {
 
     public static Role getCurrentUserRole() {
         Authentication authentication = getAuthentication();
-        if (authentication != null
-                && authentication.getPrincipal() instanceof UserPrincipal) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             return Role.USER;
         }
         return Role.ADMIN;
