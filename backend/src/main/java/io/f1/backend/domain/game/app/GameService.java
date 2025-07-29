@@ -15,7 +15,6 @@ import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
