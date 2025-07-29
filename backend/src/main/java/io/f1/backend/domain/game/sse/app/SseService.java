@@ -21,7 +21,7 @@ public class SseService {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(5_000L);
+        SseEmitter emitter = new SseEmitter(1_800_000L);
         emitterRepository.save(emitter);
 
         try {
@@ -44,16 +44,12 @@ public class SseService {
     }
 
     private void startHeartBeat(SseEmitter emitter) {
-        scheduler.scheduleAtFixedRate(
-                () -> {
-                    try {
-                        emitter.send(SseEmitter.event().name("heartbeat").data("sse-alive"));
-                    } catch (IOException e) {
-                        emitterRepository.remove(emitter);
-                    }
-                },
-                5,
-                60,
-                TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().name("heartbeat").data("sse-alive"));
+            } catch (IOException e) {
+                emitterRepository.remove(emitter);
+            }
+        }, 5, 30, TimeUnit.SECONDS);
     }
 }
