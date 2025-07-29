@@ -10,7 +10,6 @@ import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSetting;
 import static io.f1.backend.domain.game.mapper.RoomMapper.toRoomSettingResponse;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
-
 import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserNickname;
 
