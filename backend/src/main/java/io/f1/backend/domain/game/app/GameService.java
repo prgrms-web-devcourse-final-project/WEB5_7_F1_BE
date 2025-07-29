@@ -175,7 +175,6 @@ public class GameService {
 
         Map<Long, Player> playerMap = room.getPlayerMap();
 
-        // TODO : 랭킹 정보 업데이트
 		GameResultListResponse gameResultListResponse = toGameResultListResponse(playerMap,
 			room.getGameSetting().getRound());
 
