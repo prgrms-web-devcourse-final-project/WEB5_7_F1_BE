@@ -20,6 +20,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      redisson:
+        config: classpath:redisson.yaml
 
   jpa:
     defer-datasource-initialization: true # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.
@@ -64,17 +66,17 @@ server:
         secure: true
         http-only: true
       timeout: ${SESSION_TIMEOUT}
+
+custom:
+  oauth:
+    redirect:
+      signup-url: ${SIGNUP_URL}
+      main-url: ${MAIN_URL}
 ---
 spring:
   config:
     activate:
       on-profile: dev
-
-  security:
-    user:
-      name: ${PROM_NAME}
-      password: ${PROM_PASSWORD}
-      roles: PROMETHEUS
 
 management:
   server:
@@ -92,12 +94,6 @@ spring:
   config:
     activate:
       on-profile: prod
-
-  security:
-    user:
-      name: ${PROM_NAME}
-      password: ${PROM_PASSWORD}
-      roles: PROMETHEUS
 
 # TODO: Flyway 추가와 함께 설정이 필요한 항목들
 #  sql:

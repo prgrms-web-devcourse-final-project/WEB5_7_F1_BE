@@ -1,7 +1,9 @@
 package io.f1.backend.global.config;
 
+import io.f1.backend.domain.stat.dao.StatRepositoryAdapter;
 import io.f1.backend.global.util.RedisUserSubscriber;
 
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -37,5 +39,10 @@ public class RedisConfig {
         container.setConnectionFactory(redisConnectionFactory);
         container.addMessageListener(redisUserSubscriber, new PatternTopic("user-*"));
         return container;
+    }
+
+    @Bean
+    ApplicationRunner redisWarmingRunner(StatRepositoryAdapter statRepositoryAdapter) {
+        return args -> statRepositoryAdapter.setup();
     }
 }

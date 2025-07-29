@@ -31,6 +31,7 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+import io.f1.backend.global.lock.DistributedLock;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @DistributedLock(prefix = "room", key = "#roomId", waitTime = 0)
     public void gameStart(Long roomId, UserPrincipal principal) {
 
         String destination = getDestination(roomId);
@@ -96,6 +98,7 @@ public class GameService {
     public void onCorrectAnswer(GameCorrectAnswerEvent event) {
 
         Room room = event.room();
+        log.debug(room.getId() + "번 방 채팅으로 정답! 현재 라운드 : " + room.getCurrentRound());
         Long userId = event.userId();
         ChatMessage chatMessage = event.chatMessage();
         String answer = event.answer();
@@ -135,6 +138,8 @@ public class GameService {
     @EventListener
     public void onTimeout(GameTimeoutEvent event) {
         Room room = event.room();
+        log.debug(room.getId() + "번 방 타임아웃! 현재 라운드 : " + room.getCurrentRound());
+
         String destination = getDestination(room.getId());
 
         messageSender.sendBroadcast(
@@ -196,6 +201,7 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void handlePlayerReady(Long roomId, UserPrincipal userPrincipal) {
 
         Room room = findRoom(roomId);
@@ -206,9 +212,8 @@ public class GameService {
 
         String destination = getDestination(roomId);
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        log.info(playerListResponse.toString());
-        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public void changeGameSetting(
@@ -241,7 +246,7 @@ public class GameService {
     // 라운드 수만큼 랜덤 Question 추출
     private List<Question> prepareQuestions(Room room, Quiz quiz) {
         Long quizId = quiz.getId();
-        Integer round = room.getGameSetting().getRound();
+        Integer round = room.getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
     }
 

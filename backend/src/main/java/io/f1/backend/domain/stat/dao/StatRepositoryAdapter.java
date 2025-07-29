@@ -10,8 +10,6 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 
-import jakarta.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +28,6 @@ public class StatRepositoryAdapter implements StatRepository {
     private final StatJpaRepository jpaRepository;
     private final StatRedisRepository redisRepository;
 
-    @PostConstruct
     public void setup() {
         redisRepository.setup();
         warmingRedis();
