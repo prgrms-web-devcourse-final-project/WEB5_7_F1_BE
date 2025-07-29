@@ -72,8 +72,6 @@ public class RoomService {
 
     private final MessageSender messageSender;
 
-    private static final int CONTINUE_DELAY = 3;
-
     public RoomCreateResponse saveRoom(RoomCreateRequest request) {
 
         QuizMinData quizMinData = quizService.getQuizMinData();
