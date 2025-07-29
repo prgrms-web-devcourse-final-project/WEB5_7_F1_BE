@@ -1,10 +1,8 @@
 package io.f1.backend.domain.game.app;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.f1.backend.domain.game.dto.request.RoomValidationRequest;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
 import io.f1.backend.domain.game.model.Room;
@@ -17,16 +15,9 @@ import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.util.SecurityUtils;
-import java.lang.reflect.Field;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +28,16 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -72,45 +73,46 @@ class RoomServiceTests {
         SecurityContextHolder.clearContext();
     }
 
-//    @Test
-//    @DisplayName("enterRoom_동시성_테스트")
-//    void enterRoom_synchronized() throws Exception {
-//        Long roomId = 1L;
-//        Long quizId = 1L;
-//        Long playerId = 1L;
-//        int maxUserCount = 5;
-//        String password = "123";
-//        boolean locked = true;
-//
-//        Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
-//
-//        when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
-//
-//        int threadCount = 10;
-//        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-//        CountDownLatch countDownLatch = new CountDownLatch(threadCount);
-//        RoomValidationRequest roomValidationRequest = new RoomValidationRequest(roomId, password);
-//
-//        for (int i = 1; i <= threadCount; i++) {
-//            User user = createUser(i);
-//            when(userRoomRepository.getRoomId(user.getId())).thenReturn(null);
-//            executorService.submit(
-//                    () -> {
-//                        try {
-//                            SecurityUtils.setAuthentication(user);
-//
-//                            roomService.enterRoom(roomValidationRequest);
-//                        } catch (Exception e) {
-//                            //e.printStackTrace();
-//                        } finally {
-//                            SecurityContextHolder.clearContext();
-//                            countDownLatch.countDown();
-//                        }
-//                    });
-//        }
-//        countDownLatch.await();
-//        assertThat(room.getCurrentUserCnt()).isEqualTo(room.getRoomSetting().maxUserCount());
-//    }
+    //    @Test
+    //    @DisplayName("enterRoom_동시성_테스트")
+    //    void enterRoom_synchronized() throws Exception {
+    //        Long roomId = 1L;
+    //        Long quizId = 1L;
+    //        Long playerId = 1L;
+    //        int maxUserCount = 5;
+    //        String password = "123";
+    //        boolean locked = true;
+    //
+    //        Room room = createRoom(roomId, playerId, quizId, password, maxUserCount, locked);
+    //
+    //        when(roomRepository.findRoom(roomId)).thenReturn(Optional.of(room));
+    //
+    //        int threadCount = 10;
+    //        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+    //        CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+    //        RoomValidationRequest roomValidationRequest = new RoomValidationRequest(roomId,
+    // password);
+    //
+    //        for (int i = 1; i <= threadCount; i++) {
+    //            User user = createUser(i);
+    //            when(userRoomRepository.getRoomId(user.getId())).thenReturn(null);
+    //            executorService.submit(
+    //                    () -> {
+    //                        try {
+    //                            SecurityUtils.setAuthentication(user);
+    //
+    //                            roomService.enterRoom(roomValidationRequest);
+    //                        } catch (Exception e) {
+    //                            //e.printStackTrace();
+    //                        } finally {
+    //                            SecurityContextHolder.clearContext();
+    //                            countDownLatch.countDown();
+    //                        }
+    //                    });
+    //        }
+    //        countDownLatch.await();
+    //        assertThat(room.getCurrentUserCnt()).isEqualTo(room.getRoomSetting().maxUserCount());
+    //    }
 
     @Test
     @DisplayName("exitRoom_동시성_테스트")
