@@ -195,4 +195,8 @@ public class Room {
     public boolean isPlayerInState(Long userId, ConnectionState state) {
         return getPlayerState(userId).equals(state);
     }
+
+    public boolean isPasswordIncorrect(String password) {
+        return roomSetting.locked() && !roomSetting.password().equals(password);
+    }
 }

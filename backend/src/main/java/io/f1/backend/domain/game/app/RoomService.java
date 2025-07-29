@@ -131,8 +131,7 @@ public class RoomService {
                 throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
             }
 
-            if (room.getRoomSetting().locked()
-                    && !room.getRoomSetting().password().equals(request.password())) {
+            if (room.isPasswordIncorrect(request.password())) {
                 throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
             }
 
