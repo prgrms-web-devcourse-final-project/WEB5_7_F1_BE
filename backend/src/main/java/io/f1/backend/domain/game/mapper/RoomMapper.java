@@ -121,7 +121,8 @@ public class RoomMapper {
         double correctRate = (double) player.getCorrectCount() / round;
         int score = (int) (correctRate * 100) + (totalPlayers - rank) * 5;
 
-        return new GameResultResponse(player.nickname, score, player.getCorrectCount(), rank);
+        return new GameResultResponse(
+                player.id, player.nickname, score, player.getCorrectCount(), rank);
     }
 
     public static GameResultListResponse toGameResultListResponse(

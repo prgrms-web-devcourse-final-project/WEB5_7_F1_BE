@@ -118,12 +118,7 @@ public class Room {
     }
 
     public void initializePlayers() {
-        this.playerMap
-                .values()
-                .forEach(
-                        player -> {
-                            player.initializeCorrectCount();
-                        });
+        this.playerMap.values().forEach(Player::initializeCorrectCount);
         resetAllPlayerReadyStates();
     }
 
