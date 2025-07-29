@@ -12,6 +12,7 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getDestination;
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.toGameStartResponse;
 import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserId;
 import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserNickname;
+import static io.f1.backend.global.security.util.SecurityUtils.getCurrentUserPrincipal;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
