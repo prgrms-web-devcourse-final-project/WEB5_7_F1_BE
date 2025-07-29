@@ -20,6 +20,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      redisson:
+        config: classpath:redisson.yaml
 
   jpa:
     defer-datasource-initialization: true # 현재는 data.sql 에서 더미 유저 자동 추가를 위해 넣어뒀음.

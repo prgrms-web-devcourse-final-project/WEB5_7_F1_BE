@@ -15,7 +15,6 @@ import io.f1.backend.domain.game.dto.ChatMessage;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.RoomEventType;
 import io.f1.backend.domain.game.dto.request.GameSettingChanger;
-import io.f1.backend.domain.game.dto.response.PlayerListResponse;
 import io.f1.backend.domain.game.event.GameCorrectAnswerEvent;
 import io.f1.backend.domain.game.event.GameTimeoutEvent;
 import io.f1.backend.domain.game.event.RoomUpdatedEvent;
@@ -31,6 +30,7 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.GameErrorCode;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+import io.f1.backend.global.lock.DistributedLock;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +59,7 @@ public class GameService {
     private final RoomRepository roomRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @DistributedLock(prefix = "room", key = "#roomId", waitTime = 0)
     public void gameStart(Long roomId, UserPrincipal principal) {
 
         String destination = getDestination(roomId);
@@ -199,6 +200,7 @@ public class GameService {
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void handlePlayerReady(Long roomId, String sessionId) {
 
         Room room = findRoom(roomId);
@@ -209,9 +211,8 @@ public class GameService {
 
         String destination = getDestination(roomId);
 
-        PlayerListResponse playerListResponse = toPlayerListResponse(room);
-        log.info(playerListResponse.toString());
-        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(
+                destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
     }
 
     public void changeGameSetting(
@@ -244,7 +245,7 @@ public class GameService {
     // 라운드 수만큼 랜덤 Question 추출
     private List<Question> prepareQuestions(Room room, Quiz quiz) {
         Long quizId = quiz.getId();
-        Integer round = room.getGameSetting().getRound();
+        Integer round = room.getRound();
         return quizService.getRandomQuestionsWithoutAnswer(quizId, round);
     }
 

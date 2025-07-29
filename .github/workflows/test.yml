@@ -11,6 +11,8 @@ jobs:
       PROJECT_DIR: backend
       KAKAO_CLIENT: ${{ secrets.KAKAO_CLIENT }}
       KAKAO_SECRET: ${{ secrets.KAKAO_SECRET }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
     steps:
       - uses: actions/checkout@v4
 
