@@ -188,11 +188,11 @@ public class Room {
         return playerMap.get(userId).getState();
     }
 
-    public boolean isSameRoom(Long otherRoomId){
+    public boolean isSameRoom(Long otherRoomId) {
         return Objects.equals(id, otherRoomId);
     }
 
-    public boolean isPlayerInState(Long userId, ConnectionState state){
+    public boolean isPlayerInState(Long userId, ConnectionState state) {
         return getPlayerState(userId).equals(state);
     }
 }
