@@ -32,8 +32,8 @@ import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.config.RedisTestContainerConfig;
-import io.f1.backend.global.template.BrowserTestTemplate;
 import io.f1.backend.global.security.util.SecurityUtils;
+import io.f1.backend.global.template.BrowserTestTemplate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

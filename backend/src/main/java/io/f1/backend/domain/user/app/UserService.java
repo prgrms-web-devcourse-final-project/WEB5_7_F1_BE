@@ -18,8 +18,8 @@ import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
-import io.f1.backend.global.util.RedisPublisher;
 import io.f1.backend.global.security.util.SecurityUtils;
+import io.f1.backend.global.util.RedisPublisher;
 
 import jakarta.servlet.http.HttpSession;
 
