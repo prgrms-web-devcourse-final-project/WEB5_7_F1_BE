@@ -24,7 +24,7 @@ import io.f1.backend.global.exception.errorcode.AuthErrorCode;
 import io.f1.backend.global.exception.errorcode.QuizErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.security.enums.Role;
-import io.f1.backend.global.util.SecurityUtils;
+import io.f1.backend.global.security.util.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

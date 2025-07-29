@@ -14,7 +14,7 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.quiz.app.QuizService;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
-import io.f1.backend.global.util.SecurityUtils;
+import io.f1.backend.global.security.util.SecurityUtils;
 
 import lombok.extern.slf4j.Slf4j;
 

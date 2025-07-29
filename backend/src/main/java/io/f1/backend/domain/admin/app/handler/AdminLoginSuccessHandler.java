@@ -1,7 +1,7 @@
 package io.f1.backend.domain.admin.app.handler;
 
 import static io.f1.backend.domain.user.constants.SessionKeys.ADMIN;
-import static io.f1.backend.global.util.SecurityUtils.getCurrentAdminPrincipal;
+import static io.f1.backend.global.security.util.SecurityUtils.getCurrentAdminPrincipal;
 
 import io.f1.backend.domain.admin.dao.AdminRepository;
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
@@ -44,6 +44,6 @@ public class AdminLoginSuccessHandler implements AuthenticationSuccessHandler {
         adminRepository.save(admin);
         httpSession.setAttribute(ADMIN, principal.getAuthenticationAdmin());
 
-        response.setStatus(HttpServletResponse.SC_OK); // 200
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 }

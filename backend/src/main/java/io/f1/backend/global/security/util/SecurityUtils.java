@@ -1,4 +1,4 @@
-package io.f1.backend.global.util;
+package io.f1.backend.global.security.util;
 
 import io.f1.backend.domain.admin.dto.AdminPrincipal;
 import io.f1.backend.domain.user.dto.UserPrincipal;
