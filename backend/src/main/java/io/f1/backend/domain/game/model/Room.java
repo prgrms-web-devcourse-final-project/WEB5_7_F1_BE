@@ -121,9 +121,7 @@ public class Room {
         this.playerMap
                 .values()
                 .forEach(
-                        player -> {
-                            player.initializeCorrectCount();
-                        });
+					Player::initializeCorrectCount);
         resetAllPlayerReadyStates();
     }
 
