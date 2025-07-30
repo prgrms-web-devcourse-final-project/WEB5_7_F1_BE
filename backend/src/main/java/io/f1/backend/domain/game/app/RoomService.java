@@ -45,15 +45,18 @@ import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -110,7 +113,7 @@ public class RoomService {
             Long userId = getCurrentUserId();
 
             /* 다른 방 접속 시 기존 방은 exit 처리 - 탭 동시 로그인 시 (disconnected 리스너 작동x)  */
-            exitIfInAnotherRoom(room, getCurrentUserPrincipal() );
+            exitIfInAnotherRoom(room, getCurrentUserPrincipal());
 
             /* reconnect */
             if (room.hasPlayer(userId)) {
@@ -135,7 +138,7 @@ public class RoomService {
         }
     }
 
-    private void exitIfInAnotherRoom(Room room,UserPrincipal userPrincipal) {
+    private void exitIfInAnotherRoom(Room room, UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getUserId();
         Long joinedRoomId = getRoomIdByUserId(userId);
 
@@ -155,7 +158,7 @@ public class RoomService {
 
         /* 재연결 */
         if (room.isPlayerInState(userId, ConnectionState.DISCONNECTED)) {
-            changeConnectedStatus(roomId,userId, ConnectionState.CONNECTED);
+            changeConnectedStatus(roomId, userId, ConnectionState.CONNECTED);
             cancelTask(userId);
             reconnectSendResponse(roomId, principal);
             return;
@@ -181,7 +184,10 @@ public class RoomService {
         userRoomRepository.addUser(player, room);
 
         messageSender.sendPersonal(
-                getUserDestination(), MessageType.GAME_SETTING, gameSettingResponse, principal.getName());
+                getUserDestination(),
+                MessageType.GAME_SETTING,
+                gameSettingResponse,
+                principal.getName());
 
         messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, roomSettingResponse);
         messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
@@ -278,15 +284,24 @@ public class RoomService {
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
             messageSender.sendPersonal(
-                    userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal.getName());
+                    userDestination,
+                    MessageType.ROOM_SETTING,
+                    roomSettingResponse,
+                    principal.getName());
             messageSender.sendPersonal(
-                    userDestination, MessageType.PLAYER_LIST, playerListResponse, principal.getName());
+                    userDestination,
+                    MessageType.PLAYER_LIST,
+                    playerListResponse,
+                    principal.getName());
             messageSender.sendPersonal(
-                    userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal.getName());
+                    userDestination,
+                    MessageType.GAME_SETTING,
+                    gameSettingResponse,
+                    principal.getName());
         }
     }
 
-    public void changeConnectedStatus(Long roomId,Long userId, ConnectionState newState) {
+    public void changeConnectedStatus(Long roomId, Long userId, ConnectionState newState) {
         Room room = findRoom(roomId);
         room.updatePlayerConnectionState(userId, newState);
     }
@@ -295,10 +310,11 @@ public class RoomService {
         disconnectTasks.cancelDisconnectTask(userId);
     }
 
-    public void disconnectOrExitRoom(Long roomId , UserPrincipal principal) {
+    public void disconnectOrExitRoom(Long roomId, UserPrincipal principal) {
         Room room = findRoom(roomId);
         if (room.isPlaying()) {
-            changeConnectedStatus(room.getId(), principal.getUserId(), ConnectionState.DISCONNECTED);
+            changeConnectedStatus(
+                    room.getId(), principal.getUserId(), ConnectionState.DISCONNECTED);
             removeUserRepository(principal.getUserId(), roomId);
         } else {
             exitRoom(room.getId(), principal);

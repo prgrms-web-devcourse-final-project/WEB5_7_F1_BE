@@ -1,6 +1,5 @@
 package io.f1.backend.domain.game.websocket.eventlistener;
 
-import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.app.RoomService;
@@ -43,14 +42,14 @@ public class WebsocketEventListener {
 
         Long roomId = roomService.getRoomIdByUserId(userId);
 
-        roomService.changeConnectedStatus(roomId,userId,ConnectionState.DISCONNECTED);
+        roomService.changeConnectedStatus(roomId, userId, ConnectionState.DISCONNECTED);
 
         taskManager.scheduleDisconnectTask(
                 userId,
                 () -> {
                     if (ConnectionState.DISCONNECTED.equals(
                             roomService.getPlayerState(userId, roomId))) {
-                        roomService.disconnectOrExitRoom(roomId,principal);
+                        roomService.disconnectOrExitRoom(roomId, principal);
                     }
                 });
     }
