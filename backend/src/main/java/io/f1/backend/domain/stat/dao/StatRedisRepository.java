@@ -136,7 +136,7 @@ public class StatRedisRepository {
         return new StatResponse(
                 rankValue,
                 (String) statUserMap.get("nickname"),
-				parseLong((String) statUserMap.get("totalGames")),
+                parseLong((String) statUserMap.get("totalGames")),
                 parseLong((String) statUserMap.get("winningGames")),
                 requireNonNull(rank.getScore()).longValue());
     }
@@ -167,8 +167,8 @@ public class StatRedisRepository {
         return new MyPageInfo(
                 (String) statMap.get("nickname"),
                 rank + 1,
-				parseLong((String) statMap.get("totalGames")),
-				parseLong((String) statMap.get("winningGames")),
+                parseLong((String) statMap.get("totalGames")),
+                parseLong((String) statMap.get("winningGames")),
                 score.longValue());
     }
 }
