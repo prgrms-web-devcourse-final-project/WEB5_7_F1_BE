@@ -15,6 +15,9 @@ spring:
     init:
       mode: never
 
+  flyway:
+    enabled: false
+
   security:
     oauth2:
       client:
