@@ -7,6 +7,7 @@ import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
+import io.f1.backend.global.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +37,9 @@ public class WebsocketEventListener {
             return;
         }
 
-        Long roomId = roomService.changeConnectedStatus(userId, ConnectionState.DISCONNECTED);
+        Long roomId = roomService.getUserRoomId(userId);
+
+        changeConnectionStateWithLock(userId,roomId);
 
         taskManager.scheduleDisconnectTask(
                 userId,
@@ -46,5 +49,11 @@ public class WebsocketEventListener {
                         roomService.exitIfNotPlaying(roomId, principal);
                     }
                 });
+    }
+
+
+    @DistributedLock(prefix = "room", key = "#roomId")
+    private void changeConnectionStateWithLock(Long userId, Long roomId){
+        roomService.changeConnectedStatus(userId,roomId ,ConnectionState.DISCONNECTED);
     }
 }

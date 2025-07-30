@@ -45,6 +45,7 @@ import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 
+import io.f1.backend.global.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -100,50 +101,50 @@ public class RoomService {
         return new RoomCreateResponse(newId);
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void enterRoom(RoomValidationRequest request) {
 
         Long roomId = request.roomId();
 
-        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
+        Room room = findRoom(roomId);
 
-        synchronized (lock) {
-            Room room = findRoom(request.roomId());
+        Long userId = getCurrentUserId();
 
-            Long userId = getCurrentUserId();
+        /* 다른 방 접속 시 기존 방은 exit 처리 - 탭 동시 로그인 시 (disconnected 리스너 작동x)  */
+        exitIfInAnotherRoom(room, userId);
 
-            /* 다른 방 접속 시 기존 방은 exit 처리 - 탭 동시 로그인 시 (disconnected 리스너 작동x)  */
-            exitIfInAnotherRoom(room, userId);
-
-            /* reconnect */
-            if (room.hasPlayer(userId)) {
-                return;
-            }
-
-            if (room.isPlaying()) {
-                throw new CustomException(RoomErrorCode.ROOM_GAME_IN_PROGRESS);
-            }
-
-            int maxUserCnt = room.getRoomSetting().maxUserCount();
-            int currentCnt = room.getCurrentUserCnt();
-            if (maxUserCnt == currentCnt) {
-                throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
-            }
-
-            if (room.isPasswordIncorrect(request.password())) {
-                throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
-            }
-
-            room.addPlayer(createPlayer());
+        /* reconnect */
+        if (room.hasPlayer(userId)) {
+            return;
         }
+
+        if (room.isPlaying()) {
+            throw new CustomException(RoomErrorCode.ROOM_GAME_IN_PROGRESS);
+        }
+
+        int maxUserCnt = room.getRoomSetting().maxUserCount();
+        int currentCnt = room.getCurrentUserCnt();
+        if (maxUserCnt == currentCnt) {
+            throw new CustomException(RoomErrorCode.ROOM_USER_LIMIT_REACHED);
+        }
+
+        if (room.isPasswordIncorrect(request.password())) {
+            throw new CustomException(RoomErrorCode.WRONG_PASSWORD);
+        }
+
+        room.addPlayer(createPlayer());
+
     }
 
     private void exitIfInAnotherRoom(Room room, Long userId) {
-
         Long joinedRoomId = userRoomRepository.getRoomId(userId);
 
         if (joinedRoomId != null && !room.isSameRoom(joinedRoomId)) {
-            if (room.isPlaying()) {
-                changeConnectedStatus(userId, ConnectionState.DISCONNECTED);
+
+            Room joinedRoom = findRoom(joinedRoomId);
+
+            if (joinedRoom.isPlaying()) {
+                changeConnectedStatus(userId, joinedRoomId, ConnectionState.DISCONNECTED);
             } else {
                 exitRoom(joinedRoomId, getCurrentUserPrincipal());
             }
@@ -161,7 +162,7 @@ public class RoomService {
 
         /* 재연결 */
         if (room.isPlayerInState(userId, ConnectionState.DISCONNECTED)) {
-            changeConnectedStatus(userId, ConnectionState.CONNECTED);
+            changeConnectedStatus(userId, roomId, ConnectionState.CONNECTED);
             cancelTask(userId);
             reconnectSendResponse(roomId, principal);
             return;
@@ -175,71 +176,69 @@ public class RoomService {
         Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
         GameSettingResponse gameSettingResponse =
-                toGameSettingResponse(room.getGameSetting(), quiz);
+            toGameSettingResponse(room.getGameSetting(), quiz);
 
         PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
         SystemNoticeResponse systemNoticeResponse =
-                ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
+            ofPlayerEvent(player.getNickname(), RoomEventType.ENTER);
 
         String destination = getDestination(roomId);
 
         userRoomRepository.addUser(player, room);
 
         messageSender.sendPersonal(
-                getUserDestination(), MessageType.GAME_SETTING, gameSettingResponse, principal);
+            getUserDestination(), MessageType.GAME_SETTING, gameSettingResponse, principal);
 
         messageSender.sendBroadcast(destination, MessageType.ROOM_SETTING, roomSettingResponse);
         messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
         messageSender.sendBroadcast(destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void exitRoom(Long roomId, UserPrincipal principal) {
 
-        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
+        Room room = findRoom(roomId);
 
-        synchronized (lock) {
-            Room room = findRoom(roomId);
-
-            if (!room.hasPlayer(principal.getUserId())) {
-                throw new CustomException(UserErrorCode.USER_NOT_FOUND);
-            }
-
-            Player removePlayer = createPlayer(principal);
-
-            String destination = getDestination(roomId);
-
-            cleanRoom(room, removePlayer);
-
-            messageSender.sendPersonal(
-                    getUserDestination(),
-                    MessageType.EXIT_SUCCESS,
-                    new ExitSuccessResponse(true),
-                    principal);
-
-            SystemNoticeResponse systemNoticeResponse =
-                    ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
-
-            PlayerListResponse playerListResponse = toPlayerListResponse(room);
-
-            messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
-            messageSender.sendBroadcast(
-                    destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        if (!room.hasPlayer(principal.getUserId())) {
+            throw new CustomException(UserErrorCode.USER_NOT_FOUND);
         }
+
+        Player removePlayer = createPlayer(principal);
+
+        String destination = getDestination(roomId);
+
+        cleanRoom(room, removePlayer);
+
+        messageSender.sendPersonal(
+            getUserDestination(),
+            MessageType.EXIT_SUCCESS,
+            new ExitSuccessResponse(true),
+            principal);
+
+        SystemNoticeResponse systemNoticeResponse =
+            ofPlayerEvent(removePlayer.nickname, RoomEventType.EXIT);
+
+        PlayerListResponse playerListResponse = toPlayerListResponse(room);
+
+        messageSender.sendBroadcast(destination, MessageType.PLAYER_LIST, playerListResponse);
+        messageSender.sendBroadcast(
+            destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+
     }
 
     public RoomListResponse getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
         List<RoomResponse> roomResponses =
-                rooms.stream()
-                        .map(
-                                room -> {
-                                    Long quizId = room.getGameSetting().getQuizId();
-                                    Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+            rooms.stream()
+                .map(
+                    room -> {
+                        Long quizId = room.getGameSetting().getQuizId();
+                        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
-                                    return toRoomResponse(room, quiz);
-                                })
-                        .toList();
+                        return toRoomResponse(room, quiz);
+                    })
+                .toList();
         return new RoomListResponse(roomResponses);
     }
 
@@ -250,27 +249,27 @@ public class RoomService {
         String userDestination = getUserDestination();
 
         messageSender.sendBroadcast(
-                destination,
-                MessageType.SYSTEM_NOTICE,
-                ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
+            destination,
+            MessageType.SYSTEM_NOTICE,
+            ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
 
         if (room.isPlaying()) {
             messageSender.sendPersonal(
-                    userDestination,
-                    MessageType.SYSTEM_NOTICE,
-                    ofPlayerEvent(
-                            principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
-                    principal);
+                userDestination,
+                MessageType.SYSTEM_NOTICE,
+                ofPlayerEvent(
+                    principal.getUserNickname(), RoomEventType.RECONNECT_PRIVATE_NOTICE),
+                principal);
             messageSender.sendPersonal(
-                    userDestination,
-                    MessageType.RANK_UPDATE,
-                    toRankUpdateResponse(room),
-                    principal);
+                userDestination,
+                MessageType.RANK_UPDATE,
+                toRankUpdateResponse(room),
+                principal);
             messageSender.sendPersonal(
-                    userDestination,
-                    MessageType.GAME_START,
-                    toGameStartResponse(room.getQuestions()),
-                    principal);
+                userDestination,
+                MessageType.GAME_START,
+                toGameStartResponse(room.getQuestions()),
+                principal);
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
@@ -279,26 +278,26 @@ public class RoomService {
             Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
             GameSettingResponse gameSettingResponse =
-                    toGameSettingResponse(room.getGameSetting(), quiz);
+                toGameSettingResponse(room.getGameSetting(), quiz);
 
             PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
             messageSender.sendPersonal(
-                    userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal);
+                userDestination, MessageType.ROOM_SETTING, roomSettingResponse, principal);
             messageSender.sendPersonal(
-                    userDestination, MessageType.PLAYER_LIST, playerListResponse, principal);
+                userDestination, MessageType.PLAYER_LIST, playerListResponse, principal);
             messageSender.sendPersonal(
-                    userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal);
+                userDestination, MessageType.GAME_SETTING, gameSettingResponse, principal);
         }
     }
 
-    public Long changeConnectedStatus(Long userId, ConnectionState newState) {
-        Long roomId = userRoomRepository.getRoomId(userId);
+    public void changeConnectedStatus(Long userId, Long roomId, ConnectionState newState) {
         Room room = findRoom(roomId);
-
         room.updatePlayerConnectionState(userId, newState);
+    }
 
-        return roomId;
+    public Long getUserRoomId(Long userId) {
+        return userRoomRepository.getRoomId(userId);
     }
 
     public void cancelTask(Long userId) {
@@ -324,8 +323,8 @@ public class RoomService {
 
     public Room findRoom(Long roomId) {
         return roomRepository
-                .findRoom(roomId)
-                .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
+            .findRoom(roomId)
+            .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
     private void removeRoom(Room room) {
@@ -339,40 +338,38 @@ public class RoomService {
         Map<Long, Player> playerMap = room.getPlayerMap();
 
         Optional<Player> nextHost =
-                playerMap.entrySet().stream()
-                        .filter(entry -> !entry.getKey().equals(host.getId()))
-                        .filter(entry -> entry.getValue().getState() == ConnectionState.CONNECTED)
-                        .map(Map.Entry::getValue)
-                        .findFirst();
+            playerMap.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(host.getId()))
+                .filter(entry -> entry.getValue().getState() == ConnectionState.CONNECTED)
+                .map(Map.Entry::getValue)
+                .findFirst();
 
         room.updateHost(
-                nextHost.orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND)));
+            nextHost.orElseThrow(() -> new CustomException(RoomErrorCode.PLAYER_NOT_FOUND)));
     }
 
     private String getUserDestination() {
         return "/queue";
     }
 
+    @DistributedLock(prefix = "room", key = "#roomId")
     public void exitRoomForDisconnectedPlayer(Long roomId, Player player) {
 
-        Object lock = roomLocks.computeIfAbsent(roomId, k -> new Object());
+        // 연결 끊긴 플레이어 exit 로직 타게 해주기
+        Room room = findRoom(roomId);
 
-        synchronized (lock) {
-            // 연결 끊긴 플레이어 exit 로직 타게 해주기
-            Room room = findRoom(roomId);
+        cleanRoom(room, player);
 
-            cleanRoom(room, player);
+        String destination = getDestination(roomId);
 
-            String destination = getDestination(roomId);
+        SystemNoticeResponse systemNoticeResponse =
+            ofPlayerEvent(player.nickname, RoomEventType.EXIT);
 
-            SystemNoticeResponse systemNoticeResponse =
-                    ofPlayerEvent(player.nickname, RoomEventType.EXIT);
+        messageSender.sendBroadcast(
+            destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
+        messageSender.sendBroadcast(
+            destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
 
-            messageSender.sendBroadcast(
-                    destination, MessageType.SYSTEM_NOTICE, systemNoticeResponse);
-            messageSender.sendBroadcast(
-                    destination, MessageType.PLAYER_LIST, toPlayerListResponse(room));
-        }
     }
 
     private void cleanRoom(Room room, Player player) {
