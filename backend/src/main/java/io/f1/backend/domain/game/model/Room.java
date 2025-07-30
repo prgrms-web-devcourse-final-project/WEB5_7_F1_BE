@@ -5,6 +5,7 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,8 @@ public class Room {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private ScheduledFuture<?> timer;
+
+    private final AtomicBoolean answered = new AtomicBoolean(false);
 
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
@@ -193,5 +196,13 @@ public class Room {
 
     public boolean isPasswordIncorrect(String password) {
         return roomSetting.locked() && !roomSetting.password().equals(password);
+    }
+
+    public boolean compareAndSetAnsweredFlag(boolean expected, boolean newValue) {
+        return answered.compareAndSet(expected, newValue);
+    }
+
+    public AtomicBoolean getAnsweredFlag() {
+        return this.answered;
     }
 }

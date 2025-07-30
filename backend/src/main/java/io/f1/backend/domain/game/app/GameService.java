@@ -123,6 +123,7 @@ public class GameService {
                 ofPlayerEvent(chatMessage.nickname(), RoomEventType.CORRECT_ANSWER));
 
         timerService.cancelTimer(room);
+        room.compareAndSetAnsweredFlag(true, false);
 
         if (!timerService.validateCurrentRound(room)) {
             gameEnd(room);
@@ -142,6 +143,12 @@ public class GameService {
     @EventListener
     public void onTimeout(GameTimeoutEvent event) {
         Room room = event.room();
+
+        // false -> true 여야 하는데 실패했을 때 => 이미 정답 처리가 된 경우 (onCorrectAnswer 로직 실행 중)
+        if(!room.compareAndSetAnsweredFlag(false, true)) {
+            return;
+        }
+
         log.debug(room.getId() + "번 방 타임아웃! 현재 라운드 : " + room.getCurrentRound());
 
         String destination = getDestination(room.getId());
@@ -167,6 +174,8 @@ public class GameService {
                 destination,
                 MessageType.QUESTION_START,
                 toQuestionStartResponse(room, CONTINUE_DELAY));
+
+        room.compareAndSetAnsweredFlag(true, false);
     }
 
     public void gameEnd(Room room) {
