@@ -145,7 +145,7 @@ public class GameService {
         Room room = event.room();
 
         // false -> true 여야 하는데 실패했을 때 => 이미 정답 처리가 된 경우 (onCorrectAnswer 로직 실행 중)
-        if(!room.compareAndSetAnsweredFlag(false, true)) {
+        if (!room.compareAndSetAnsweredFlag(false, true)) {
             return;
         }
 

@@ -5,7 +5,6 @@ import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -17,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class Room {

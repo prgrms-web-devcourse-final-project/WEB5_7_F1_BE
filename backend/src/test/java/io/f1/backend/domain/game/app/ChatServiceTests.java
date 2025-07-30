@@ -4,10 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -22,15 +20,9 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.domain.user.entity.User;
-import java.lang.reflect.Field;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +33,14 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +60,6 @@ class ChatServiceTests {
 
         SecurityContextHolder.clearContext();
     }
-
 
     @Test
     @DisplayName("정답이 아닐 때 이벤트가 발행되지 않는다.")
@@ -111,7 +110,6 @@ class ChatServiceTests {
 
         // then
         verify(eventPublisher, times(1)).publishEvent(any(GameCorrectAnswerEvent.class));
-
     }
 
     @Test
@@ -146,22 +144,24 @@ class ChatServiceTests {
 
         for (int i = 0; i < userCount; i++) {
             final int idx = i;
-            executor.submit(() -> {
-                try {
-                    User user = createUser(idx);
-                    UserPrincipal principal = new UserPrincipal(user, Collections.emptyMap());
-                    chatService.chat(roomId, principal, msg);
-                } finally {
-                    countDownLatch.countDown();
-                }
-            });
+            executor.submit(
+                    () -> {
+                        try {
+                            User user = createUser(idx);
+                            UserPrincipal principal =
+                                    new UserPrincipal(user, Collections.emptyMap());
+                            chatService.chat(roomId, principal, msg);
+                        } finally {
+                            countDownLatch.countDown();
+                        }
+                    });
         }
 
         countDownLatch.await();
 
-
         // then: 이벤트는 단 1번만 발행돼야 함
-        ArgumentCaptor<GameCorrectAnswerEvent> captor = ArgumentCaptor.forClass(GameCorrectAnswerEvent.class);
+        ArgumentCaptor<GameCorrectAnswerEvent> captor =
+                ArgumentCaptor.forClass(GameCorrectAnswerEvent.class);
         verify(eventPublisher, times(1)).publishEvent(captor.capture());
 
         GameCorrectAnswerEvent event = captor.getValue();
@@ -173,19 +173,19 @@ class ChatServiceTests {
     }
 
     private Room createRoom(
-        Long roomId,
-        Long playerId,
-        Long quizId,
-        String password,
-        int maxUserCount,
-        boolean locked) {
+            Long roomId,
+            Long playerId,
+            Long quizId,
+            String password,
+            int maxUserCount,
+            boolean locked) {
         RoomSetting roomSetting = new RoomSetting("방제목", maxUserCount, locked, password);
         GameSetting gameSetting = new GameSetting(quizId, 10, 60);
         Player host = new Player(playerId, "nickname");
 
         return new Room(roomId, roomSetting, gameSetting, host);
     }
-    
+
     private User createUser(int i) {
         Long userId = i + 1L;
         String provider = "provider +" + i;
@@ -193,11 +193,11 @@ class ChatServiceTests {
         LocalDateTime lastLogin = LocalDateTime.now();
 
         User user =
-            User.builder()
-                .provider(provider)
-                .providerId(providerId)
-                .lastLogin(lastLogin)
-                .build();
+                User.builder()
+                        .provider(provider)
+                        .providerId(providerId)
+                        .lastLogin(lastLogin)
+                        .build();
 
         try {
             Field idField = User.class.getDeclaredField("id");
@@ -209,5 +209,4 @@ class ChatServiceTests {
 
         return user;
     }
-  
 }

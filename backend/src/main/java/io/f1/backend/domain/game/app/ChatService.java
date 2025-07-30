@@ -10,12 +10,8 @@ import io.f1.backend.domain.game.websocket.MessageSender;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
-import io.f1.backend.global.lock.DistributedLock;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -49,11 +45,10 @@ public class ChatService {
         }
 
         // false -> true
-        if(room.compareAndSetAnsweredFlag(false, true)) {
+        if (room.compareAndSetAnsweredFlag(false, true)) {
             eventPublisher.publishEvent(
                     new GameCorrectAnswerEvent(
                             room, userPrincipal.getUserId(), chatMessage, answer));
-
         }
     }
 }
