@@ -6,17 +6,20 @@ import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.HeartbeatResponse;
 import io.f1.backend.domain.user.dto.UserPrincipal;
-import java.security.Principal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.messaging.simp.user.SimpSession;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
+
+import java.security.Principal;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -40,17 +43,23 @@ public class HeartbeatMonitor {
             return;
         }
 
-        simpUserRegistry.getUsers().forEach(user ->
-            user.getSessions().forEach(session -> handleSessionHeartbeat(user, session)));
-
+        simpUserRegistry
+                .getUsers()
+                .forEach(
+                        user ->
+                                user.getSessions()
+                                        .forEach(session -> handleSessionHeartbeat(user, session)));
     }
 
     private void handleSessionHeartbeat(SimpUser user, SimpSession session) {
         String sessionId = session.getId();
 
         /* pong */
-        messageSender.sendPersonal(getUserDestination(),
-            MessageType.HEARTBEAT, new HeartbeatResponse(DIRECTION), user.getName());
+        messageSender.sendPersonal(
+                getUserDestination(),
+                MessageType.HEARTBEAT,
+                new HeartbeatResponse(DIRECTION),
+                user.getName());
 
         missedPongCounter.merge(sessionId, 1, Integer::sum);
         int missedCnt = missedPongCounter.get(sessionId);
@@ -60,8 +69,8 @@ public class HeartbeatMonitor {
 
             Principal principal = user.getPrincipal();
 
-            if (principal instanceof UsernamePasswordAuthenticationToken token &&
-                token.getPrincipal() instanceof UserPrincipal userPrincipal) {
+            if (principal instanceof UsernamePasswordAuthenticationToken token
+                    && token.getPrincipal() instanceof UserPrincipal userPrincipal) {
 
                 Long userId = userPrincipal.getUserId();
                 Long roomId = roomService.getRoomIdByUserId(userId);
@@ -79,5 +88,4 @@ public class HeartbeatMonitor {
     public void cleanSession(String sessionId) {
         missedPongCounter.remove(sessionId);
     }
-
 }
