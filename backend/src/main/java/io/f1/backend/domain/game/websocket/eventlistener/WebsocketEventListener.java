@@ -33,8 +33,8 @@ public class WebsocketEventListener {
 
         Long userId = principal.getUserId();
 
-        //todo FE 개발 될때까지 주석 처리
-        //heartbeatMonitor.cleanSession(event.getSessionId());
+        // todo FE 개발 될때까지 주석 처리
+        // heartbeatMonitor.cleanSession(event.getSessionId());
 
         /* 정상 로직 */
         if (!roomService.isUserInAnyRoom(userId)) {

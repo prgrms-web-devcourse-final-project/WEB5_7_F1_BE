@@ -5,7 +5,6 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getUserDestinat
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.HeartbeatResponse;
-import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +13,8 @@ import org.springframework.messaging.simp.user.SimpSession;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,25 +58,25 @@ public class HeartbeatMonitor {
                 new HeartbeatResponse(DIRECTION),
                 user.getName());
 
-        //todo FE 개발 될때까지 주석 처리
-//        missedPongCounter.merge(sessionId, 1, Integer::sum);
-//        int missedCnt = missedPongCounter.get(sessionId);
-//
-//        /* max_missed_heartbeats 이상 pong 이 안왔을때 - disconnect 처리 */
-//        if (missedCnt >= MAX_MISSED_HEARTBEATS) {
-//
-//            Principal principal = user.getPrincipal();
-//
-//            if (principal instanceof UsernamePasswordAuthenticationToken token
-//                    && token.getPrincipal() instanceof UserPrincipal userPrincipal) {
-//
-//                Long userId = userPrincipal.getUserId();
-//                Long roomId = roomService.getRoomIdByUserId(userId);
-//
-//                roomService.disconnectOrExitRoom(roomId, userPrincipal);
-//            }
-//            missedPongCounter.remove(sessionId);
-//        }
+        // todo FE 개발 될때까지 주석 처리
+        //        missedPongCounter.merge(sessionId, 1, Integer::sum);
+        //        int missedCnt = missedPongCounter.get(sessionId);
+        //
+        //        /* max_missed_heartbeats 이상 pong 이 안왔을때 - disconnect 처리 */
+        //        if (missedCnt >= MAX_MISSED_HEARTBEATS) {
+        //
+        //            Principal principal = user.getPrincipal();
+        //
+        //            if (principal instanceof UsernamePasswordAuthenticationToken token
+        //                    && token.getPrincipal() instanceof UserPrincipal userPrincipal) {
+        //
+        //                Long userId = userPrincipal.getUserId();
+        //                Long roomId = roomService.getRoomIdByUserId(userId);
+        //
+        //                roomService.disconnectOrExitRoom(roomId, userPrincipal);
+        //            }
+        //            missedPongCounter.remove(sessionId);
+        //        }
     }
 
     public void resetMissedPongCount(String sessionId) {
