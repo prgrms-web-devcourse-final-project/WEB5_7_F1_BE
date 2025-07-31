@@ -48,7 +48,7 @@ public class HeartbeatMonitor {
     private void handleSessionHeartbeat(SimpUser user, SimpSession session) {
         String sessionId = session.getId();
 
-        /* pong */
+        /* ping */
         messageSender.sendPersonal(getUserDestination(),
             MessageType.HEARTBEAT, new HeartbeatResponse(DIRECTION), user.getName());
 
@@ -68,7 +68,7 @@ public class HeartbeatMonitor {
 
                 roomService.disconnectOrExitRoom(roomId, userPrincipal);
             }
-            missedPongCounter.remove(sessionId);
+            cleanSession(sessionId);
         }
     }
 
