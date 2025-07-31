@@ -1,6 +1,7 @@
 package io.f1.backend.global.config;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -25,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/sub", "/queue").setHeartbeatValue(new long[]{0, 0});
+        registry.enableSimpleBroker("/sub", "/queue").setHeartbeatValue(new long[] {0, 0});
         registry.setApplicationDestinationPrefixes("/pub");
 
         registry.setUserDestinationPrefix("/user");
