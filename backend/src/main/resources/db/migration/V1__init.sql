@@ -68,7 +68,7 @@ ALTER TABLE question ADD CONSTRAINT FK_question__quiz_id
     FOREIGN KEY (quiz_id) REFERENCES quiz (id);
 
 ALTER TABLE quiz ADD CONSTRAINT FK_quiz__creator_id
-    FOREIGN KEY (creator_id) REFERENCES `user` (id);
+    FOREIGN KEY (creator_id) REFERENCES `user` (id) ON DELETE SET NULL;
 
 ALTER TABLE stat ADD CONSTRAINT FK_stat__user_id
     FOREIGN KEY (user_id) REFERENCES `user` (id);
