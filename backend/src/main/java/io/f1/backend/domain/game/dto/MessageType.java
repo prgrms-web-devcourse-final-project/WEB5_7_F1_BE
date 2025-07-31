@@ -11,5 +11,6 @@ public enum MessageType {
     RANK_UPDATE,
     QUESTION_START,
     GAME_RESULT,
-    EXIT_SUCCESS
+    EXIT_SUCCESS,
+    HEARTBEAT
 }
