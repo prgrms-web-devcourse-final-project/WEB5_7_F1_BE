@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class Room {
@@ -41,6 +42,8 @@ public class Room {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private ScheduledFuture<?> timer;
+
+    private final AtomicBoolean answered = new AtomicBoolean(false);
 
     public Room(Long id, RoomSetting roomSetting, GameSetting gameSetting, Player host) {
         this.id = id;
@@ -193,5 +196,13 @@ public class Room {
 
     public boolean isPasswordIncorrect(String password) {
         return roomSetting.locked() && !roomSetting.password().equals(password);
+    }
+
+    public boolean compareAndSetAnsweredFlag(boolean expected, boolean newValue) {
+        return answered.compareAndSet(expected, newValue);
+    }
+
+    public AtomicBoolean getAnsweredFlag() {
+        return this.answered;
     }
 }
