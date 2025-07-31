@@ -1,5 +1,6 @@
 package io.f1.backend.domain.stat.dao;
 
+import static java.lang.Long.parseLong;
 import static java.util.Objects.requireNonNull;
 
 import io.f1.backend.domain.stat.dto.StatPageResponse;
@@ -50,8 +51,8 @@ public class StatRedisRepository {
 
         // stat:user:{id}
         hashOps.put(statUserKey, "nickname", stat.nickname());
-        hashOps.put(statUserKey, "totalGames", stat.totalGames());
-        hashOps.put(statUserKey, "winningGames", stat.winningGames());
+        hashOps.put(statUserKey, "totalGames", String.valueOf(stat.totalGames()));
+        hashOps.put(statUserKey, "winningGames", String.valueOf(stat.winningGames()));
 
         // stat:rank
         zSetOps.add(STAT_RANK, stat.userId(), stat.score());
@@ -135,8 +136,8 @@ public class StatRedisRepository {
         return new StatResponse(
                 rankValue,
                 (String) statUserMap.get("nickname"),
-                (long) statUserMap.get("totalGames"),
-                (long) statUserMap.get("winningGames"),
+                parseLong((String) statUserMap.get("totalGames")),
+                parseLong((String) statUserMap.get("winningGames")),
                 requireNonNull(rank.getScore()).longValue());
     }
 
@@ -166,8 +167,8 @@ public class StatRedisRepository {
         return new MyPageInfo(
                 (String) statMap.get("nickname"),
                 rank + 1,
-                (long) statMap.get("totalGames"),
-                (long) statMap.get("winningGames"),
+                parseLong((String) statMap.get("totalGames")),
+                parseLong((String) statMap.get("winningGames")),
                 score.longValue());
     }
 }
