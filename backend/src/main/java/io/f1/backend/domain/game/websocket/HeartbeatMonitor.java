@@ -61,24 +61,25 @@ public class HeartbeatMonitor {
                 new HeartbeatResponse(DIRECTION),
                 user.getName());
 
-        missedPongCounter.merge(sessionId, 1, Integer::sum);
-        int missedCnt = missedPongCounter.get(sessionId);
-
-        /* max_missed_heartbeats 이상 pong 이 안왔을때 - disconnect 처리 */
-        if (missedCnt >= MAX_MISSED_HEARTBEATS) {
-
-            Principal principal = user.getPrincipal();
-
-            if (principal instanceof UsernamePasswordAuthenticationToken token
-                    && token.getPrincipal() instanceof UserPrincipal userPrincipal) {
-
-                Long userId = userPrincipal.getUserId();
-                Long roomId = roomService.getRoomIdByUserId(userId);
-
-                roomService.disconnectOrExitRoom(roomId, userPrincipal);
-            }
-            missedPongCounter.remove(sessionId);
-        }
+        //todo FE 개발 될때까지 주석 처리
+//        missedPongCounter.merge(sessionId, 1, Integer::sum);
+//        int missedCnt = missedPongCounter.get(sessionId);
+//
+//        /* max_missed_heartbeats 이상 pong 이 안왔을때 - disconnect 처리 */
+//        if (missedCnt >= MAX_MISSED_HEARTBEATS) {
+//
+//            Principal principal = user.getPrincipal();
+//
+//            if (principal instanceof UsernamePasswordAuthenticationToken token
+//                    && token.getPrincipal() instanceof UserPrincipal userPrincipal) {
+//
+//                Long userId = userPrincipal.getUserId();
+//                Long roomId = roomService.getRoomIdByUserId(userId);
+//
+//                roomService.disconnectOrExitRoom(roomId, userPrincipal);
+//            }
+//            missedPongCounter.remove(sessionId);
+//        }
     }
 
     public void resetMissedPongCount(String sessionId) {

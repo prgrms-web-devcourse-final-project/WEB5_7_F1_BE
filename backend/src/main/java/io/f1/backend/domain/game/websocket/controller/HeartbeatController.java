@@ -20,6 +20,7 @@ public class HeartbeatController {
     public void handlePong(Message<?> message) {
         String sessionId = getSessionId(message);
 
-        heartbeatMonitor.resetMissedPongCount(sessionId);
+        //todo FE 개발 될때까지 주석 처리
+        //heartbeatMonitor.resetMissedPongCount(sessionId);
     }
 }
