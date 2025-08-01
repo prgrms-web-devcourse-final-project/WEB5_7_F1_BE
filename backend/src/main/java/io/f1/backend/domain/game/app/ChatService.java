@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 public class ChatService {
 
     private final RoomService roomService;
-    private final TimerService timerService;
     private final MessageSender messageSender;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -41,7 +40,12 @@ public class ChatService {
 
         String answer = currentQuestion.getAnswer();
 
-        if (answer.equals(chatMessage.message())) {
+        if (!answer.equals(chatMessage.message())) {
+            return;
+        }
+
+        // false -> true
+        if (room.compareAndSetAnsweredFlag(false, true)) {
             eventPublisher.publishEvent(
                     new GameCorrectAnswerEvent(
                             room, userPrincipal.getUserId(), chatMessage, answer));

@@ -2,7 +2,6 @@ package io.f1.backend.domain.game.websocket;
 
 import io.f1.backend.domain.game.dto.MessageType;
 import io.f1.backend.domain.game.dto.response.DefaultWebSocketResponse;
-import io.f1.backend.domain.user.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,8 +20,8 @@ public class MessageSender {
     }
 
     public <T> void sendPersonal(
-            String destination, MessageType type, T message, UserPrincipal principal) {
+            String destination, MessageType type, T message, String principalName) {
         messagingTemplate.convertAndSendToUser(
-                principal.getName(), destination, new DefaultWebSocketResponse<>(type, message));
+                principalName, destination, new DefaultWebSocketResponse<>(type, message));
     }
 }

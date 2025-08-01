@@ -14,7 +14,16 @@ public class WebSocketUtils {
         return (UserPrincipal) auth.getPrincipal();
     }
 
+    public static String getSessionId(Message<?> message) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        return accessor.getSessionId();
+    }
+
     public static String getDestination(Long roomId) {
         return "/sub/room/" + roomId;
+    }
+
+    public static String getUserDestination() {
+        return "/queue";
     }
 }

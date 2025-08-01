@@ -5,9 +5,9 @@ import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 import io.f1.backend.domain.game.app.RoomService;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
+import io.f1.backend.domain.game.websocket.HeartbeatMonitor;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
-import io.f1.backend.global.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +23,7 @@ public class WebsocketEventListener {
 
     private final RoomService roomService;
     private final DisconnectTaskManager taskManager;
+    private final HeartbeatMonitor heartbeatMonitor;
 
     @EventListener
     public void handleDisconnectedListener(SessionDisconnectEvent event) {
@@ -32,28 +33,25 @@ public class WebsocketEventListener {
 
         Long userId = principal.getUserId();
 
+        // todo FE 개발 될때까지 주석 처리
+        // heartbeatMonitor.cleanSession(event.getSessionId());
+
         /* 정상 로직 */
         if (!roomService.isUserInAnyRoom(userId)) {
             return;
         }
 
-        Long roomId = roomService.getUserRoomId(userId);
+        Long roomId = roomService.getRoomIdByUserId(userId);
 
-        changeConnectionStateWithLock(userId,roomId);
+        roomService.changeConnectedStatus(roomId, userId, ConnectionState.DISCONNECTED);
 
         taskManager.scheduleDisconnectTask(
                 userId,
                 () -> {
                     if (ConnectionState.DISCONNECTED.equals(
                             roomService.getPlayerState(userId, roomId))) {
-                        roomService.exitIfNotPlaying(roomId, principal);
+                        roomService.disconnectOrExitRoom(roomId, principal);
                     }
                 });
-    }
-
-
-    @DistributedLock(prefix = "room", key = "#roomId")
-    private void changeConnectionStateWithLock(Long userId, Long roomId){
-        roomService.changeConnectedStatus(userId,roomId ,ConnectionState.DISCONNECTED);
     }
 }

@@ -109,7 +109,7 @@ public class StatRepositoryAdapter implements StatRepository {
         long rank = jpaRepository.countByScoreGreaterThan(stat.score()) + 1;
 
         return new MyPageInfo(
-                stat.nickname(), rank, stat.totalGames(), stat.winningGames(), stat.score());
+                stat.nickname(), rank, stat.score(), stat.totalGames(), stat.winningGames());
     }
 
     private StatWithUserSummary findStatByUserId(long userId) {
