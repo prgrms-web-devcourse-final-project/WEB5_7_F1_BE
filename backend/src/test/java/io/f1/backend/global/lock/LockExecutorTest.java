@@ -11,8 +11,7 @@ import static org.mockito.Mockito.when;
 
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.CommonErrorCode;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,23 +21,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @ExtendWith(MockitoExtension.class)
 class LockExecutorTest {
 
-    @Mock
-    private RedissonClient redissonClient;
+    @Mock private RedissonClient redissonClient;
 
-    @Mock
-    private RLock rlock;
+    @Mock private RLock rlock;
 
-    @InjectMocks
-    private LockExecutor lockExecutor;
+    @InjectMocks private LockExecutor lockExecutor;
 
     private final String TEST_PREFIX = "room";
     private final Long TEST_ROOM_ID = 1L;
     private final long WAIT_TIME = 5L;
     private final long LEASE_TIME = 3L;
-    private final String EXPECTED_LOCK_KEY = "lock:"+TEST_PREFIX+":{"+TEST_ROOM_ID+"}";
+    private final String EXPECTED_LOCK_KEY = "lock:" + TEST_PREFIX + ":{" + TEST_ROOM_ID + "}";
     private final String EXPECTED_RETURN_VALUE = "success";
 
     @Test
@@ -51,7 +50,9 @@ class LockExecutorTest {
         when(rlock.isHeldByCurrentThread()).thenReturn(true);
 
         // when
-        String result = lockExecutor.executeWithLock(TEST_PREFIX, TEST_ROOM_ID, () -> EXPECTED_RETURN_VALUE);
+        String result =
+                lockExecutor.executeWithLock(
+                        TEST_PREFIX, TEST_ROOM_ID, () -> EXPECTED_RETURN_VALUE);
 
         // then
         assertEquals(EXPECTED_RETURN_VALUE, result);
@@ -68,8 +69,12 @@ class LockExecutorTest {
         when(rlock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)).thenReturn(false);
 
         // when & then
-        CustomException ex = assertThrows(CustomException.class,
-            () -> lockExecutor.executeWithLock(TEST_PREFIX, TEST_ROOM_ID, () -> "SHOULD_NOT_RUN"));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () ->
+                                lockExecutor.executeWithLock(
+                                        TEST_PREFIX, TEST_ROOM_ID, () -> "SHOULD_NOT_RUN"));
 
         assertEquals(CommonErrorCode.LOCK_ACQUISITION_FAILED, ex.getErrorCode());
         verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY);
@@ -85,8 +90,12 @@ class LockExecutorTest {
         when(rlock.tryLock(5L, 3L, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
 
         // when & then
-        CustomException ex = assertThrows(CustomException.class,
-            () -> lockExecutor.executeWithLock(TEST_PREFIX, TEST_ROOM_ID, () -> "SHOULD_NOT_RUN"));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () ->
+                                lockExecutor.executeWithLock(
+                                        TEST_PREFIX, TEST_ROOM_ID, () -> "SHOULD_NOT_RUN"));
 
         verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY);
         verify(rlock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
@@ -141,10 +150,17 @@ class LockExecutorTest {
         when(rlock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)).thenReturn(false);
 
         // when & then
-        CustomException ex = assertThrows(CustomException.class,
-            () -> lockExecutor.executeWithLock(TEST_PREFIX, TEST_ROOM_ID, () -> {
-                throw new IllegalStateException("Should not be executed");
-            }));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () ->
+                                lockExecutor.executeWithLock(
+                                        TEST_PREFIX,
+                                        TEST_ROOM_ID,
+                                        () -> {
+                                            throw new IllegalStateException(
+                                                    "Should not be executed");
+                                        }));
 
         verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY);
         verify(rlock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
@@ -161,19 +177,21 @@ class LockExecutorTest {
         when(rlock.isHeldByCurrentThread()).thenReturn(true);
 
         // when & then
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-            lockExecutor.executeWithLock(TEST_PREFIX, TEST_ROOM_ID, () -> {
-                throw new RuntimeException("exception");
-            })
-        );
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () ->
+                                lockExecutor.executeWithLock(
+                                        TEST_PREFIX,
+                                        TEST_ROOM_ID,
+                                        () -> {
+                                            throw new RuntimeException("exception");
+                                        }));
 
         assertEquals("exception", ex.getMessage());
-
 
         verify(redissonClient, times(1)).getLock(EXPECTED_LOCK_KEY);
         verify(rlock, times(1)).tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
         verify(rlock).unlock();
     }
-
-
 }

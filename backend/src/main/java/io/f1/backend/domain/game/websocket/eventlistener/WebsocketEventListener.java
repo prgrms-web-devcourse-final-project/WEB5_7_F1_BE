@@ -9,8 +9,8 @@ import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
 import io.f1.backend.domain.game.websocket.HeartbeatMonitor;
 import io.f1.backend.domain.user.dto.UserPrincipal;
-
 import io.f1.backend.global.lock.LockExecutor;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,24 +45,29 @@ public class WebsocketEventListener {
             return;
         }
 
-        Long roomId = lockExecutor.executeWithLock(USER_LOCK_PREFIX, userId,
-            () -> roomService.getRoomIdByUserId(userId));
+        Long roomId =
+                lockExecutor.executeWithLock(
+                        USER_LOCK_PREFIX, userId, () -> roomService.getRoomIdByUserId(userId));
 
         lockExecutor.executeWithLock(
-            ROOM_LOCK_PREFIX, roomId, () -> roomService.changeConnectedStatus(roomId, userId,
-                ConnectionState.DISCONNECTED));
+                ROOM_LOCK_PREFIX,
+                roomId,
+                () ->
+                        roomService.changeConnectedStatus(
+                                roomId, userId, ConnectionState.DISCONNECTED));
 
         taskManager.scheduleDisconnectTask(
-            userId,
-            () -> {
-                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,
-                    () -> {
-                        if (ConnectionState.DISCONNECTED.equals(
-                            roomService.getPlayerState(userId, roomId))) {
-                            roomService.disconnectOrExitRoom(roomId, principal);
-                        }
-                    }
-                );
-            });
+                userId,
+                () -> {
+                    lockExecutor.executeWithLock(
+                            ROOM_LOCK_PREFIX,
+                            roomId,
+                            () -> {
+                                if (ConnectionState.DISCONNECTED.equals(
+                                        roomService.getPlayerState(userId, roomId))) {
+                                    roomService.disconnectOrExitRoom(roomId, principal);
+                                }
+                            });
+                });
     }
 }

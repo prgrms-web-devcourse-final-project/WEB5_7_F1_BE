@@ -39,7 +39,8 @@ public class GameSocketController {
     public void reconnect(@DestinationVariable Long roomId, Message<?> message) {
 
         UserPrincipal principal = getSessionUser(message);
-        roomService.changeConnectedStatusWithLock(roomId, principal.getUserId(), ConnectionState.CONNECTED);
+        roomService.changeConnectedStatusWithLock(
+                roomId, principal.getUserId(), ConnectionState.CONNECTED);
         roomService.reconnectSendResponseWithLock(roomId, principal);
     }
 
