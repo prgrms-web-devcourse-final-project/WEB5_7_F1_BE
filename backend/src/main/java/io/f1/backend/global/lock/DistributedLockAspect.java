@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DistributedLockAspect {
 
-    private static final String LOCK_KEY_FORMAT = "lock:%s:{%s}";
+    public static final String LOCK_KEY_FORMAT = "lock:%s:{%s}";
 
     private final RedissonClient redissonClient;
 

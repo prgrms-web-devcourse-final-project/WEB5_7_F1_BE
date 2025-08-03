@@ -1,5 +1,7 @@
 package io.f1.backend.domain.game.websocket.eventlistener;
 
+import static io.f1.backend.domain.game.app.RoomService.ROOM_LOCK_PREFIX;
+import static io.f1.backend.domain.game.app.RoomService.USER_LOCK_PREFIX;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.app.RoomService;
@@ -8,6 +10,7 @@ import io.f1.backend.domain.game.websocket.DisconnectTaskManager;
 import io.f1.backend.domain.game.websocket.HeartbeatMonitor;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 
+import io.f1.backend.global.lock.LockExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +27,7 @@ public class WebsocketEventListener {
     private final RoomService roomService;
     private final DisconnectTaskManager taskManager;
     private final HeartbeatMonitor heartbeatMonitor;
+    private final LockExecutor lockExecutor;
 
     @EventListener
     public void handleDisconnectedListener(SessionDisconnectEvent event) {
@@ -41,17 +45,24 @@ public class WebsocketEventListener {
             return;
         }
 
-        Long roomId = roomService.getRoomIdByUserId(userId);
+        Long roomId = lockExecutor.executeWithLock(USER_LOCK_PREFIX, userId,
+            () -> roomService.getRoomIdByUserId(userId));
 
-        roomService.changeConnectedStatus(roomId, userId, ConnectionState.DISCONNECTED);
+        lockExecutor.executeWithLock(
+            ROOM_LOCK_PREFIX, roomId, () -> roomService.changeConnectedStatus(roomId, userId,
+                ConnectionState.DISCONNECTED));
 
         taskManager.scheduleDisconnectTask(
-                userId,
-                () -> {
-                    if (ConnectionState.DISCONNECTED.equals(
+            userId,
+            () -> {
+                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,
+                    () -> {
+                        if (ConnectionState.DISCONNECTED.equals(
                             roomService.getPlayerState(userId, roomId))) {
-                        roomService.disconnectOrExitRoom(roomId, principal);
+                            roomService.disconnectOrExitRoom(roomId, principal);
+                        }
                     }
-                });
+                );
+            });
     }
 }

@@ -39,8 +39,8 @@ public class GameSocketController {
     public void reconnect(@DestinationVariable Long roomId, Message<?> message) {
 
         UserPrincipal principal = getSessionUser(message);
-        roomService.changeConnectedStatus(roomId, principal.getUserId(), ConnectionState.CONNECTED);
-        roomService.reconnectSendResponse(roomId, principal);
+        roomService.changeConnectedStatusWithLock(roomId, principal.getUserId(), ConnectionState.CONNECTED);
+        roomService.reconnectSendResponseWithLock(roomId, principal);
     }
 
     @MessageMapping("/room/exit/{roomId}")
@@ -48,7 +48,7 @@ public class GameSocketController {
 
         UserPrincipal principal = getSessionUser(message);
 
-        roomService.exitRoom(roomId, principal);
+        roomService.exitRoomWithLock(roomId, principal);
     }
 
     @MessageMapping("/room/start/{roomId}")

@@ -222,7 +222,7 @@ class GameFlowTests {
         private final Map<Long, Room> rooms = new ConcurrentHashMap<>();
 
         public TestRoomService() {
-            super(null, null, null, null, null, null);
+            super(null, null, null, null, null, null,null);
         }
 
         @Override
