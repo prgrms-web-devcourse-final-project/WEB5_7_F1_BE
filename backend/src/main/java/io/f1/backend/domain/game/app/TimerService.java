@@ -40,7 +40,7 @@ public class TimerService {
             return true;
         }
         cancelTimer(room);
-        room.getScheduler().shutdown();
+        //        room.getScheduler().shutdown();
         return false;
     }
 
