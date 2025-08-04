@@ -4,13 +4,16 @@ import static io.f1.backend.global.lock.DistributedLockAspect.LOCK_KEY_FORMAT;
 
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.CommonErrorCode;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @Slf4j
 @Component
@@ -36,7 +39,7 @@ public class LockExecutor {
         try {
             acquired = rlock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, DEFAULT_TIME_UNIT);
 
-            if(!acquired) {
+            if (!acquired) {
                 log.warn("[LockExecutor] Lock acquisition failed: {}", key);
                 throw new CustomException(CommonErrorCode.LOCK_ACQUISITION_FAILED);
             }
@@ -55,12 +58,14 @@ public class LockExecutor {
     }
 
     public void executeWithLock(String prefix, Object key, Runnable runnable) {
-        executeWithLock(prefix, key, () -> {
-            runnable.run();
-            return null;
-        });
+        executeWithLock(
+                prefix,
+                key,
+                () -> {
+                    runnable.run();
+                    return null;
+                });
     }
-
 
     private String formatLockKey(String prefix, Object value) {
         return String.format(LOCK_KEY_FORMAT, prefix, value);
