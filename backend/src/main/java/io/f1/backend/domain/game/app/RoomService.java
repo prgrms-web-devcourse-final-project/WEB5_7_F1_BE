@@ -29,6 +29,7 @@ import io.f1.backend.domain.game.dto.response.RoomSettingResponse;
 import io.f1.backend.domain.game.dto.response.SystemNoticeResponse;
 import io.f1.backend.domain.game.event.RoomCreatedEvent;
 import io.f1.backend.domain.game.event.RoomDeletedEvent;
+import io.f1.backend.domain.game.event.RoomUpdatedEvent;
 import io.f1.backend.domain.game.model.ConnectionState;
 import io.f1.backend.domain.game.model.GameSetting;
 import io.f1.backend.domain.game.model.Player;
@@ -229,6 +230,8 @@ public class RoomService {
                                         destination,
                                         MessageType.SYSTEM_NOTICE,
                                         systemNoticeResponse);
+
+                                eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
                             });
                 });
     }
@@ -470,6 +473,11 @@ public class RoomService {
 
         /* 플레이어 삭제 */
         room.removePlayer(player);
+
+        Long quizId = room.getQuizId();
+        Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
+
+        eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz));
     }
 
     public void handleDisconnectedPlayers(Room room, List<Player> disconnectedPlayers) {
