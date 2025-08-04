@@ -25,23 +25,9 @@ import io.f1.backend.global.config.RedisTestContainerConfig;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
 import io.f1.backend.global.lock.LockExecutor;
-import java.time.LocalDateTime;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,6 +45,22 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 @Slf4j
 @SpringBootTest
 @Import({RedisTestContainerConfig.class}) // Redis Testcontainers 설정 임포트
@@ -68,8 +70,8 @@ class RoomServiceConcurrentTest {
     static void redisProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", RedisTestContainerConfig.redisContainer::getHost);
         registry.add(
-            "spring.data.redis.port",
-            () -> RedisTestContainerConfig.redisContainer.getFirstMappedPort());
+                "spring.data.redis.port",
+                () -> RedisTestContainerConfig.redisContainer.getFirstMappedPort());
     }
 
     @Mock private QuizService quizService;
@@ -96,15 +98,16 @@ class RoomServiceConcurrentTest {
         // RoomService에 실제 구현체 주입
         ReflectionTestUtils.setField(roomService, "roomRepository", roomRepository);
         ReflectionTestUtils.setField(roomService, "userRoomRepository", userRoomRepository);
-        ReflectionTestUtils.setField(roomService, "roomIdGenerator", new AtomicLong(0)); // ID 생성기 초기화
+        ReflectionTestUtils.setField(
+                roomService, "roomIdGenerator", new AtomicLong(0)); // ID 생성기 초기화
         ReflectionTestUtils.setField(roomService, "lockExecutor", lockExecutor);
         ReflectionTestUtils.setField(roomService, "quizService", quizService);
-
 
         Quiz dummyQuiz = mock(Quiz.class);
         when(dummyQuiz.getId()).thenReturn(1L);
         when(quizService.getQuizWithQuestionsById(anyLong())).thenReturn(dummyQuiz);
-        when(quizService.getQuizMinData()).thenReturn(new QuizMinData(1L, 10L));   doNothing().when(eventPublisher).publishEvent(any());
+        when(quizService.getQuizMinData()).thenReturn(new QuizMinData(1L, 10L));
+        doNothing().when(eventPublisher).publishEvent(any());
         doNothing().when(disconnectTasks).cancelDisconnectTask(any(Long.class));
         doNothing().when(messageSender).sendPersonal(any(), any(), any(), any());
         doNothing().when(messageSender).sendBroadcast(any(), any(), any());
@@ -122,7 +125,7 @@ class RoomServiceConcurrentTest {
         String hostNickname = "host";
 
         // Room 생성 (호스트 포함 1명)
-       createAndSaveRoom(roomId,100L,hostNickname,maxUserCount);
+        createAndSaveRoom(roomId, 100L, hostNickname, maxUserCount);
 
         int numConcurrentUsers = 10; // 동시 입장 시도할 사용자 수
         ExecutorService executorService = Executors.newFixedThreadPool(numConcurrentUsers);
@@ -140,33 +143,42 @@ class RoomServiceConcurrentTest {
 
             RoomValidationRequest request = new RoomValidationRequest(roomId, null);
 
-            executorService.submit(() -> {
+            executorService.submit(
+                    () -> {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userPrincipal, null, Collections.emptyList());
+                        SecurityContext context = SecurityContextHolder.createEmptyContext();
+                        context.setAuthentication(authentication);
+                        SecurityContextHolder.setContext(context);
 
-                UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userPrincipal, null, Collections.emptyList());
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authentication);
-                SecurityContextHolder.setContext(context);
-
-                try {
-                    startLatch.await(); // 모든 스레드가 동시에 시작하도록 대기
-                    roomService.enterRoom(request);
-                    successEntries.incrementAndGet();
-                } catch (CustomException e) {
-                    if (e.getErrorCode() == RoomErrorCode.ROOM_USER_LIMIT_REACHED) {
-                        failedEntries.incrementAndGet();
-                    } else {
-                        log.info("Unexpected CustomException in enterRoom for user {}: {}", userPrincipal.getUserId(), e.getMessage(), e);
-                        failedEntries.incrementAndGet();
-                    }
-                } catch (Exception e) {
-                    log.info("Unhandled Exception in enterRoom for user {}: {}", userPrincipal.getUserId(), e.getMessage(), e); // 여기에 예외 상세 로그
-                    failedEntries.incrementAndGet();
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+                        try {
+                            startLatch.await(); // 모든 스레드가 동시에 시작하도록 대기
+                            roomService.enterRoom(request);
+                            successEntries.incrementAndGet();
+                        } catch (CustomException e) {
+                            if (e.getErrorCode() == RoomErrorCode.ROOM_USER_LIMIT_REACHED) {
+                                failedEntries.incrementAndGet();
+                            } else {
+                                log.info(
+                                        "Unexpected CustomException in enterRoom for user {}: {}",
+                                        userPrincipal.getUserId(),
+                                        e.getMessage(),
+                                        e);
+                                failedEntries.incrementAndGet();
+                            }
+                        } catch (Exception e) {
+                            log.info(
+                                    "Unhandled Exception in enterRoom for user {}: {}",
+                                    userPrincipal.getUserId(),
+                                    e.getMessage(),
+                                    e); // 여기에 예외 상세 로그
+                            failedEntries.incrementAndGet();
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
         }
 
         startLatch.countDown(); // 모든 스레드 시작!
@@ -194,14 +206,14 @@ class RoomServiceConcurrentTest {
 
     @Test
     @DisplayName("동일 유저가 여러 탭에서 동시 초기화 요청 시 데드락 없이 처리되고, 최종적으로 하나의 방에만 존재 (가장 마지막에 시도한 방)")
-    void initializeRoomSocket_concurrently_sameUser_noDeadlockAndConsistency() throws InterruptedException {
+    void initializeRoomSocket_concurrently_sameUser_noDeadlockAndConsistency()
+            throws InterruptedException {
         // Given
         Long roomId1 = 1L;
         Long roomId2 = 2L;
         Long testUserId = 1000L; // 테스트 대상 유저 ID
         String nickname = "TestUser";
         int maxUserCount = 4;
-
 
         UserPrincipal userPrincipal = createUserPrincipal(testUserId);
 
@@ -223,44 +235,58 @@ class RoomServiceConcurrentTest {
 
         AtomicInteger successCount = new AtomicInteger(0);
         // 가장 마지막에 성공적으로 초기화된 방의 ID를 추적
-        List<AbstractMap.SimpleEntry<Long, Long>> successfulInitAttempts = Collections.synchronizedList(new ArrayList<>());
-
+        List<AbstractMap.SimpleEntry<Long, Long>> successfulInitAttempts =
+                Collections.synchronizedList(new ArrayList<>());
 
         // When
         for (int i = 0; i < numAttempts; i++) {
             // Room1 초기화 시도
-            executorService.submit(() -> {
-               setSecurityContext(userPrincipal);
-                try {
-                    startLatch.await();
-                    long callTimestamp = System.nanoTime(); // 호출 시작 시간 기록
-                    roomService.initializeRoomSocket(roomId1, userPrincipal);
-                    successCount.incrementAndGet();
-                    successfulInitAttempts.add(new AbstractMap.SimpleEntry<>(roomId1, callTimestamp));
-                } catch (Exception e) {
-                    log.error("Room1 init failed for user {} in room {}: {}", userPrincipal.getUserId(), roomId1, e.getMessage(), e);
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        setSecurityContext(userPrincipal);
+                        try {
+                            startLatch.await();
+                            long callTimestamp = System.nanoTime(); // 호출 시작 시간 기록
+                            roomService.initializeRoomSocket(roomId1, userPrincipal);
+                            successCount.incrementAndGet();
+                            successfulInitAttempts.add(
+                                    new AbstractMap.SimpleEntry<>(roomId1, callTimestamp));
+                        } catch (Exception e) {
+                            log.error(
+                                    "Room1 init failed for user {} in room {}: {}",
+                                    userPrincipal.getUserId(),
+                                    roomId1,
+                                    e.getMessage(),
+                                    e);
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
 
             // Room2 초기화 시도
-            executorService.submit(() -> {
-                setSecurityContext(userPrincipal);
-                try {
-                    startLatch.await();
-                    long callTimestamp = System.nanoTime(); // 호출 시작 시간 기록
-                    roomService.initializeRoomSocket(roomId2, userPrincipal);
-                    successCount.incrementAndGet();
-                    successfulInitAttempts.add(new AbstractMap.SimpleEntry<>(roomId2, callTimestamp));
-                } catch (Exception e) {
-                    log.error("Room2 init failed for user {} in room {}: {}", userPrincipal.getUserId(), roomId2, e.getMessage(), e);
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        setSecurityContext(userPrincipal);
+                        try {
+                            startLatch.await();
+                            long callTimestamp = System.nanoTime(); // 호출 시작 시간 기록
+                            roomService.initializeRoomSocket(roomId2, userPrincipal);
+                            successCount.incrementAndGet();
+                            successfulInitAttempts.add(
+                                    new AbstractMap.SimpleEntry<>(roomId2, callTimestamp));
+                        } catch (Exception e) {
+                            log.error(
+                                    "Room2 init failed for user {} in room {}: {}",
+                                    userPrincipal.getUserId(),
+                                    roomId2,
+                                    e.getMessage(),
+                                    e);
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
         }
 
         startLatch.countDown();
@@ -278,13 +304,14 @@ class RoomServiceConcurrentTest {
         successfulInitAttempts.sort(Comparator.comparing(AbstractMap.SimpleEntry::getValue));
         Long expectedFinalRoomId = null;
         if (!successfulInitAttempts.isEmpty()) {
-            expectedFinalRoomId = successfulInitAttempts.get(successfulInitAttempts.size() - 1).getKey();
+            expectedFinalRoomId =
+                    successfulInitAttempts.get(successfulInitAttempts.size() - 1).getKey();
         }
 
         // 최종적으로 저장된 방 ID가 가장 마지막에 성공적으로 시도된 방 ID와 일치하는지 검증
         assertThat(finalRoomId)
-            .as("Final room must be the one from the last successful initialization attempt")
-            .isEqualTo(expectedFinalRoomId);
+                .as("Final room must be the one from the last successful initialization attempt")
+                .isEqualTo(expectedFinalRoomId);
 
         // 각 방의 상태 검증
         Room finalRoom1 = roomRepository.findRoom(roomId1).orElse(null);
@@ -311,7 +338,6 @@ class RoomServiceConcurrentTest {
         }
     }
 
-
     @Test
     @DisplayName("다수의 사용자가 동시 입장/나가기 시도 시 데드락 없이 정합성 유지")
     void enterAndExit_concurrently_noDeadlockAndConsistency() throws InterruptedException {
@@ -335,36 +361,39 @@ class RoomServiceConcurrentTest {
             RoomValidationRequest enterRequest = new RoomValidationRequest(roomId, null);
 
             // 입장 스레드
-            executorService.submit(() -> {
-                UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userPrincipal, null, Collections.emptyList());
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authentication);
-                SecurityContextHolder.setContext(context);
-                try {
-                    startLatch.await();
-                    roomService.enterRoom(enterRequest);
-                } catch (Exception e) {
-                    // 예상되는 예외: ROOM_USER_LIMIT_REACHED
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userPrincipal, null, Collections.emptyList());
+                        SecurityContext context = SecurityContextHolder.createEmptyContext();
+                        context.setAuthentication(authentication);
+                        SecurityContextHolder.setContext(context);
+                        try {
+                            startLatch.await();
+                            roomService.enterRoom(enterRequest);
+                        } catch (Exception e) {
+                            // 예상되는 예외: ROOM_USER_LIMIT_REACHED
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
 
             // 나가기 스레드 (입장 시도 후 바로 나가기 시도)
-            executorService.submit(() -> {
-                setSecurityContext(userPrincipal);
-                try {
-                    startLatch.await();
-                    roomService.exitRoomWithLock(roomId, userPrincipal);
-                } catch (Exception e) {
-                    // 예상되는 예외: USER_NOT_FOUND (아직 입장하지 못했을 때)
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        setSecurityContext(userPrincipal);
+                        try {
+                            startLatch.await();
+                            roomService.exitRoomWithLock(roomId, userPrincipal);
+                        } catch (Exception e) {
+                            // 예상되는 예외: USER_NOT_FOUND (아직 입장하지 못했을 때)
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
         }
 
         startLatch.countDown();
@@ -381,9 +410,9 @@ class RoomServiceConcurrentTest {
         // 예를 들어, 어떤 유저가 입장 직후 바로 나가는 데 성공하면 0이 될 수도 있고,
         // 어떤 유저가 입장만 성공하고 나가기는 실패할 수도 있음.
         // 여기서는 데드락이 없고, 불필요한 예외가 발생하지 않으며, 최소한의 정합성(호스트 존재)만 확인.
-        System.out.println("Final user count in room " + roomId + ": " + finalRoom.getCurrentUserCnt());
+        System.out.println(
+                "Final user count in room " + roomId + ": " + finalRoom.getCurrentUserCnt());
     }
-
 
     @Test
     @DisplayName("연결 끊긴 플레이어 처리 로직과 사용자 직접 나가기 로직 동시 호출 시 데드락 없음")
@@ -400,7 +429,8 @@ class RoomServiceConcurrentTest {
         // Room 생성
         // 방 생성 및 플레이어 추가 - 헬퍼 메서드 사용
         Room room = createAndSaveRoom(roomId, hostId, "Host", maxUserCount);
-        Player disconnectedPlayer = createPlayer(disconnectedUserId, "DisconnectedUser"); // 헬퍼 메서드 사용
+        Player disconnectedPlayer =
+                createPlayer(disconnectedUserId, "DisconnectedUser"); // 헬퍼 메서드 사용
         Player exitingPlayer = createPlayer(exitingUserId, "ExitingUser"); // 헬퍼 메서드 사용
 
         room.addPlayer(disconnectedPlayer);
@@ -424,34 +454,36 @@ class RoomServiceConcurrentTest {
             long userId = (long) i + 201;
             UserPrincipal disconnectedUserPrincipal = createUserPrincipal(disconnectedUserId);
             // disconnectOrExitRoom (플레이어 연결 끊김 시뮬레이션)
-            executorService.submit(() -> {
-                setSecurityContext(disconnectedUserPrincipal);
-                try {
-                    startLatch.await();
-                    roomService.disconnectOrExitRoom(roomId, disconnectedUserPrincipal);
-                } catch (Exception e) {
-                    System.err.println("Disconnect error: " + e.getMessage());
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        setSecurityContext(disconnectedUserPrincipal);
+                        try {
+                            startLatch.await();
+                            roomService.disconnectOrExitRoom(roomId, disconnectedUserPrincipal);
+                        } catch (Exception e) {
+                            System.err.println("Disconnect error: " + e.getMessage());
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
 
             UserPrincipal exitingUserPrincipal = createUserPrincipal(exitingUserId);
 
             // exitRoomWithLock (사용자 직접 나가기 시뮬레이션)
-            executorService.submit(() -> {
-               setSecurityContext(exitingUserPrincipal);
-                try {
-                    startLatch.await();
-                    roomService.exitRoomWithLock(roomId, exitingUserPrincipal);
-                } catch (Exception e) {
-                    System.err.println("Exit error: " + e.getMessage());
-                } finally {
-                    SecurityContextHolder.clearContext();
-                    finishLatch.countDown();
-                }
-            });
+            executorService.submit(
+                    () -> {
+                        setSecurityContext(exitingUserPrincipal);
+                        try {
+                            startLatch.await();
+                            roomService.exitRoomWithLock(roomId, exitingUserPrincipal);
+                        } catch (Exception e) {
+                            System.err.println("Exit error: " + e.getMessage());
+                        } finally {
+                            SecurityContextHolder.clearContext();
+                            finishLatch.countDown();
+                        }
+                    });
         }
 
         startLatch.countDown();
@@ -475,11 +507,9 @@ class RoomServiceConcurrentTest {
         assertThat(finalRoom.getCurrentUserCnt()).isEqualTo(1);
     }
 
-
     private Player createPlayer(Long userId, String nickname) {
         return new Player(userId, nickname);
     }
-
 
     private UserPrincipal createUserPrincipal(Long userId) {
         User user = new User("kakao", "providerId_" + userId, LocalDateTime.now());
@@ -487,8 +517,8 @@ class RoomServiceConcurrentTest {
         return new UserPrincipal(user, Collections.emptyMap());
     }
 
-
-    private Room createAndSaveRoom(Long roomId, Long hostId, String hostNickname, int maxUserCount) {
+    private Room createAndSaveRoom(
+            Long roomId, Long hostId, String hostNickname, int maxUserCount) {
         RoomSetting roomSetting = new RoomSetting("testRoom", maxUserCount, false, null);
         Player host = createPlayer(hostId, hostNickname);
         Room room = new Room(roomId, roomSetting, new GameSetting(1L, 10, 3), host);
@@ -500,7 +530,8 @@ class RoomServiceConcurrentTest {
 
     private void setSecurityContext(UserPrincipal userPrincipal) {
         UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(userPrincipal, null, Collections.emptyList());
+                new UsernamePasswordAuthenticationToken(
+                        userPrincipal, null, Collections.emptyList());
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
@@ -532,5 +563,4 @@ class RoomServiceConcurrentTest {
             rooms.remove(roomId);
         }
     }
-
 }

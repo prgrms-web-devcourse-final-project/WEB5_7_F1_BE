@@ -403,8 +403,8 @@ public class RoomService {
 
     public void exitRoomForDisconnectedPlayer(Long roomId, Player player) {
         lockExecutor.executeWithLock(
-            USER_LOCK_PREFIX, player.getId(), () -> {
-                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId, () -> {
+            USER_LOCK_PREFIX,player.getId(),()->{
+                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,()->{
                     // 연결 끊긴 플레이어 exit 로직 타게 해주기
                     Room room = findRoom(roomId);
 
