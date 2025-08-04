@@ -20,6 +20,6 @@ public class HeartbeatController {
     public void handlePong(Message<?> message) {
         String sessionId = getSessionId(message);
 
-         heartbeatMonitor.resetMissedPongCount(sessionId);
+        heartbeatMonitor.resetMissedPongCount(sessionId);
     }
 }
