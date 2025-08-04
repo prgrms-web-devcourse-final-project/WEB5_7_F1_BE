@@ -37,10 +37,10 @@ public class LockExecutor {
             acquired = rlock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, DEFAULT_TIME_UNIT);
 
             if(!acquired) {
-                log.warn("[DistributedLock] Lock acquisition failed: {}", key);
+                log.warn("[LockExecutor] Lock acquisition failed: {}", key);
                 throw new CustomException(CommonErrorCode.LOCK_ACQUISITION_FAILED);
             }
-            log.info("[DistributedLock] Lock acquired: {}", key);
+            log.info("[LockExecutor] Lock acquired: {}", key);
 
             return supplier.get();
         } catch (InterruptedException e) {
@@ -49,7 +49,7 @@ public class LockExecutor {
         } finally {
             if (acquired && rlock.isHeldByCurrentThread()) {
                 rlock.unlock();
-                log.info("[DistributedLock] Lock released: {}", key);
+                log.info("[LockExecutor] Lock released: {}", key);
             }
         }
     }

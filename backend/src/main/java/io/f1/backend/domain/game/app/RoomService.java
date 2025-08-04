@@ -67,6 +67,7 @@ public class RoomService {
     private final UserRoomRepository userRoomRepository;
     private final AtomicLong roomIdGenerator = new AtomicLong(0);
     private final ApplicationEventPublisher eventPublisher;
+    private final Map<String, Long> sessionRoomMap = new ConcurrentHashMap<>();
 
     private final DisconnectTaskManager disconnectTasks;
     private final MessageSender messageSender;
@@ -375,6 +376,11 @@ public class RoomService {
             .orElseThrow(() -> new CustomException(RoomErrorCode.ROOM_NOT_FOUND));
     }
 
+    public boolean existsRoom(Long roomId) {
+        return roomRepository
+            .findRoom(roomId).isPresent();
+    }
+
     private void removeRoom(Room room) {
         Long roomId = room.getId();
         roomRepository.removeRoom(roomId);
@@ -397,8 +403,8 @@ public class RoomService {
 
     public void exitRoomForDisconnectedPlayer(Long roomId, Player player) {
         lockExecutor.executeWithLock(
-            USER_LOCK_PREFIX,player.getId(),()->{
-                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,()->{
+            USER_LOCK_PREFIX, player.getId(), () -> {
+                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId, () -> {
                     // 연결 끊긴 플레이어 exit 로직 타게 해주기
                     Room room = findRoom(roomId);
 
@@ -461,7 +467,24 @@ public class RoomService {
         return userRoomRepository.isUserInAnyRoom(userId);
     }
 
-    public Long getRoomIdByUserId(Long userId) {
+    private Long getRoomIdByUserId(Long userId) {
         return userRoomRepository.getRoomId(userId);
+    }
+
+    @DistributedLock(prefix = "user", key = "#userId")
+    public Long getRoomIdByUserIdWithLock(Long userId) {
+        return userRoomRepository.getRoomId(userId);
+    }
+
+    public void addSessionRoomId(String sessionId, Long roomId) {
+        sessionRoomMap.put(sessionId, roomId);
+    }
+
+    public Long getRoomIdBySessionId(String sessionId) {
+        return sessionRoomMap.get(sessionId);
+    }
+
+    public void removeSessionRoomId(String sessionId) {
+        sessionRoomMap.remove(sessionId);
     }
 }

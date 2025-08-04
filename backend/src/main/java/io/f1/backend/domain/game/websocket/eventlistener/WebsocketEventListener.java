@@ -36,17 +36,21 @@ public class WebsocketEventListener {
         UserPrincipal principal = getSessionUser(message);
 
         Long userId = principal.getUserId();
+        String sessionId = event.getSessionId();
 
-        // todo FE 개발 될때까지 주석 처리
-        // heartbeatMonitor.cleanSession(event.getSessionId());
+        heartbeatMonitor.cleanSession(sessionId);
+        Long roomId = roomService.getRoomIdBySessionId(sessionId);
+        roomService.removeSessionRoomId(sessionId);
 
         /* 정상 로직 */
         if (!roomService.isUserInAnyRoom(userId)) {
             return;
         }
 
-        Long roomId = lockExecutor.executeWithLock(USER_LOCK_PREFIX, userId,
-            () -> roomService.getRoomIdByUserId(userId));
+        if(!roomService.existsRoom(roomId)) {
+            return;
+        }
+
 
         lockExecutor.executeWithLock(
             ROOM_LOCK_PREFIX, roomId, () -> roomService.changeConnectedStatus(roomId, userId,
@@ -55,14 +59,16 @@ public class WebsocketEventListener {
         taskManager.scheduleDisconnectTask(
             userId,
             () -> {
-                lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,
+                lockExecutor.executeWithLock(USER_LOCK_PREFIX, userId,
                     () -> {
-                        if (ConnectionState.DISCONNECTED.equals(
-                            roomService.getPlayerState(userId, roomId))) {
-                            roomService.disconnectOrExitRoom(roomId, principal);
-                        }
-                    }
-                );
+                        lockExecutor.executeWithLock(ROOM_LOCK_PREFIX, roomId,
+                            () -> {
+                                if (ConnectionState.DISCONNECTED.equals(
+                                    roomService.getPlayerState(userId, roomId))) {
+                                    roomService.disconnectOrExitRoom(roomId, principal);
+                                }
+                            });
+                    });
             });
     }
 }

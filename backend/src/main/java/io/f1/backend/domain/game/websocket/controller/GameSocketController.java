@@ -1,5 +1,6 @@
 package io.f1.backend.domain.game.websocket.controller;
 
+import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionId;
 import static io.f1.backend.domain.game.websocket.WebSocketUtils.getSessionUser;
 
 import io.f1.backend.domain.game.app.ChatService;
@@ -33,6 +34,7 @@ public class GameSocketController {
         UserPrincipal principal = getSessionUser(message);
 
         roomService.initializeRoomSocket(roomId, principal);
+        roomService.addSessionRoomId(getSessionId(message), roomId);
     }
 
     @MessageMapping("/room/reconnect/{roomId}")
@@ -41,6 +43,7 @@ public class GameSocketController {
         UserPrincipal principal = getSessionUser(message);
         roomService.changeConnectedStatusWithLock(roomId, principal.getUserId(), ConnectionState.CONNECTED);
         roomService.reconnectSendResponseWithLock(roomId, principal);
+        roomService.addSessionRoomId(getSessionId(message), roomId);
     }
 
     @MessageMapping("/room/exit/{roomId}")
