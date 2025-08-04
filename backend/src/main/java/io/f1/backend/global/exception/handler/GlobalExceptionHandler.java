@@ -5,6 +5,7 @@ import io.f1.backend.global.exception.errorcode.CommonErrorCode;
 import io.f1.backend.global.exception.errorcode.ErrorCode;
 import io.f1.backend.global.exception.response.ErrorResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
         log.warn("handleException: {}", e.getMessage());
+
+        if ("text/event-stream".equals(request.getHeader("Accept"))) {
+            return ResponseEntity.noContent().build();
+        }
+
         CommonErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
 
         ErrorResponse response = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
