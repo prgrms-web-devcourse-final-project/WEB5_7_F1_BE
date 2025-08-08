@@ -10,5 +10,5 @@ public record RoomCreatedPayload(
         String quizTitle,
         String description,
         String creator,
-        int numberOfQuestion,
+        int numberOfQuestions,
         String thumbnailUrl) {}

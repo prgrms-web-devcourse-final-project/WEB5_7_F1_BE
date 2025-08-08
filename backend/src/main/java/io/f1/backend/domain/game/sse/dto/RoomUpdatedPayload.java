@@ -7,5 +7,5 @@ public record RoomUpdatedPayload(
         String quizTitle,
         String description,
         String creator,
-        int numberOfQuestion,
+        int numberOfQuestions,
         String thumbnailUrl) {}

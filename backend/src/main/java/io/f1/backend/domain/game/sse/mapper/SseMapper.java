@@ -16,6 +16,7 @@ public class SseMapper {
     public static LobbySseEvent<RoomCreatedPayload> fromRoomCreated(RoomCreatedEvent event) {
         Room room = event.room();
         Quiz quiz = event.quiz();
+        long questionSize = event.questionSize();
         RoomCreatedPayload payload =
                 new RoomCreatedPayload(
                         room.getId(),
@@ -27,7 +28,7 @@ public class SseMapper {
                         quiz.getTitle(),
                         quiz.getDescription(),
                         quiz.getCreator().getNickname(),
-                        quiz.getQuestions().size(),
+                        (int) questionSize,
                         quiz.getThumbnailUrl());
         return new LobbySseEvent<>(SseEventType.CREATE.name(), payload);
     }
@@ -35,6 +36,7 @@ public class SseMapper {
     public static LobbySseEvent<RoomUpdatedPayload> fromRoomUpdated(RoomUpdatedEvent event) {
         Room room = event.room();
         Quiz quiz = event.quiz();
+        long questionSize = event.questionSize();
         RoomUpdatedPayload payload =
                 new RoomUpdatedPayload(
                         room.getId(),
@@ -43,7 +45,7 @@ public class SseMapper {
                         quiz.getTitle(),
                         quiz.getDescription(),
                         quiz.getCreator().getNickname(),
-                        quiz.getQuestions().size(),
+                        (int) questionSize,
                         quiz.getThumbnailUrl());
         return new LobbySseEvent<>(SseEventType.UPDATE.name(), payload);
     }

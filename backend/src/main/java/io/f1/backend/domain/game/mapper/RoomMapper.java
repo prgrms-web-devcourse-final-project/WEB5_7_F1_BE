@@ -51,9 +51,9 @@ public class RoomMapper {
                 room.getRoomSetting().locked());
     }
 
-    public static GameSettingResponse toGameSettingResponse(GameSetting gameSetting, Quiz quiz) {
+    public static GameSettingResponse toGameSettingResponse(GameSetting gameSetting, Quiz quiz, long questionsCount) {
         return new GameSettingResponse(
-                gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz));
+                gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz, questionsCount));
     }
 
     public static PlayerListResponse toPlayerListResponse(Room room) {
@@ -66,7 +66,7 @@ public class RoomMapper {
                 room.getHost().getNickname(), playerResponseList, playerResponseList.size());
     }
 
-    public static RoomResponse toRoomResponse(Room room, Quiz quiz) {
+    public static RoomResponse toRoomResponse(Room room, Quiz quiz, long questionsCount) {
         return new RoomResponse(
                 room.getId(),
                 room.getRoomSetting().roomName(),
@@ -77,17 +77,17 @@ public class RoomMapper {
                 quiz.getTitle(),
                 quiz.getDescription(),
                 quiz.getCreator().getNickname(),
-                quiz.getQuestions().size(),
+                (int) questionsCount,
                 quiz.getThumbnailUrl());
     }
 
-    public static QuizResponse toQuizResponse(Quiz quiz) {
+    public static QuizResponse toQuizResponse(Quiz quiz, long questionsCount) {
         return new QuizResponse(
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
                 quiz.getThumbnailUrl(),
-                quiz.getQuestions().size());
+                (int) questionsCount);
     }
 
     public static SystemNoticeResponse ofPlayerEvent(String nickname, RoomEventType roomEventType) {
