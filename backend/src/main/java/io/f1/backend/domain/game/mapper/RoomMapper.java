@@ -51,9 +51,12 @@ public class RoomMapper {
                 room.getRoomSetting().locked());
     }
 
-    public static GameSettingResponse toGameSettingResponse(GameSetting gameSetting, Quiz quiz, long questionsCount) {
+    public static GameSettingResponse toGameSettingResponse(
+            GameSetting gameSetting, Quiz quiz, long questionsCount) {
         return new GameSettingResponse(
-                gameSetting.getRound(), gameSetting.getTimeLimit(), toQuizResponse(quiz, questionsCount));
+                gameSetting.getRound(),
+                gameSetting.getTimeLimit(),
+                toQuizResponse(quiz, questionsCount));
     }
 
     public static PlayerListResponse toPlayerListResponse(Room room) {

@@ -45,8 +45,7 @@ public record QuizChangeRequest(long quizId) implements GameSettingChanger {
                 new RoomUpdatedEvent(
                         room,
                         quizService.findQuizById(room.getGameSetting().getQuizId()),
-                        room.getGameSetting().getRound()
-                );
+                        room.getGameSetting().getRound());
 
         eventPublisher.publishEvent(roomUpdatedEvent);
     }

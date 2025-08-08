@@ -212,9 +212,7 @@ public class GameService {
                 toGameSettingResponse(
                         room.getGameSetting(),
                         quizService.findQuizById(room.getGameSetting().getQuizId()),
-                        room.getRound()
-                )
-        );
+                        room.getRound()));
         messageSender.sendBroadcast(
                 destination, MessageType.ROOM_SETTING, toRoomSettingResponse(room));
     }

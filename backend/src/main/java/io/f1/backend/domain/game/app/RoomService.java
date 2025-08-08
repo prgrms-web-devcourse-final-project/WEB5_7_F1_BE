@@ -205,7 +205,10 @@ public class RoomService {
                                 Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
 
                                 GameSettingResponse gameSettingResponse =
-                                        toGameSettingResponse(room.getGameSetting(), quiz, quiz.getQuestions().size());
+                                        toGameSettingResponse(
+                                                room.getGameSetting(),
+                                                quiz,
+                                                quiz.getQuestions().size());
 
                                 PlayerListResponse playerListResponse = toPlayerListResponse(room);
 
@@ -231,7 +234,9 @@ public class RoomService {
                                         MessageType.SYSTEM_NOTICE,
                                         systemNoticeResponse);
 
-                                eventPublisher.publishEvent(new RoomUpdatedEvent(room, quiz, quiz.getQuestions().size()));
+                                eventPublisher.publishEvent(
+                                        new RoomUpdatedEvent(
+                                                room, quiz, quiz.getQuestions().size()));
                             });
                 });
     }
