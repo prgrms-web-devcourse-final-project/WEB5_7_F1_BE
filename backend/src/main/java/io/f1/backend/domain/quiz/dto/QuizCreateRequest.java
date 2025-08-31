@@ -2,8 +2,10 @@ package io.f1.backend.domain.quiz.dto;
 
 import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.global.validation.TrimmedSize;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

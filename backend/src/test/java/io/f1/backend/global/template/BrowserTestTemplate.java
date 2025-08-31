@@ -1,5 +1,8 @@
 package io.f1.backend.global.template;
 
+import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
+import static io.f1.backend.domain.user.constants.SessionKeys.USER;
+
 import com.github.database.rider.spring.api.DBRider;
 
 import io.f1.backend.domain.user.dto.AuthenticationUser;
@@ -11,9 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
-import static io.f1.backend.domain.user.constants.SessionKeys.USER;
 
 @DBRider
 @SpringBootTest

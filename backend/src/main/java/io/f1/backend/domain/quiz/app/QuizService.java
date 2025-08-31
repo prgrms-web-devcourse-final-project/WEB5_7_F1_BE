@@ -35,6 +35,7 @@ import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.security.enums.Role;
 import io.f1.backend.global.security.util.SecurityUtils;
 import io.f1.backend.global.util.FileManager;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,8 +47,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.*;
+import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -68,20 +69,24 @@ public class QuizService {
     private final QuizRepository quizRepository;
 
     @Transactional
-    public QuizCreateResponse saveTextQuiz(MultipartFile thumbnailFile, TextQuizCreateRequest request) {
+    public QuizCreateResponse saveTextQuiz(
+            MultipartFile thumbnailFile, TextQuizCreateRequest request) {
         Quiz savedQuiz = saveQuiz(thumbnailFile, request);
 
         for (TextQuestionRequest qRequest : request.getQuestions()) {
             questionService.saveContentQuestion(
-                savedQuiz,
-                ContentQuestionRequest.of(qRequest.getContent(), qRequest.getAnswer()));
+                    savedQuiz,
+                    ContentQuestionRequest.of(qRequest.getContent(), qRequest.getAnswer()));
         }
 
         return quizToQuizCreateResponse(savedQuiz);
     }
 
     @Transactional
-    public QuizCreateResponse saveImageQuiz(MultipartFile thumbnailFile, ImageQuizCreateRequest request, List<MultipartFile> questionImageFiles) {
+    public QuizCreateResponse saveImageQuiz(
+            MultipartFile thumbnailFile,
+            ImageQuizCreateRequest request,
+            List<MultipartFile> questionImageFiles) {
         Quiz savedQuiz = saveQuiz(thumbnailFile, request);
 
         validateImageQuestions(request.getQuestions(), questionImageFiles);
@@ -99,8 +104,7 @@ public class QuizService {
 
             String imagePath = FileManager.saveMultipartFile(imageFile, questionPath);
             questionService.saveContentQuestion(
-                savedQuiz,
-                ContentQuestionRequest.of(imagePath, qRequest.answer()));
+                    savedQuiz, ContentQuestionRequest.of(imagePath, qRequest.answer()));
         }
 
         return quizToQuizCreateResponse(savedQuiz);
@@ -116,17 +120,18 @@ public class QuizService {
 
     private String resolveThumbnail(MultipartFile thumbnailFile) {
         String path = thumbnailPath + defaultThumbnailFile;
-        if (hasFile(thumbnailFile)){
+        if (hasFile(thumbnailFile)) {
             validateImageFile(thumbnailFile);
             path = FileManager.saveMultipartFile(thumbnailFile, thumbnailPath);
         }
         return path;
     }
-    
+
     private User loadCreator() {
         Long creatorId = SecurityUtils.getCurrentUserId();
-        return userRepository.findById(creatorId)
-            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        return userRepository
+                .findById(creatorId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private void validateImageQuestions(
@@ -189,19 +194,26 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateTextQuiz(Long quizId, TextQuizUpdateRequest request, MultipartFile thumbnailFile) {
+    public void updateTextQuiz(
+            Long quizId, TextQuizUpdateRequest request, MultipartFile thumbnailFile) {
         Quiz quiz = updateQuiz(quizId, request, thumbnailFile);
 
         for (TextQuestionUpdateRequest questionReq : request.getQuestions()) {
             questionService.updateContentQuestions(
-                quiz,
-                ContentQuestionUpdateRequest.of(
-                    questionReq.getId(), questionReq.getContent(), questionReq.getAnswer()));
+                    quiz,
+                    ContentQuestionUpdateRequest.of(
+                            questionReq.getId(),
+                            questionReq.getContent(),
+                            questionReq.getAnswer()));
         }
     }
 
     @Transactional
-    public void updateImageQuiz(Long quizId, ImageQuizUpdateRequest request, MultipartFile thumbnailFile, List<MultipartFile> questionImageFiles) {
+    public void updateImageQuiz(
+            Long quizId,
+            ImageQuizUpdateRequest request,
+            MultipartFile thumbnailFile,
+            List<MultipartFile> questionImageFiles) {
         Quiz quiz = updateQuiz(quizId, request, thumbnailFile);
 
         if (questionImageFiles == null) {
@@ -221,9 +233,9 @@ public class QuizService {
                 savedImagePath = FileManager.saveMultipartFile(imageFile, questionPath);
             }
             questionService.updateContentQuestions(
-                quiz,
-                ContentQuestionUpdateRequest.of(
-                    questionReq.getId(), savedImagePath, questionReq.getAnswer()));
+                    quiz,
+                    ContentQuestionUpdateRequest.of(
+                            questionReq.getId(), savedImagePath, questionReq.getAnswer()));
         }
     }
 
@@ -241,7 +253,7 @@ public class QuizService {
     }
 
     private void updateThumbnail(Quiz quiz, MultipartFile thumbnailFile) {
-        if(!hasFile(thumbnailFile)) return;
+        if (!hasFile(thumbnailFile)) return;
         validateImageFile(thumbnailFile);
 
         String newThumbnailPath = FileManager.saveMultipartFile(thumbnailFile, thumbnailPath);

@@ -11,6 +11,7 @@ import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.util.FileManager;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -35,9 +36,8 @@ public class QuestionService {
     public void updateContentQuestions(Quiz quiz, ContentQuestionUpdateRequest request) {
         if (request.getId() == null) {
             saveContentQuestion(
-                quiz,
-                ContentQuestionRequest.of(request.getContent(), request.getAnswer()));
-            
+                    quiz, ContentQuestionRequest.of(request.getContent(), request.getAnswer()));
+
             return;
         }
 
@@ -45,9 +45,9 @@ public class QuestionService {
 
         if (request.getContent() != null) {
             ContentQuestion contentQuestion = question.getContentQuestion();
-            contentQuestion.changeContent(request.getContent());    
+            contentQuestion.changeContent(request.getContent());
         }
-        
+
         question.changeAnswer(request.getAnswer());
     }
 
@@ -67,15 +67,13 @@ public class QuestionService {
 
     private Question getQuestion(Long questionId) {
         return questionRepository
-                        .findById(questionId)
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                .findById(questionId)
+                .orElseThrow(() -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
     }
 
     private Question getQuestionWithContent(Long questionId) {
         return questionRepository
-                        .findByIdWithContent(questionId)
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+                .findByIdWithContent(questionId)
+                .orElseThrow(() -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
     }
 }

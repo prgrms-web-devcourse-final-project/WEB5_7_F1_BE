@@ -8,6 +8,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/questions")
 @RequiredArgsConstructor
-public class QuestionController {
-
-}
+public class QuestionController {}

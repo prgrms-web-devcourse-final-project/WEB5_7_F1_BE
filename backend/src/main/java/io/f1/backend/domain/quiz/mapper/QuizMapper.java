@@ -94,7 +94,8 @@ public class QuizMapper {
                 question.getId(), question.getContentQuestion().getContent());
     }
 
-    public static GameStartResponse toGameStartResponse(QuizType quizType, List<Question> questions) {
+    public static GameStartResponse toGameStartResponse(
+            QuizType quizType, List<Question> questions) {
         return new GameStartResponse(quizType, toGameQuestionResponseList(questions));
     }
 }

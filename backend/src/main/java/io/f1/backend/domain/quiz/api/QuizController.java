@@ -36,7 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/quizzes")
 @RequiredArgsConstructor
@@ -49,24 +48,22 @@ public class QuizController {
             @RequestPart(required = false) MultipartFile thumbnailFile,
             @Valid @RequestPart TextQuizCreateRequest request) {
 
-        QuizCreateResponse response =
-                quizService.saveTextQuiz(thumbnailFile, request);
+        QuizCreateResponse response = quizService.saveTextQuiz(thumbnailFile, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuizCreateResponse> saveImageQuiz(
-        @RequestPart(required = false) MultipartFile thumbnailFile,
-        @RequestPart(required = false) List<MultipartFile> questionImageFiles,
-        @Valid @RequestPart ImageQuizCreateRequest request) {
-        
+            @RequestPart(required = false) MultipartFile thumbnailFile,
+            @RequestPart(required = false) List<MultipartFile> questionImageFiles,
+            @Valid @RequestPart ImageQuizCreateRequest request) {
+
         QuizCreateResponse response =
                 quizService.saveImageQuiz(thumbnailFile, request, questionImageFiles);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
 
     @DeleteMapping("/{quizId}")
     public ResponseEntity<Void> deleteQuiz(@PathVariable Long quizId) {
@@ -77,8 +74,7 @@ public class QuizController {
 
     @DeleteMapping("/{quizId}/questions")
     public ResponseEntity<Void> deleteQuestions(
-            @PathVariable Long quizId,
-            @RequestBody QuestionDeleteRequest request) {
+            @PathVariable Long quizId, @RequestBody QuestionDeleteRequest request) {
 
         quizService.deleteQuestions(quizId, request);
         return ResponseEntity.noContent().build();

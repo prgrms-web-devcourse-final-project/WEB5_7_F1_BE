@@ -6,7 +6,8 @@ import io.f1.backend.domain.quiz.entity.Quiz;
 
 public class QuestionMapper {
 
-    public static Question questionRequestToQuestion(Quiz quiz, ContentQuestionRequest questionRequest) {
+    public static Question questionRequestToQuestion(
+            Quiz quiz, ContentQuestionRequest questionRequest) {
         return new Question(quiz, questionRequest.getAnswer());
     }
 }
