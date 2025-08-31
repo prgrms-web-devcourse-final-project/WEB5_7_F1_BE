@@ -318,7 +318,7 @@ public class RoomService {
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
 
-        if (room.isPlaying()) {    
+        if (room.isPlaying()) {
             messageSender.sendPersonal(
                     userDestination,
                     MessageType.SYSTEM_NOTICE,
