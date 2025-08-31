@@ -310,7 +310,7 @@ public class RoomService {
         String destination = getDestination(roomId);
         String userDestination = getUserDestination();
 
-        Long quizId = room.getGameSetting().getQuizId();
+        Long quizId = room.getQuizId();
         Quiz quiz = quizService.findQuizById(quizId);
 
         messageSender.sendBroadcast(
