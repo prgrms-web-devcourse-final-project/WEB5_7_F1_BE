@@ -311,14 +311,14 @@ public class RoomService {
         String userDestination = getUserDestination();
 
         Long quizId = room.getGameSetting().getQuizId();
+        Quiz quiz = quizService.findQuizById(quizId);
 
         messageSender.sendBroadcast(
                 destination,
                 MessageType.SYSTEM_NOTICE,
                 ofPlayerEvent(principal.getUserNickname(), RoomEventType.RECONNECT));
 
-        if (room.isPlaying()) {
-            Quiz quiz = quizService.findQuizById(quizId);
+        if (room.isPlaying()) {    
             messageSender.sendPersonal(
                     userDestination,
                     MessageType.SYSTEM_NOTICE,
@@ -338,7 +338,6 @@ public class RoomService {
         } else {
             RoomSettingResponse roomSettingResponse = toRoomSettingResponse(room);
 
-            Quiz quiz = quizService.getQuizWithQuestionsById(quizId);
             Long questionsCount = quizService.getQuestionsCount(quizId);
 
             GameSettingResponse gameSettingResponse =
