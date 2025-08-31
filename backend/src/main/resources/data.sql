@@ -89,7 +89,7 @@ VALUES
     (1, '정답9', NOW(), NOW()),
     (1, '정답10', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content)
+INSERT INTO content_question (question_id, content)
 VALUES
     (1, '1번 문제 내용입니다.'),
     (2, '2번 문제 내용입니다.'),
@@ -146,7 +146,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (2, '리스본', NOW(), NOW()),
                                                                    (2, '서울', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (11, '프랑스의 수도는 어디인가요?'),
                                                      (12, '일본의 수도는 어디인가요?'),
                                                      (13, '중국의 수도는 어디인가요?'),
@@ -178,7 +178,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (3, '침팬지', NOW(), NOW()),
                                                                    (3, '코알라', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (26, '가장 큰 육상 동물은?'),
                                                      (27, '목이 가장 긴 동물은?'),
                                                      (28, '물속에서 오래 숨을 참을 수 있는 동물은?'),
@@ -205,7 +205,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (4, '탄소', NOW(), NOW()),
                                                                    (4, '전자', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (38, '화학식 H2O는 무엇인가요?'),
                                                      (39, '지구에 빛과 열을 제공하는 별은?'),
                                                      (40, '우주에서 가장 빠른 것은?'),
@@ -233,7 +233,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (5, '레오나르도 다 빈치', NOW(), NOW()),
                                                                    (5, '아인슈타인', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (48, '한글을 창제한 조선의 왕은?'),
                                                      (49, '임진왜란 당시 활약한 조선의 장군은?'),
                                                      (50, '10만 양병설로 유명한 조선의 학자는?'),
@@ -262,7 +262,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (6, '탁구', NOW(), NOW()),
                                                                    (6, '수영', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (61, '11명이 한 팀으로 경기하는 스포츠는?'),
                                                      (62, '홈런이 나오는 스포츠는?'),
                                                      (63, '슛과 리바운드가 중요한 스포츠는?'),
@@ -292,7 +292,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (7, '박완서', NOW(), NOW()),
                                                                    (7, '루이자 메이 올컷', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (72, '『무정』을 쓴 작가는 누구인가요?'),
                                                      (73, '『진달래꽃』을 지은 시인은 누구인가요?'),
                                                      (74, '『날개』를 쓴 작가는 누구인가요?'),
@@ -321,7 +321,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (8, '음표', NOW(), NOW()),
                                                                    (8, '템포', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (86, '88개의 건반이 있는 대표적인 건반악기는?'),
                                                      (87, '활을 사용하는 대표적인 현악기는?'),
                                                      (88, '『운명 교향곡』을 작곡한 사람은?'),
@@ -347,7 +347,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (9, '울릉도', NOW(), NOW()),
                                                                    (9, '독도', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (96, '대한민국에서 가장 높은 산은?'),
                                                      (97, '한반도의 가장 북쪽에 있는 산은?'),
                                                      (98, '대한민국에서 가장 긴 강은?'),
@@ -374,7 +374,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (10, '포케', NOW(), NOW()),
                                                                    (10, '무사카', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (106, '한국을 대표하는 발효 음식은?'),
                                                      (107, '일본의 생선 초밥을 무엇이라 하나요?'),
                                                      (108, '이탈리아의 대표적인 면 요리는?'),
@@ -404,7 +404,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (11, '돌다리', NOW(), NOW()),
                                                                    (11, '벼', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (118, '가는 말이 고와야 오는 ○○○ 곱다'),
                                                      (119, '소 잃고 ○○○ 고친다'),
                                                      (120, '호랑이도 ○○○ 앞에서는 없다'),
@@ -433,7 +433,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (12, '목', NOW(), NOW()),
                                                                    (12, '배', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (131, '○이 가볍다 = 말이 많다'),
                                                      (132, '○에 불이 나다 = 매우 바쁘다'),
                                                      (133, '○에 장난 치다 = 방해하다'),
@@ -462,7 +462,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (13, '작용 반작용', NOW(), NOW()),
                                                                    (13, '운동량 보존 법칙', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (142, '정지한 물체는 계속 정지하고, 운동 중인 물체는 계속 운동하려는 법칙은?'),
                                                      (143, '힘 = 질량 x 가속도, 어떤 법칙인가요?'),
                                                      (144, '모든 작용에는 크기가 같고 방향이 반대인 반작용이 따른다. 어떤 법칙인가요?'),
@@ -490,7 +490,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (14, '납', NOW(), NOW()),
                                                                    (14, '우라늄', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (154, '가장 가벼운 원소는?'),
                                                      (155, '풍선에 쓰이며 비활성 기체인 원소는?'),
                                                      (156, '생명 유지에 꼭 필요한 기체 원소는?'),
@@ -519,7 +519,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (15, '해리포터', NOW(), NOW()),
                                                                    (15, '반지의 제왕', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (165, '봉준호 감독의 아카데미 수상작은?'),
                                                      (166, '꿈 속에서 또 다른 꿈으로 들어가는 영화는?'),
                                                      (167, '히어로들이 모여서 싸우는 마블 영화는?'),
@@ -547,7 +547,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (16, '이순신', NOW(), NOW()),
                                                                    (16, '세종대왕', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (178, '"상상력은 지식보다 중요하다." 라는 명언을 남긴 사람은?'),
                                                      (179, '"당신이 세상에서 보고 싶은 변화가 되어라." 라고 말한 인물은?'),
                                                      (180, '"우리는 큰 일을 할 수는 없지만, 작은 일을 큰 사랑으로 할 수 있습니다." 는 누구의 말인가요?'),
@@ -577,7 +577,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (17, '방콕', NOW(), NOW()),
                                                                    (17, '자카르타', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (188, '대한민국의 수도는?'),
                                                      (189, '미국의 수도는?'),
                                                      (190, '일본의 수도는?'),
@@ -609,7 +609,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (18, '기린', NOW(), NOW()),
                                                                    (18, '안경', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (203, '“니가 가라 ○○○”에서 ○○○에 들어갈 말은?'),
                                                      (204, '유리가 집을 나간 이유는?'),
                                                      (205, '하늘에서 떨어지는 코는?'),
@@ -636,7 +636,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (19, '크레몰린 궁전', NOW(), NOW()),
                                                                    (19, '앙코르와트', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (215, '프랑스 파리의 상징적인 탑은?'),
                                                      (216, '뉴욕에 있는 유명한 동상은?'),
                                                      (217, '로마에 있는 고대 원형 경기장은?'),
@@ -665,7 +665,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (20, '치즈', NOW(), NOW()),
                                                                    (20, '와플', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (225, '한국을 대표하는 발효 음식은?'),
                                                      (226, '생선을 얇게 썰어 만든 일본 음식은?'),
                                                      (227, '이탈리아에서 유래된 빵 위에 토핑을 얹은 음식은?'),
@@ -705,7 +705,7 @@ INSERT INTO question (quiz_id, answer, created_at, updated_at) VALUES
                                                                    (21, '문', NOW(), NOW()),
                                                                    (21, '창문', NOW(), NOW());
 
-INSERT INTO text_question (question_id, content) VALUES
+INSERT INTO content_question (question_id, content) VALUES
                                                      (239, 'apple의 뜻은?'),
                                                      (240, 'banana의 뜻은?'),
                                                      (241, 'cat의 뜻은?'),

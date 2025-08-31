@@ -1,72 +1,81 @@
 package io.f1.backend.domain.question.app;
 
-import static io.f1.backend.domain.question.mapper.QuestionMapper.questionRequestToQuestion;
-import static io.f1.backend.domain.question.mapper.TextQuestionMapper.questionRequestToTextQuestion;
-import static io.f1.backend.domain.quiz.app.QuizService.verifyUserAuthority;
-
+import io.f1.backend.domain.question.dao.ContentQuestionRepository;
 import io.f1.backend.domain.question.dao.QuestionRepository;
-import io.f1.backend.domain.question.dao.TextQuestionRepository;
-import io.f1.backend.domain.question.dto.QuestionRequest;
-import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
+import io.f1.backend.domain.question.dto.ContentQuestionRequest;
+import io.f1.backend.domain.question.dto.ContentQuestionUpdateRequest;
+import io.f1.backend.domain.question.entity.ContentQuestion;
 import io.f1.backend.domain.question.entity.Question;
-import io.f1.backend.domain.question.entity.TextQuestion;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
-
+import io.f1.backend.global.util.FileManager;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final TextQuestionRepository textQuestionRepository;
+    private final ContentQuestionRepository contentQuestionRepository;
 
-    @Transactional
-    public void saveQuestion(Quiz quiz, QuestionRequest request) {
-
-        Question question = questionRequestToQuestion(quiz, request);
+    public void saveContentQuestion(Quiz quiz, ContentQuestionRequest request) {
+        Question question = new Question(quiz, request.getAnswer());
         quiz.addQuestion(question);
         questionRepository.save(question);
 
-        TextQuestion textQuestion = questionRequestToTextQuestion(question, request.getContent());
-        textQuestionRepository.save(textQuestion);
-        question.addTextQuestion(textQuestion);
+        ContentQuestion contentQuestion = request.toContentQuestion(question);
+        contentQuestionRepository.save(contentQuestion);
+        question.addContentQuestion(contentQuestion);
     }
 
-    public void updateQuestions(Quiz quiz, QuestionUpdateRequest request) {
-
+    public void updateContentQuestions(Quiz quiz, ContentQuestionUpdateRequest request) {
         if (request.getId() == null) {
-            saveQuestion(quiz, QuestionRequest.of(request));
+            saveContentQuestion(
+                quiz,
+                ContentQuestionRequest.of(request.getContent(), request.getAnswer()));
+            
             return;
         }
 
-        Question question =
-                questionRepository
-                        .findById(request.getId())
-                        .orElseThrow(
-                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+        Question question = getQuestionWithContent(request.getId());
 
-        TextQuestion textQuestion = question.getTextQuestion();
-        textQuestion.changeContent(request.getContent());
+        if (request.getContent() != null) {
+            ContentQuestion contentQuestion = question.getContentQuestion();
+            contentQuestion.changeContent(request.getContent());    
+        }
+        
         question.changeAnswer(request.getAnswer());
     }
 
-    @Transactional
-    public void deleteQuestion(Long questionId) {
+    public void deleteQuestion(Long questionId, QuizType quizType) {
+        Question question;
 
-        Question question =
-                questionRepository
+        if (quizType.name().equals("IMAGE")) {
+            question = getQuestionWithContent(questionId);
+            String filePath = question.getContentQuestion().getContent();
+            FileManager.deleteFile(filePath);
+        } else {
+            question = getQuestion(questionId);
+        }
+
+        questionRepository.delete(question);
+    }
+
+    private Question getQuestion(Long questionId) {
+        return questionRepository
                         .findById(questionId)
                         .orElseThrow(
                                 () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
+    }
 
-        verifyUserAuthority(question.getQuiz());
-
-        questionRepository.delete(question);
+    private Question getQuestionWithContent(Long questionId) {
+        return questionRepository
+                        .findByIdWithContent(questionId)
+                        .orElseThrow(
+                                () -> new CustomException(QuestionErrorCode.QUESTION_NOT_FOUND));
     }
 }

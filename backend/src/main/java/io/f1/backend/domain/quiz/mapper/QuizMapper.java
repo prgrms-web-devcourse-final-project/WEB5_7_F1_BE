@@ -10,6 +10,7 @@ import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.domain.user.entity.User;
 
 import org.springframework.data.domain.Page;
@@ -44,6 +45,7 @@ public class QuizMapper {
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
+                quiz.getQuizType(),
                 quiz.findCreatorNickname(),
                 quiz.getQuestions().size(),
                 quiz.getThumbnailUrl());
@@ -67,7 +69,7 @@ public class QuizMapper {
                         question ->
                                 new QuestionResponse(
                                         question.getId(),
-                                        question.getTextQuestion().getContent(),
+                                        question.getContentQuestion().getContent(),
                                         question.getAnswer()))
                 .toList();
     }
@@ -88,10 +90,11 @@ public class QuizMapper {
     }
 
     public static GameQuestionResponse toGameQuestionResponse(Question question) {
-        return new GameQuestionResponse(question.getId(), question.getTextQuestion().getContent());
+        return new GameQuestionResponse(
+                question.getId(), question.getContentQuestion().getContent());
     }
 
-    public static GameStartResponse toGameStartResponse(List<Question> questions) {
-        return new GameStartResponse(toGameQuestionResponseList(questions));
+    public static GameStartResponse toGameStartResponse(QuizType quizType, List<Question> questions) {
+        return new GameStartResponse(quizType, toGameQuestionResponseList(questions));
     }
 }

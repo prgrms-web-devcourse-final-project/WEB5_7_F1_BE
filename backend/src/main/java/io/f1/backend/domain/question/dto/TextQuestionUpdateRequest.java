@@ -4,13 +4,12 @@ import io.f1.backend.global.validation.TrimmedSize;
 
 import jakarta.validation.constraints.NotBlank;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class QuestionUpdateRequest {
+@AllArgsConstructor
+public class TextQuestionUpdateRequest {
 
     private Long id;
 

@@ -90,7 +90,7 @@ public class GameService {
         timerService.startTimer(room, START_DELAY);
 
         messageSender.sendBroadcast(
-                destination, MessageType.GAME_START, toGameStartResponse(questions));
+                destination, MessageType.GAME_START, toGameStartResponse(quiz.getQuizType(), questions));
         messageSender.sendBroadcast(
                 destination, MessageType.RANK_UPDATE, toRankUpdateResponse(room));
         messageSender.sendBroadcast(

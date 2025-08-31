@@ -1,7 +1,8 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 5MB
+      max-file-size: 2MB
+      max-request-size: 162MB
 
   config:
     import: optional:file:.env[.properties]
@@ -56,8 +57,9 @@ spring:
             user-name-attribute: id
 
 file:
-  thumbnail-path: images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
-  default-thumbnail-url: /images/thumbnail/default.png
+  thumbnail-path: images/thumbnail/
+  default-thumbnail-file: default.png
+  question-path: images/question/
 
 server:
   port: 8080
@@ -69,6 +71,8 @@ server:
         secure: true
         http-only: true
       timeout: ${SESSION_TIMEOUT}
+  tomcat:
+    max-part-count: 100
 
 custom:
   oauth:

@@ -38,5 +38,6 @@ spring:
 
 file:
   thumbnail-path : images/thumbnail/ # 이후 배포 환경에서는 바꾸면 될 듯
-  default-thumbnail-url: /images/thumbnail/default.png
+  default-thumbnail-file: default.png
+  question-path: images/question/
 

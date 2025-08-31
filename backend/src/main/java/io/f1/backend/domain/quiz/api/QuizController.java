@@ -1,11 +1,14 @@
 package io.f1.backend.domain.quiz.api;
 
+import io.f1.backend.domain.question.dto.QuestionDeleteRequest;
 import io.f1.backend.domain.quiz.app.QuizService;
-import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
+import io.f1.backend.domain.quiz.dto.ImageQuizCreateRequest;
+import io.f1.backend.domain.quiz.dto.ImageQuizUpdateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
-import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
+import io.f1.backend.domain.quiz.dto.TextQuizCreateRequest;
+import io.f1.backend.domain.quiz.dto.TextQuizUpdateRequest;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.CommonErrorCode;
 
@@ -24,11 +27,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/quizzes")
@@ -37,14 +44,29 @@ public class QuizController {
 
     private final QuizService quizService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/text", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuizCreateResponse> saveQuiz(
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @Valid @RequestPart QuizCreateRequest request) {
-        QuizCreateResponse response = quizService.saveQuiz(thumbnailFile, request);
+            @Valid @RequestPart TextQuizCreateRequest request) {
+
+        QuizCreateResponse response =
+                quizService.saveTextQuiz(thumbnailFile, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<QuizCreateResponse> saveImageQuiz(
+        @RequestPart(required = false) MultipartFile thumbnailFile,
+        @RequestPart(required = false) List<MultipartFile> questionImageFiles,
+        @Valid @RequestPart ImageQuizCreateRequest request) {
+        
+        QuizCreateResponse response =
+                quizService.saveImageQuiz(thumbnailFile, request, questionImageFiles);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
 
     @DeleteMapping("/{quizId}")
     public ResponseEntity<Void> deleteQuiz(@PathVariable Long quizId) {
@@ -53,17 +75,34 @@ public class QuizController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{quizId}")
-    public ResponseEntity<Void> updateQuiz(
+    @DeleteMapping("/{quizId}/questions")
+    public ResponseEntity<Void> deleteQuestions(
+            @PathVariable Long quizId,
+            @RequestBody QuestionDeleteRequest request) {
+
+        quizService.deleteQuestions(quizId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/text/{quizId}")
+    public ResponseEntity<Void> updateTextQuiz(
             @PathVariable Long quizId,
             @RequestPart(required = false) MultipartFile thumbnailFile,
-            @Valid @RequestPart QuizUpdateRequest request) {
+            @Valid @RequestPart TextQuizUpdateRequest request) {
 
-        quizService.updateQuizAndQuestions(quizId, request);
+        quizService.updateTextQuiz(quizId, request, thumbnailFile);
 
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            quizService.updateThumbnail(quizId, thumbnailFile);
-        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/image/{quizId}")
+    public ResponseEntity<Void> updateImageQuiz(
+            @PathVariable Long quizId,
+            @RequestPart(required = false) MultipartFile thumbnailFile,
+            @RequestPart(required = false) List<MultipartFile> questionImageFiles,
+            @Valid @RequestPart ImageQuizUpdateRequest request) {
+
+        quizService.updateImageQuiz(quizId, request, thumbnailFile, questionImageFiles);
 
         return ResponseEntity.noContent().build();
     }

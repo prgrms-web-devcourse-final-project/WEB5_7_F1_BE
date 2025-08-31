@@ -1,7 +1,5 @@
 package io.f1.backend.domain.stat;
 
-import static io.f1.backend.domain.user.constants.SessionKeys.OAUTH_USER;
-import static io.f1.backend.domain.user.constants.SessionKeys.USER;
 import static io.f1.backend.global.exception.errorcode.RoomErrorCode.PLAYER_NOT_FOUND;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,11 +26,9 @@ import io.f1.backend.domain.stat.dao.StatRepositoryAdapter;
 import io.f1.backend.domain.stat.dto.StatWithNickname;
 import io.f1.backend.domain.stat.dto.StatWithUserSummary;
 import io.f1.backend.domain.user.dao.UserRepository;
-import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.SignupRequest;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.config.RedisTestContainerConfig;
-import io.f1.backend.global.security.util.SecurityUtils;
 import io.f1.backend.global.template.BrowserTestTemplate;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -171,18 +167,6 @@ public class RedisStatBrowserTest extends BrowserTestTemplate {
         verify(statJpaRepository, never()).findScoreByNickname(anyString());
         verify(statJpaRepository, never()).countByScoreGreaterThan(anyLong());
         verify(statJpaRepository, never()).findAllStatsWithUser(any());
-    }
-
-    private MockHttpSession getMockSession(User user, boolean signup) {
-        MockHttpSession session = new MockHttpSession();
-        if (signup) {
-            session.setAttribute(USER, AuthenticationUser.from(user));
-            SecurityUtils.setAuthentication(user);
-        } else {
-            session.setAttribute(OAUTH_USER, AuthenticationUser.from(user));
-        }
-
-        return session;
     }
 
     private void warmingRedisOneUser(User user) {

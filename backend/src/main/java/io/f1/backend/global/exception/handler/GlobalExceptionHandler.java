@@ -31,12 +31,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
-        log.warn("handleException: {}", e.getMessage());
+        log.warn("handleException:", e);
 
         if ("text/event-stream".equals(request.getHeader("Accept"))) {
             return ResponseEntity.noContent().build();
         }
-
+        
         CommonErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
 
         ErrorResponse response = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());

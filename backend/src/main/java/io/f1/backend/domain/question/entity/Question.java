@@ -35,15 +35,15 @@ public class Question extends BaseEntity {
     private String answer;
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.REMOVE)
-    private TextQuestion textQuestion;
+    private ContentQuestion contentQuestion;
 
     public Question(Quiz quiz, String answer) {
         this.quiz = quiz;
         this.answer = answer;
     }
 
-    public void addTextQuestion(TextQuestion textQuestion) {
-        this.textQuestion = textQuestion;
+    public void addContentQuestion(ContentQuestion contentQuestion) {
+        this.contentQuestion = contentQuestion;
     }
 
     public void changeAnswer(String answer) {

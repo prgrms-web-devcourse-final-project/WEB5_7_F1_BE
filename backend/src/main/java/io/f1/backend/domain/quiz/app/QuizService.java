@@ -2,13 +2,18 @@ package io.f1.backend.domain.quiz.app;
 
 import static io.f1.backend.domain.quiz.mapper.QuizMapper.*;
 
-import static java.nio.file.Files.deleteIfExists;
-
 import io.f1.backend.domain.question.app.QuestionService;
-import io.f1.backend.domain.question.dto.QuestionRequest;
-import io.f1.backend.domain.question.dto.QuestionUpdateRequest;
+import io.f1.backend.domain.question.dto.ContentQuestionRequest;
+import io.f1.backend.domain.question.dto.ContentQuestionUpdateRequest;
+import io.f1.backend.domain.question.dto.ImageQuestionRequest;
+import io.f1.backend.domain.question.dto.ImageQuestionUpdateRequest;
+import io.f1.backend.domain.question.dto.QuestionDeleteRequest;
+import io.f1.backend.domain.question.dto.TextQuestionRequest;
+import io.f1.backend.domain.question.dto.TextQuestionUpdateRequest;
 import io.f1.backend.domain.question.entity.Question;
 import io.f1.backend.domain.quiz.dao.QuizRepository;
+import io.f1.backend.domain.quiz.dto.ImageQuizCreateRequest;
+import io.f1.backend.domain.quiz.dto.ImageQuizUpdateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.QuizCreateResponse;
 import io.f1.backend.domain.quiz.dto.QuizListPageResponse;
@@ -16,16 +21,20 @@ import io.f1.backend.domain.quiz.dto.QuizListResponse;
 import io.f1.backend.domain.quiz.dto.QuizMinData;
 import io.f1.backend.domain.quiz.dto.QuizQuestionListResponse;
 import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
+import io.f1.backend.domain.quiz.dto.TextQuizCreateRequest;
+import io.f1.backend.domain.quiz.dto.TextQuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
+import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.AuthErrorCode;
+import io.f1.backend.global.exception.errorcode.QuestionErrorCode;
 import io.f1.backend.global.exception.errorcode.QuizErrorCode;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
 import io.f1.backend.global.security.enums.Role;
 import io.f1.backend.global.security.util.SecurityUtils;
-
+import io.f1.backend.global.util.FileManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,13 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -51,93 +55,128 @@ import java.util.UUID;
 public class QuizService {
 
     @Value("${file.thumbnail-path}")
-    private String uploadPath;
+    private String thumbnailPath;
 
-    @Value("${file.default-thumbnail-url}")
-    private String defaultThumbnailPath;
+    @Value("${file.question-path}")
+    private String questionPath;
 
-    private final String DEFAULT = "default";
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    @Value("${file.default-thumbnail-file}")
+    private String defaultThumbnailFile;
 
     private final UserRepository userRepository;
     private final QuestionService questionService;
     private final QuizRepository quizRepository;
 
     @Transactional
-    public QuizCreateResponse saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request) {
-        String thumbnailPath = defaultThumbnailPath;
+    public QuizCreateResponse saveTextQuiz(MultipartFile thumbnailFile, TextQuizCreateRequest request) {
+        Quiz savedQuiz = saveQuiz(thumbnailFile, request);
 
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            validateImageFile(thumbnailFile);
-            thumbnailPath = convertToThumbnailPath(thumbnailFile);
-        }
-
-        Long creatorId = SecurityUtils.getCurrentUserId();
-        User creator =
-                userRepository
-                        .findById(creatorId)
-                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-
-        Quiz quiz = quizCreateRequestToQuiz(request, thumbnailPath, creator);
-
-        Quiz savedQuiz = quizRepository.save(quiz);
-
-        for (QuestionRequest qRequest : request.getQuestions()) {
-            questionService.saveQuestion(savedQuiz, qRequest);
+        for (TextQuestionRequest qRequest : request.getQuestions()) {
+            questionService.saveContentQuestion(
+                savedQuiz,
+                ContentQuestionRequest.of(qRequest.getContent(), qRequest.getAnswer()));
         }
 
         return quizToQuizCreateResponse(savedQuiz);
     }
 
-    private void validateImageFile(MultipartFile thumbnailFile) {
+    @Transactional
+    public QuizCreateResponse saveImageQuiz(MultipartFile thumbnailFile, ImageQuizCreateRequest request, List<MultipartFile> questionImageFiles) {
+        Quiz savedQuiz = saveQuiz(thumbnailFile, request);
 
+        validateImageQuestions(request.getQuestions(), questionImageFiles);
+
+        Iterator<MultipartFile> imageIter = questionImageFiles.iterator();
+
+        for (ImageQuestionRequest qRequest : request.getQuestions()) {
+            MultipartFile imageFile = imageIter.next();
+
+            if (hasFile(imageFile)) {
+                validateImageFile(imageFile);
+            } else {
+                throw new CustomException(QuestionErrorCode.INVALID_IMAGE_QUESTION_FILE);
+            }
+
+            String imagePath = FileManager.saveMultipartFile(imageFile, questionPath);
+            questionService.saveContentQuestion(
+                savedQuiz,
+                ContentQuestionRequest.of(imagePath, qRequest.answer()));
+        }
+
+        return quizToQuizCreateResponse(savedQuiz);
+    }
+
+    private Quiz saveQuiz(MultipartFile thumbnailFile, QuizCreateRequest request) {
+        String savedThumbnailPath = resolveThumbnail(thumbnailFile);
+        User creator = loadCreator();
+        Quiz quiz = quizCreateRequestToQuiz(request, savedThumbnailPath, creator);
+
+        return quizRepository.save(quiz);
+    }
+
+    private String resolveThumbnail(MultipartFile thumbnailFile) {
+        String path = thumbnailPath + defaultThumbnailFile;
+        if (hasFile(thumbnailFile)){
+            validateImageFile(thumbnailFile);
+            path = FileManager.saveMultipartFile(thumbnailFile, thumbnailPath);
+        }
+        return path;
+    }
+    
+    private User loadCreator() {
+        Long creatorId = SecurityUtils.getCurrentUserId();
+        return userRepository.findById(creatorId)
+            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    private void validateImageQuestions(
+            List<ImageQuestionRequest> requestQuestions, List<MultipartFile> questionImageFiles) {
+        if (requestQuestions.size() != questionImageFiles.size()) {
+            throw new CustomException(QuestionErrorCode.INVALID_IMAGE_QUESTION_SIZE);
+        }
+    }
+
+    private boolean hasFile(MultipartFile file) {
+        return file != null && !file.isEmpty();
+    }
+
+    private void validateImageFile(MultipartFile thumbnailFile) {
         if (!thumbnailFile.getContentType().startsWith("image")) {
             throw new CustomException(QuizErrorCode.UNSUPPORTED_MEDIA_TYPE);
         }
 
         List<String> allowedExt = List.of("jpg", "jpeg", "png", "webp");
-        String ext = getExtension(thumbnailFile.getOriginalFilename());
+        String ext = FileManager.getExtension(thumbnailFile.getOriginalFilename());
         if (!allowedExt.contains(ext)) {
             throw new CustomException(QuizErrorCode.UNSUPPORTED_IMAGE_FORMAT);
         }
-
-        if (thumbnailFile.getSize() > MAX_FILE_SIZE) {
-            throw new CustomException(QuizErrorCode.FILE_SIZE_TOO_LARGE);
-        }
-    }
-
-    private String convertToThumbnailPath(MultipartFile thumbnailFile) {
-        String originalFilename = thumbnailFile.getOriginalFilename();
-        String ext = getExtension(originalFilename);
-        String savedFilename = UUID.randomUUID().toString() + "." + ext;
-
-        try {
-            Path savePath = Paths.get(uploadPath, savedFilename).toAbsolutePath();
-            thumbnailFile.transferTo(savePath.toFile());
-        } catch (IOException e) {
-            log.error("썸네일 업로드 중 IOException 발생", e);
-            throw new CustomException(QuizErrorCode.THUMBNAIL_SAVE_FAILED);
-        }
-
-        return "/images/thumbnail/" + savedFilename;
-    }
-
-    private String getExtension(String filename) {
-        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
     }
 
     @Transactional
     public void deleteQuiz(Long quizId) {
-
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+        Quiz quiz = findQuiz(quizId);
 
         verifyUserAuthority(quiz);
 
-        deleteThumbnailFile(quiz.getThumbnailUrl());
+        deleteImageFile(quiz.getThumbnailUrl());
+        if (quiz.getQuizType().equals(QuizType.IMAGE)) {
+            for (Question question : quiz.getQuestions()) {
+                String imagePath = question.getContentQuestion().getContent();
+                deleteImageFile(imagePath);
+            }
+        }
         quizRepository.deleteById(quizId);
+    }
+
+    @Transactional
+    public void deleteQuestions(Long quizId, QuestionDeleteRequest request) {
+        Quiz quiz = findQuiz(quizId);
+
+        verifyUserAuthority(quiz);
+
+        for (Long questionId : request.questionIds()) {
+            questionService.deleteQuestion(questionId, quiz.getQuizType());
+        }
     }
 
     public static void verifyUserAuthority(Quiz quiz) {
@@ -150,62 +189,74 @@ public class QuizService {
     }
 
     @Transactional
-    public void updateQuizAndQuestions(Long quizId, QuizUpdateRequest request) {
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+    public void updateTextQuiz(Long quizId, TextQuizUpdateRequest request, MultipartFile thumbnailFile) {
+        Quiz quiz = updateQuiz(quizId, request, thumbnailFile);
+
+        for (TextQuestionUpdateRequest questionReq : request.getQuestions()) {
+            questionService.updateContentQuestions(
+                quiz,
+                ContentQuestionUpdateRequest.of(
+                    questionReq.getId(), questionReq.getContent(), questionReq.getAnswer()));
+        }
+    }
+
+    @Transactional
+    public void updateImageQuiz(Long quizId, ImageQuizUpdateRequest request, MultipartFile thumbnailFile, List<MultipartFile> questionImageFiles) {
+        Quiz quiz = updateQuiz(quizId, request, thumbnailFile);
+
+        if (questionImageFiles == null) {
+            questionImageFiles = new ArrayList<>();
+        }
+
+        Iterator<MultipartFile> fileIter = questionImageFiles.iterator();
+        for (ImageQuestionUpdateRequest questionReq : request.getQuestions()) {
+            String savedImagePath = null;
+            if (questionReq.hasImageFile() && fileIter.hasNext()) {
+                MultipartFile imageFile = fileIter.next();
+                if (hasFile(imageFile)) {
+                    validateImageFile(imageFile);
+                } else {
+                    throw new CustomException(QuestionErrorCode.INVALID_IMAGE_QUESTION_FILE);
+                }
+                savedImagePath = FileManager.saveMultipartFile(imageFile, questionPath);
+            }
+            questionService.updateContentQuestions(
+                quiz,
+                ContentQuestionUpdateRequest.of(
+                    questionReq.getId(), savedImagePath, questionReq.getAnswer()));
+        }
+    }
+
+    private Quiz updateQuiz(Long quizId, QuizUpdateRequest request, MultipartFile thumbnailFile) {
+        Quiz quiz = findQuiz(quizId);
 
         verifyUserAuthority(quiz);
 
         quiz.changeTitle(request.getTitle());
         quiz.changeDescription(request.getDescription());
 
-        List<QuestionUpdateRequest> questionReqList = request.getQuestions();
+        updateThumbnail(quiz, thumbnailFile);
 
-        for (QuestionUpdateRequest questionReq : questionReqList) {
-            questionService.updateQuestions(quiz, questionReq);
-        }
+        return quiz;
     }
 
-    @Transactional
-    public void updateThumbnail(Long quizId, MultipartFile thumbnailFile) {
-
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
-
-        verifyUserAuthority(quiz);
-
+    private void updateThumbnail(Quiz quiz, MultipartFile thumbnailFile) {
+        if(!hasFile(thumbnailFile)) return;
         validateImageFile(thumbnailFile);
-        String newThumbnailPath = convertToThumbnailPath(thumbnailFile);
 
-        deleteThumbnailFile(quiz.getThumbnailUrl());
+        String newThumbnailPath = FileManager.saveMultipartFile(thumbnailFile, thumbnailPath);
+        String oldThumbnailPath = quiz.getThumbnailUrl();
+
         quiz.changeThumbnailUrl(newThumbnailPath);
+        deleteImageFile(oldThumbnailPath);
     }
 
-    private void deleteThumbnailFile(String oldFilename) {
-        if (oldFilename.contains(DEFAULT)) {
+    private void deleteImageFile(String filePath) {
+        if (filePath.contains(defaultThumbnailFile)) {
             return;
         }
 
-        // oldFilename : /images/thumbnail/123asd.jpg
-        // filename : 123asd.jpg
-        String filename = oldFilename.substring(oldFilename.lastIndexOf("/") + 1);
-        Path filePath = Paths.get(uploadPath, filename).toAbsolutePath();
-
-        try {
-            boolean deleted = deleteIfExists(filePath);
-            if (deleted) {
-                log.info("기존 썸네일 삭제 완료 : {}", filePath);
-            } else {
-                log.info("기존 썸네일 존재 X : {}", filePath);
-            }
-        } catch (IOException e) {
-            log.error("기존 썸네일 삭제 중 오류 : {}", filePath);
-            throw new CustomException(QuizErrorCode.THUMBNAIL_DELETE_FAILED);
-        }
+        FileManager.deleteFile(filePath);
     }
 
     @Transactional(readOnly = true)
@@ -229,11 +280,7 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public Quiz getQuizWithQuestionsById(Long quizId) {
-        Quiz quiz =
-                quizRepository
-                        .findQuizWithQuestionsById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
-        return quiz;
+        return findQuizWithQuestions(quizId);
     }
 
     @Transactional(readOnly = true)
@@ -243,32 +290,37 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public QuizQuestionListResponse getQuizWithQuestions(Long quizId) {
-        Quiz quiz =
-                quizRepository
-                        .findById(quizId)
-                        .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+        Quiz quiz = findQuizWithQuestions(quizId);
 
         return quizToQuizQuestionListResponse(quiz);
     }
 
     @Transactional(readOnly = true)
     public List<Question> getRandomQuestionsWithoutAnswer(Long quizId, Integer round) {
-        quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 퀴즈입니다."));
+        findQuiz(quizId);
 
         return quizRepository.findRandQuestionsByQuizId(quizId, round);
     }
 
     @Transactional(readOnly = true)
     public Quiz findQuizById(Long quizId) {
-        return quizRepository
-                .findById(quizId)
-                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+        return findQuiz(quizId);
     }
 
     @Transactional(readOnly = true)
     public Long getQuestionsCount(Long quizId) {
         return quizRepository.countQuestionsByQuizId(quizId);
+    }
+
+    private Quiz findQuiz(Long quizId) {
+        return quizRepository
+                .findById(quizId)
+                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
+    }
+
+    private Quiz findQuizWithQuestions(Long quizId) {
+        return quizRepository
+                .findQuizWithQuestionsById(quizId)
+                .orElseThrow(() -> new CustomException(QuizErrorCode.QUIZ_NOT_FOUND));
     }
 }

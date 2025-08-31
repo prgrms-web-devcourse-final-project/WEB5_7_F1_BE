@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TextQuestion {
+public class ContentQuestion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,7 @@ public class TextQuestion {
     @Column(nullable = false)
     private String content;
 
-    public TextQuestion(Question question, String content) {
+    public ContentQuestion(Question question, String content) {
         this.question = question;
         this.content = content;
     }
