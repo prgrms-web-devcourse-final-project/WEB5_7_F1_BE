@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
         if ("text/event-stream".equals(request.getHeader("Accept"))) {
             return ResponseEntity.noContent().build();
         }
-        
+
         CommonErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
 
         ErrorResponse response = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
