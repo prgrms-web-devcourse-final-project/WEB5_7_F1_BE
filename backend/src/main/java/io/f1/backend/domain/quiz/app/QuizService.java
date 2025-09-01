@@ -24,7 +24,6 @@ import io.f1.backend.domain.quiz.dto.QuizUpdateRequest;
 import io.f1.backend.domain.quiz.dto.TextQuizCreateRequest;
 import io.f1.backend.domain.quiz.dto.TextQuizUpdateRequest;
 import io.f1.backend.domain.quiz.entity.Quiz;
-import io.f1.backend.domain.quiz.entity.QuizType;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
