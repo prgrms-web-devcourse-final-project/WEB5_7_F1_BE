@@ -159,17 +159,16 @@ public class QuizService {
 
     @Transactional
     public void deleteQuiz(Long quizId) {
-        Quiz quiz = findQuiz(quizId);
+        Quiz quiz = findQuizWithQuestions(quizId);
 
         verifyUserAuthority(quiz);
 
         deleteImageFile(quiz.getThumbnailUrl());
-        if (quiz.getQuizType().equals(QuizType.IMAGE)) {
-            for (Question question : quiz.getQuestions()) {
-                String imagePath = question.getContentQuestion().getContent();
-                deleteImageFile(imagePath);
-            }
+
+        for (Question question : quiz.getQuestions()) {
+            questionService.deleteQuestion(question.getId(), quiz.getQuizType());
         }
+
         quizRepository.deleteById(quizId);
     }
 
