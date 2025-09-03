@@ -1,6 +1,5 @@
 package io.f1.backend.domain.user;
 
-import static io.f1.backend.domain.user.constants.SessionKeys.USER;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.database.rider.core.api.dataset.DataSet;
 
-import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.dto.UserPrincipal;
 import io.f1.backend.global.template.BrowserTestTemplate;
 
@@ -37,7 +35,7 @@ public class TestUserBrowserTest extends BrowserTestTemplate {
 
         SecurityContext context = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
         assertThat(context.getAuthentication().getPrincipal()).isInstanceOf(UserPrincipal.class);
-        
+
         UserPrincipal userPrincipal = (UserPrincipal) context.getAuthentication().getPrincipal();
         assertThat(userPrincipal.getUserId()).isEqualTo(1L);
         assertThat(userPrincipal.getUserNickname()).isEqualTo("USER1");

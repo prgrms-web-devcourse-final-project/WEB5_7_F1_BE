@@ -1,9 +1,7 @@
 package io.f1.backend.domain.user.app;
 
-import static io.f1.backend.domain.user.constants.SessionKeys.USER;
 
 import io.f1.backend.domain.user.dao.UserRepository;
-import io.f1.backend.domain.user.dto.AuthenticationUser;
 import io.f1.backend.domain.user.entity.User;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.UserErrorCode;
@@ -32,7 +30,7 @@ public class TestUserService {
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        
+
         SecurityUtils.setAuthentication(user);
         SecurityContext context = SecurityContextHolder.getContext();
         session.setAttribute("SPRING_SECURITY_CONTEXT", context);
