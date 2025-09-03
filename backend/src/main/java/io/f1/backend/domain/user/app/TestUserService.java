@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,9 @@ public class TestUserService {
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        session.setAttribute(USER, AuthenticationUser.from(user));
+        
         SecurityUtils.setAuthentication(user);
+        SecurityContext context = SecurityContextHolder.getContext();
+        session.setAttribute("SPRING_SECURITY_CONTEXT", context);
     }
 }
