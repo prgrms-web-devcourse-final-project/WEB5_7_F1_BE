@@ -1,9 +1,11 @@
 package io.f1.backend.domain.stat.app;
 
 import io.f1.backend.domain.stat.dao.StatRepository;
+import io.f1.backend.domain.stat.dto.StatChangeEvent;
 import io.f1.backend.domain.stat.dto.StatPageResponse;
 import io.f1.backend.global.exception.CustomException;
 import io.f1.backend.global.exception.errorcode.RoomErrorCode;
+import io.f1.backend.global.util.kafka.KafkaProducer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StatService {
 
     private final StatRepository statRepository;
+    private final KafkaProducer kafkaProducer;
 
     @Transactional(readOnly = true)
     public StatPageResponse getRanks(Pageable pageable, String nickname) {
@@ -36,9 +39,11 @@ public class StatService {
         return response;
     }
 
-    // TODO: 게임 종료 후 호출 필요
     public void updateRank(long userId, boolean win, int deltaScore) {
         statRepository.updateRank(userId, win, deltaScore);
+
+        StatChangeEvent event = StatChangeEvent.of(userId, win, deltaScore);
+        kafkaProducer.sendWithKey("stat-changes", String.valueOf(userId), event);
     }
 
     public void addUser(long userId, String nickname) {

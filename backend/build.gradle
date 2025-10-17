@@ -53,6 +53,10 @@ dependencies {
 	testImplementation 'com.github.database-rider:rider-spring:1.44.0'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation "com.redis:testcontainers-redis:2.2.4"
+	testImplementation 'org.testcontainers:kafka:1.21.3'
+
+	/* KAFKA */
+	implementation 'org.springframework.kafka:spring-kafka'
 
 	/* ETC */
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
