@@ -59,11 +59,6 @@ public class StatRepositoryAdapter implements StatRepository {
     @Override
     public void updateRank(long userId, boolean win, int deltaScore) {
         redisRepository.updateRank(userId, win, deltaScore);
-        if (win) {
-            jpaRepository.updateStatByUserIdCaseWin(deltaScore, userId);
-        } else {
-            jpaRepository.updateStatByUserIdCaseLose(deltaScore, userId);
-        }
     }
 
     @Override
