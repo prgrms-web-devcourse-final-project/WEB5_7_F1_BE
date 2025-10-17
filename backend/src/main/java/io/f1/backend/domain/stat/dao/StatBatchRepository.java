@@ -1,8 +1,10 @@
 package io.f1.backend.domain.stat.dao;
 
 import io.f1.backend.domain.stat.dto.StatChangeEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -21,13 +23,9 @@ public class StatBatchRepository {
             return;
         }
 
-        List<StatChangeEvent> winEvents = events.stream()
-                .filter(StatChangeEvent::isWin)
-                .toList();
-        
-        List<StatChangeEvent> loseEvents = events.stream()
-                .filter(e -> !e.isWin())
-                .toList();
+        List<StatChangeEvent> winEvents = events.stream().filter(StatChangeEvent::isWin).toList();
+
+        List<StatChangeEvent> loseEvents = events.stream().filter(e -> !e.isWin()).toList();
 
         if (!winEvents.isEmpty()) {
             batchUpdateWinStats(winEvents);
@@ -39,21 +37,24 @@ public class StatBatchRepository {
     }
 
     private void batchUpdateWinStats(List<StatChangeEvent> events) {
-        StringBuilder sql = new StringBuilder("""
-            UPDATE stat SET
-                total_games = total_games + 1,
-                winning_games = winning_games + 1,
-                score = score + CASE user_id
-            """);
+        StringBuilder sql =
+                new StringBuilder(
+                        """
+                        UPDATE stat SET
+                            total_games = total_games + 1,
+                            winning_games = winning_games + 1,
+                            score = score + CASE user_id
+                        """);
 
         for (StatChangeEvent event : events) {
             sql.append(String.format("WHEN %d THEN %d ", event.getUserId(), event.getDeltaScore()));
         }
-        
+
         sql.append("END WHERE user_id IN (");
-        sql.append(events.stream()
-                .map(e -> String.valueOf(e.getUserId()))
-                .collect(Collectors.joining(",")));
+        sql.append(
+                events.stream()
+                        .map(e -> String.valueOf(e.getUserId()))
+                        .collect(Collectors.joining(",")));
         sql.append(")");
 
         int updatedRows = jdbcTemplate.update(sql.toString());
@@ -61,24 +62,26 @@ public class StatBatchRepository {
     }
 
     private void batchUpdateLoseStats(List<StatChangeEvent> events) {
-        StringBuilder sql = new StringBuilder("""
-            UPDATE stat SET
-                total_games = total_games + 1,
-                score = score + CASE user_id
-            """);
+        StringBuilder sql =
+                new StringBuilder(
+                        """
+                        UPDATE stat SET
+                            total_games = total_games + 1,
+                            score = score + CASE user_id
+                        """);
 
         for (StatChangeEvent event : events) {
             sql.append(String.format("WHEN %d THEN %d ", event.getUserId(), event.getDeltaScore()));
         }
-        
+
         sql.append("END WHERE user_id IN (");
-        sql.append(events.stream()
-                .map(e -> String.valueOf(e.getUserId()))
-                .collect(Collectors.joining(",")));
+        sql.append(
+                events.stream()
+                        .map(e -> String.valueOf(e.getUserId()))
+                        .collect(Collectors.joining(",")));
         sql.append(")");
 
         int updatedRows = jdbcTemplate.update(sql.toString());
         log.debug("Batch updated {} lose stats", updatedRows);
     }
 }
-

@@ -6,19 +6,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-
 @Testcontainers
 @TestConfiguration
 public class KafkaTestContainerConfig {
 
     @Container
     public static ConfluentKafkaContainer kafkaContainer =
-        new ConfluentKafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.1"))
-            .withExposedPorts(9092);
+            new ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"))
+                    .withExposedPorts(9092);
 
     static {
         kafkaContainer.start();
-        System.setProperty("spring.kafka.bootstrap-servers", kafkaContainer.getHost() + ":" + kafkaContainer.getMappedPort(9092));
+        System.setProperty(
+                "spring.kafka.bootstrap-servers",
+                kafkaContainer.getHost() + ":" + kafkaContainer.getMappedPort(9092));
     }
 }

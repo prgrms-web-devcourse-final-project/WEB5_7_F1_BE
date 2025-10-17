@@ -11,12 +11,14 @@ import io.f1.backend.domain.stat.dto.StatWithUserSummary;
 import io.f1.backend.domain.user.dao.UserRepository;
 import io.f1.backend.global.config.KafkaTestContainerConfig;
 import io.f1.backend.global.util.kafka.KafkaProducer;
+
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+
 import java.time.Duration;
 
 @DBRider
@@ -34,7 +36,8 @@ class KafkaStatTest {
     void kafkaConsumerProcessesGameResultAsynchronously() throws Exception {
         // given
         long userId = 1L;
-        StatWithUserSummary originalStat = statJpaRepository.findStatWithUserSummary(userId).orElseThrow(AssertionError::new);
+        StatWithUserSummary originalStat =
+                statJpaRepository.findStatWithUserSummary(userId).orElseThrow(AssertionError::new);
 
         int deltaScore = 100;
         StatChangeEvent event = StatChangeEvent.of(userId, true, deltaScore);
@@ -47,7 +50,8 @@ class KafkaStatTest {
                 .until(() -> isStatUpdated(userId, originalStat.score() + deltaScore));
 
         // then
-        StatWithUserSummary updatedStat = statJpaRepository.findStatWithUserSummary(userId).orElseThrow(AssertionError::new);
+        StatWithUserSummary updatedStat =
+                statJpaRepository.findStatWithUserSummary(userId).orElseThrow(AssertionError::new);
         assertThat(updatedStat.score()).isEqualTo(originalStat.score() + deltaScore);
         assertThat(updatedStat.totalGames()).isEqualTo(originalStat.totalGames() + 1);
         assertThat(updatedStat.winningGames()).isEqualTo(originalStat.winningGames() + 1);
@@ -55,7 +59,11 @@ class KafkaStatTest {
 
     private boolean isStatUpdated(long userId, long expectedScore) {
         try {
-            return statJpaRepository.findStatWithUserSummary(userId).orElseThrow(AssertionError::new).score() == expectedScore;
+            return statJpaRepository
+                            .findStatWithUserSummary(userId)
+                            .orElseThrow(AssertionError::new)
+                            .score()
+                    == expectedScore;
         } catch (Exception e) {
             return false;
         }

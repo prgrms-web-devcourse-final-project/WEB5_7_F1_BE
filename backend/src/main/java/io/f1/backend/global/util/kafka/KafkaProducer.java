@@ -1,12 +1,13 @@
 package io.f1.backend.global.util.kafka;
 
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
