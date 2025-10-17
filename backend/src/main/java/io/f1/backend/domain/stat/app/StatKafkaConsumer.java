@@ -26,17 +26,14 @@ public class StatKafkaConsumer {
     @Transactional
     @KafkaListener(topics = "stat-changes")
     public void handleStatChanges(List<String> messages) {
-        log.info("Received {} messages from Kafka", messages.size());
 
         try {
-            // JSON 문자열을 StatChangeEvent 객체로 변환
             List<StatChangeEvent> events = new ArrayList<>();
             for (String message : messages) {
                 StatChangeEvent event = objectMapper.readValue(message, StatChangeEvent.class);
                 events.add(event);
             }
 
-            log.info("Processing {} stat change events", events.size());
             statBatchRepository.batchUpdateStats(events);
 
         } catch (Exception e) {
